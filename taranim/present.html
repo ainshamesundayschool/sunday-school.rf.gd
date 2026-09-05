@@ -857,7 +857,8 @@
       vertical-align: middle;
     }
 
-    .obs-line-segment.line-highlighted {
+    .obs-line-segment.line-highlighted,
+    .obs-line-segment.line-unhighlighting {
       position: relative !important;
       isolation: isolate !important;
       z-index: 5 !important;
@@ -866,26 +867,30 @@
       font-weight: inherit !important;
     }
 
-    .obs-line-segment.line-highlighted::before {
+    .obs-line-segment.line-highlighted::before,
+    .obs-line-segment.line-unhighlighting::before {
       content: '' !important;
       position: absolute !important;
-      inset: -0.06em -0.22em -0.04em -0.22em !important;
+      inset: 0.04em 0.08em !important;
       background: var(--highlight-bg, rgba(239, 68, 68, 0.85)) !important;
-      border-radius: 0.18em !important;
+      border-radius: 0.15em !important;
       z-index: -1 !important;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
-      opacity: 1 !important;
       display: block !important;
       pointer-events: none !important;
     }
 
+    .obs-line-segment.line-highlighted::before {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
+      opacity: 1 !important;
+    }
+
     .obs-line-segment.line-animating::before {
-      animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      animation: highlightLinearWipeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
       will-change: clip-path, opacity !important;
     }
 
-    @keyframes highlightLinearWipe {
+    @keyframes highlightLinearWipeIn {
       0% {
         clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
         opacity: 0;
@@ -897,14 +902,17 @@
     }
 
     .obs-line-segment.line-unhighlighting::before {
-      animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      animation: highlightLinearWipeOut 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+      will-change: clip-path, opacity !important;
     }
 
-    @keyframes highlightFadeOut {
+    @keyframes highlightLinearWipeOut {
       0% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
         opacity: 1;
       }
       100% {
+        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
         opacity: 0;
       }
     }
@@ -1071,18 +1079,7 @@
     let isStingerActive = false;
     let currentIsBible = false;
 
-    function requestAutoFullscreen() {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-    }
-
-    window.addEventListener('click', (e) => {
-      if (e && e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
-      requestAutoFullscreen();
-    });
-    window.addEventListener('touchstart', requestAutoFullscreen);
-    window.addEventListener('pointerdown', requestAutoFullscreen);
+    let _isFullscreenPending = false;
 
     const urlParams = new URLSearchParams(window.location.search);
     let initialChroma = urlParams.get('chroma');
@@ -1136,8 +1133,14 @@
     setTimeout(maximizeToScreen, 500);
 
     if (isAutoFS) {
-      window.addEventListener('click', () => window.triggerFullscreen(), { once: true });
-      window.addEventListener('keydown', () => window.triggerFullscreen(), { once: true });
+      window.addEventListener('click', (e) => {
+        if (e && e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
+        requestAutoFullscreen(e);
+      }, { once: true });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'f' || e.key === 'F' || e.code === 'KeyF' || e.key === 'ب' || e.key === '[') return;
+        requestAutoFullscreen(e);
+      }, { once: true });
 
       window.addEventListener('load', () => {
         maximizeToScreen();
@@ -1182,25 +1185,27 @@
     box.style.top = currentPivot.yPct + '%';
     box.style.transform = 'translate3d(-50%, -50%, 0)';
 
-    window.triggerFullscreen = function() {
-      if (!document.fullscreenElement) {
-        const docEl = document.documentElement;
-        if (docEl.requestFullscreen) {
-          docEl.requestFullscreen().catch(() => {});
-        } else if (docEl.webkitRequestFullscreen) {
-          docEl.webkitRequestFullscreen();
-        }
+    window.triggerFullscreen = function(e) {
+      if (typeof requestAutoFullscreen === 'function') {
+        requestAutoFullscreen(e);
       }
     };
 
     const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
 
     document.addEventListener('fullscreenchange', () => {
+      _isFullscreenPending = false;
+      if (typeof updateFullscreenBtnIcon === 'function') updateFullscreenBtnIcon();
       if (document.fullscreenElement) {
         try {
           if (channel) channel.postMessage({ action: 'EXTERNAL_FULLSCREEN_ACTIVATED' });
         } catch(err) {}
       }
+    });
+
+    document.addEventListener('webkitfullscreenchange', () => {
+      _isFullscreenPending = false;
+      if (typeof updateFullscreenBtnIcon === 'function') updateFullscreenBtnIcon();
     });
 
     function triggerNextSlide() {
@@ -1307,7 +1312,17 @@
         try { if (channel) channel.postMessage({ action: 'TOGGLE_STANDBY' }); } catch(err) {}
       } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب' || e.key === '[' || e.code === 'KeyF') {
         e.preventDefault();
-        requestAutoFullscreen();
+        if (_isFullscreenPending) return;
+        const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        if (!isFS) {
+          requestAutoFullscreen(e);
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          } else if (document.webkitExitFullscreen) {
+            try { document.webkitExitFullscreen(); } catch(err) {}
+          }
+        }
       }
     });
 
@@ -1526,35 +1541,49 @@
     })();
 
     async function requestAutoFullscreen(e) {
-      if (document.fullscreenElement) return;
-      if (e && e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left')) return;
+      if (document.fullscreenElement || document.webkitFullscreenElement || _isFullscreenPending) return;
+      if (e && e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
 
-      // First interaction: request screen permission if not yet granted
-      if (!_screenDetailsReady && 'getScreenDetails' in window) {
-        try {
-          const details = await window.getScreenDetails();
-          const sIdx = screenIdx !== null ? parseInt(screenIdx) : -1;
-          if (details && details.screens && sIdx >= 0 && details.screens[sIdx]) {
-            _targetScreen = details.screens[sIdx];
-          } else if (details && details.screens && details.screens.length > 1) {
-            _targetScreen = details.screens.find(s => !s.isPrimary) || details.screens[1];
+      _isFullscreenPending = true;
+
+      try {
+        // First interaction: request screen permission if not yet granted
+        if (!_screenDetailsReady && 'getScreenDetails' in window) {
+          try {
+            const details = await window.getScreenDetails();
+            const sIdx = screenIdx !== null ? parseInt(screenIdx) : -1;
+            if (details && details.screens && sIdx >= 0 && details.screens[sIdx]) {
+              _targetScreen = details.screens[sIdx];
+            } else if (details && details.screens && details.screens.length > 1) {
+              _targetScreen = details.screens.find(s => !s.isPrimary) || details.screens[1];
+            }
+            _screenDetailsReady = true;
+          } catch(e) { _screenDetailsReady = true; }
+        }
+
+        // Fullscreen on secondary screen if available, otherwise normal fullscreen
+        if (_targetScreen && document.documentElement.requestFullscreen) {
+          try {
+            await document.documentElement.requestFullscreen({ screen: _targetScreen });
+          } catch(err) {
+            // Fallback to normal fullscreen
+            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+              await document.documentElement.requestFullscreen().catch(() => {});
+            }
           }
-          _screenDetailsReady = true;
-        } catch(e) { _screenDetailsReady = true; }
-      }
-
-      // Fullscreen on secondary screen if available, otherwise normal fullscreen
-      if (_targetScreen && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen({ screen: _targetScreen }).catch(() => {
-          // Fallback to normal fullscreen
-          document.documentElement.requestFullscreen().catch(() => {});
-        });
-      } else if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        }
+      } catch(err) {
+        console.warn('requestAutoFullscreen failed:', err);
+      } finally {
+        setTimeout(() => { _isFullscreenPending = false; }, 600);
       }
     }
     window.addEventListener('click', requestAutoFullscreen);
-    window.addEventListener('touchstart', requestAutoFullscreen);
+    window.addEventListener('touchstart', requestAutoFullscreen, { passive: true });
     window.addEventListener('pointerdown', requestAutoFullscreen);
 
     // DRAGGING LOGIC (ONLY ENABLED IN GREEN SCREEN CHROMA MODE)
@@ -2404,13 +2433,17 @@
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
             seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+            seg.classList.remove('line-unhighlighting');
             if (!seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-unhighlighting');
               seg.classList.add('line-highlighted', 'line-animating');
-              setTimeout(() => seg.classList.remove('line-animating'), 650);
+              setTimeout(() => seg.classList.remove('line-animating'), 550);
             }
           } else {
-            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+            if (seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-highlighted', 'line-animating');
+              seg.classList.add('line-unhighlighting');
+              setTimeout(() => seg.classList.remove('line-unhighlighting'), 450);
+            }
           }
         });
 

@@ -1734,10 +1734,10 @@ document.addEventListener('DOMContentLoaded', () => {
       url: '',
       loop: true
     },
-    transitionConfig: savedMediaConfig.transitionConfig || {
-      type: 'stinger',
-      stingerUrl: 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
-      cutPointMs: 1200
+    transitionConfig: (savedMediaConfig.transitionConfig && savedMediaConfig.transitionConfig.type && (savedMediaConfig.transitionConfig.userSelected || savedMediaConfig.transitionConfig.type !== 'stinger')) ? savedMediaConfig.transitionConfig : {
+      type: 'fade',
+      stingerUrl: (savedMediaConfig.transitionConfig && savedMediaConfig.transitionConfig.stingerUrl) || 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
+      cutPointMs: (savedMediaConfig.transitionConfig && savedMediaConfig.transitionConfig.cutPointMs) || 1200
     },
     textTransform: savedMediaConfig.textTransform || {
       scale: 100,
@@ -1920,7 +1920,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="active-cast-pill" class="active-cast-pill">
           <button type="button" id="btn-menu-cast" class="cast-live-badge-icon" title="البث والشاشات (فتح القائمة)">
             <span class="cast-live-dot"></span>
-            <i class="fa-solid fa-tv"></i>
+            <i class="fa-brands fa-chromecast"></i>
           </button>
           <span id="display-pill-timer" class="cast-timer-text">00:00</span>
           <button type="button" id="btn-close-cast-window" class="btn-close-cast-pill" title="إغلاق شاشة العرض الخارجي">
@@ -1988,7 +1988,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       container.innerHTML = `
         <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
-          <i class="fa-solid fa-tv"></i>
+          <i class="fa-brands fa-chromecast"></i>
         </button>
       `;
       const castBtn = container.querySelector('#btn-menu-cast');
@@ -2064,7 +2064,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (event.data.action === 'TOGGLE_STANDBY') {
         toggleStandbyMode(true);
       } else if (event.data.action === 'EXTERNAL_FULLSCREEN_ACTIVATED') {
-        window.focus();
         hideExternalFullscreenNotice();
       }
       if (event.data.type === 'UPDATE_POS' || event.data.pos) {
@@ -3990,7 +3989,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function openBibleChapterByBookAndChapter(bookId, chNum) {
+  async function openBibleChapterByBookAndChapter(bookId, chNum, searchTarget = null) {
     const bId = parseInt(bookId);
     const cNum = parseInt(chNum);
     const bookObj = (typeof BIBLE_BOOKS_DATA !== 'undefined' && Array.isArray(BIBLE_BOOKS_DATA)) ? BIBLE_BOOKS_DATA.find(b => parseInt(b.id) === bId) : null;
@@ -4003,7 +4002,7 @@ document.addEventListener('DOMContentLoaded', () => {
       is_bible: true,
       title: bookTitle ? `سفر ${bookTitle} - الأصحاح ${cNum}` : `الكتاب المقدس - الأصحاح ${cNum}`
     };
-    await openAndPresentItem(syntheticItem, true);
+    await openAndPresentItem(syntheticItem, true, searchTarget);
   }
 
   function saveUserSettings() {
@@ -6277,7 +6276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // TAB 4: STANDBY & TRANSITIONS
         standbyConfig: state.standbyConfig ? JSON.parse(JSON.stringify(state.standbyConfig)) : { type: 'logo', url: '', fitMode: 'cover', loop: true },
-        transitionConfig: state.transitionConfig ? JSON.parse(JSON.stringify(state.transitionConfig)) : { type: 'stinger', stingerUrl: '', cutPointMs: 1200 }
+        transitionConfig: state.transitionConfig ? JSON.parse(JSON.stringify(state.transitionConfig)) : { type: 'fade', stingerUrl: '', cutPointMs: 1200 }
       };
     }
 
@@ -7291,7 +7290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // TAB 4: STANDBY & TRANSITIONS
         standbyConfig: s.standbyConfig || raw.standbyConfig || { type: 'logo', url: '', fitMode: 'cover', loop: true },
-        transitionConfig: s.transitionConfig || raw.transitionConfig || { type: 'stinger', stingerUrl: '', cutPointMs: 1200 }
+        transitionConfig: s.transitionConfig || raw.transitionConfig || { type: 'fade', stingerUrl: '', cutPointMs: 1200 }
       };
     };
 
@@ -7863,7 +7862,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. TRANSITIONS CONFIG HANDLERS ---
     const updateTransitionUI = () => {
-      const type = state.transitionConfig?.type || 'stinger';
+      const type = state.transitionConfig?.type || 'fade';
       if (els.transitionTypeSelect) els.transitionTypeSelect.value = type;
 
       document.querySelectorAll('.transition-source-segmented .segmented-btn').forEach(btn => {
@@ -7881,9 +7880,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.transition-source-segmented .segmented-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const type = btn.getAttribute('data-trans-type') || 'stinger';
+        const type = btn.getAttribute('data-trans-type') || 'fade';
         if (!state.transitionConfig) state.transitionConfig = {};
         state.transitionConfig.type = type;
+        state.transitionConfig.userSelected = true;
         updateTransitionUI();
         saveMediaConfig();
         syncLiveState();
@@ -7900,7 +7900,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (els.transitionTypeSelect) {
       els.transitionTypeSelect.addEventListener('change', (e) => {
+        if (!state.transitionConfig) state.transitionConfig = {};
         state.transitionConfig.type = e.target.value;
+        state.transitionConfig.userSelected = true;
         updateTransitionUI();
         saveMediaConfig();
         syncLiveState();
@@ -8064,6 +8066,142 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
+  function isVarietyUrlCached(url, tmplId) {
+    if (!url) return false;
+    if (tmplId && isTemplatePrerendered(tmplId)) return true;
+    try {
+      return localStorage.getItem('sunday_school_var_cached_' + url) === 'true';
+    } catch(e) {
+      return false;
+    }
+  }
+
+  async function downloadSingleVariety(tmpl, variety, btnEl, cardEl) {
+    if (!tmpl || !variety || !variety.url) return;
+    const url = variety.url;
+    const varName = variety.name || 'النمط المختار';
+
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.classList.add('downloading');
+      btnEl.classList.remove('cached');
+      btnEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>جاري التحميل...</span>`;
+    }
+
+    try {
+      let cache = null;
+      if ('caches' in window) {
+        cache = await caches.open('taranim-pwa-v39');
+      }
+
+      const isVid = /\.(mp4|webm|mov)$/i.test(url);
+      const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url);
+
+      if (cache) {
+        try {
+          await cache.delete(url);
+          const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+          const res = await fetch(fetchUrl, { cache: 'reload' });
+          if (res && res.ok) {
+            await cache.put(url, res.clone());
+          }
+        } catch(err) {
+          try {
+            const res2 = await fetch(url, { cache: 'force-cache' });
+            if (res2 && res2.ok) await cache.put(url, res2.clone());
+          } catch(e2) {}
+        }
+
+        if (variety.thumbUrl && variety.thumbUrl !== url) {
+          try {
+            const tRes = await fetch(variety.thumbUrl, { cache: 'force-cache' });
+            if (tRes && tRes.ok) await cache.put(variety.thumbUrl, tRes.clone());
+          } catch(e) {}
+        }
+      }
+
+      if (isImg) {
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+        });
+      } else if (isVid) {
+        await new Promise((resolve) => {
+          const vid = document.createElement('video');
+          vid.preload = 'auto';
+          vid.muted = true;
+          vid.oncanplaythrough = () => resolve();
+          vid.onerror = () => resolve();
+          setTimeout(resolve, 3000);
+          vid.src = url;
+          vid.load();
+        });
+      }
+
+      try {
+        localStorage.setItem('sunday_school_var_cached_' + url, 'true');
+      } catch(e) {}
+
+      if (cardEl) {
+        const activeCircle = cardEl.querySelector(`.template-variety-circle[data-url="${CSS.escape(url)}"]`);
+        if (activeCircle) {
+          activeCircle.dataset.cached = '1';
+          activeCircle.classList.add('is-cached');
+          activeCircle.title = `${varName} (جاهز أوفلاين)`;
+          if (!activeCircle.querySelector('.var-check-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'var-check-badge';
+            badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+            activeCircle.appendChild(badge);
+          }
+        }
+
+        const allVars = tmpl.varieties || [];
+        const allDone = allVars.every(v => isVarietyUrlCached(v.url, tmpl.id));
+        if (allDone) {
+          setTemplatePrerendered(tmpl.id, true, getTemplateVersion(tmpl));
+          const allBtn = cardEl.querySelector('.btn-prerender-template-card');
+          if (allBtn) {
+            allBtn.remove();
+          }
+        }
+
+        const applyBtn = cardEl.querySelector('.btn-apply-template-card');
+        if (applyBtn) {
+          applyBtn.style.display = 'inline-flex';
+          applyBtn.classList.remove('hidden');
+        }
+
+        const statusPill = cardEl.querySelector(`#tmpl-var-status-${tmpl.id}`);
+        if (statusPill) {
+          statusPill.className = 'variety-status-pill cached';
+          statusPill.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز';
+        }
+      }
+
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.classList.remove('downloading');
+        btnEl.classList.add('cached');
+        btnEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">النمط جاهز</span>`;
+        btnEl.title = `النمط "${varName}" محمل وجاهز للعرض`;
+      }
+
+      showToast(`✅ تم تحميل النمط "${varName}" بنجاح وجاهز للعرض!`);
+
+    } catch(err) {
+      console.error('Failed to download variety:', err);
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.classList.remove('downloading');
+        btnEl.innerHTML = `<i class="fa-solid fa-download"></i> <span>إعادة المحاولة</span>`;
+      }
+      showToast(`تعذر تحميل النمط "${varName}". تحقق من الاتصال بالإنترنت.`);
+    }
+  }
+
   async function prerenderTemplateAssets(tmpl, btnEl, onProgress) {
     const assets = getTemplateAssets(tmpl);
     const tmplVer = getTemplateVersion(tmpl);
@@ -8092,7 +8230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cache = null;
     try {
       if ('caches' in window) {
-        cache = await caches.open('taranim-pwa-v36');
+        cache = await caches.open('taranim-pwa-v39');
       }
     } catch(e) {}
 
@@ -8154,26 +8292,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     await Promise.all(promises);
 
+    if (tmpl.varieties && Array.isArray(tmpl.varieties)) {
+      tmpl.varieties.forEach(v => {
+        if (v && v.url) {
+          try {
+            localStorage.setItem('sunday_school_var_cached_' + v.url, 'true');
+          } catch(e) {}
+        }
+      });
+    }
+
     setTemplatePrerendered(tmpl.id, true, tmplVer);
     if (btnEl) {
-      btnEl.disabled = false;
-      btnEl.classList.remove('downloading', 'btn-warning');
-      btnEl.classList.add('cached');
-      const sizeMB = getTemplateEstimatedSizeMB(tmpl);
-      const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
-      btnEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز للعرض${sizeStr}</span>`;
-      btnEl.title = 'تم تحميل وتجهيز كافة خلفيات وفيديوهات هذا القالب بنجاح للعرض الفوري بدون تأخير';
-
       const card = btnEl.closest('.template-preview-card');
       if (card) {
         const updateBadge = card.querySelector('.template-update-badge');
         if (updateBadge) updateBadge.remove();
+
+        // Update all variety circles with checked badge
+        card.querySelectorAll('.template-variety-circle').forEach(c => {
+          c.classList.add('is-cached');
+          c.dataset.cached = '1';
+          if (!c.querySelector('.var-check-badge')) {
+            const badge = document.createElement('span');
+            badge.className = 'var-check-badge';
+            badge.innerHTML = '<i class="fa-solid fa-check"></i>';
+            c.appendChild(badge);
+          }
+        });
+
+        const singleBtn = card.querySelector('.btn-download-single-var');
+        if (singleBtn) {
+          singleBtn.disabled = false;
+          singleBtn.classList.add('cached');
+          singleBtn.classList.remove('downloading');
+          singleBtn.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span>النمط جاهز</span>`;
+        }
+
+        const statusPill = card.querySelector(`#tmpl-var-status-${tmpl.id}`);
+        if (statusPill) {
+          statusPill.className = 'variety-status-pill cached';
+          statusPill.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز';
+        }
 
         const applyBtn = card.querySelector('.btn-apply-template-card');
         if (applyBtn) {
           applyBtn.style.display = 'inline-flex';
           applyBtn.classList.remove('hidden');
         }
+
+        // Remove the prerender button now that template is fully downloaded
+        btnEl.remove();
       }
     }
 
@@ -8233,7 +8402,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <i class="fa-solid fa-layer-group" style="color:#f59e0b;"></i>
               <span>${escapeHtml(t.name)}</span>
               <span style="background:#fef3c7; color:#d97706; font-size:0.7rem; padding:2px 7px; border-radius:10px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
-                <i class="fa-solid fa-sparkles"></i> إصدار جديد
+                <i class="fa-solid fa-circle-arrow-up"></i> إصدار جديد
               </span>
             </div>
             <div class="template-update-prompt-item-desc">${escapeHtml(t.category || 'عام')} • الحجم التقديري:${sizeStr}</div>
@@ -8407,7 +8576,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="template-thumb-container">
               <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(t.thumbnailUrl)}" alt="${escapeHtml(t.name)}" loading="lazy">
               ${updateBadgeHtml}
-              <span class="template-badge-pill"><i class="icon-star-sparkle" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
+              <span class="template-badge-pill"><i class="fa-solid fa-users" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
               <div class="template-components-chips">
                 ${t.standby ? '<span class="template-comp-chip"><i class="fa-solid fa-photo-film"></i> شاشة انتظار</span>' : ''}
                 ${t.slidesBg ? '<span class="template-comp-chip"><i class="fa-solid fa-image"></i> خلفية شرائح</span>' : ''}
@@ -8423,7 +8592,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="font-size:0.95rem; font-weight:800; color:#fff;">${escapeHtml(t.name)}</div>
               </div>
               ${updateBadgeHtml}
-              <span class="template-badge-pill"><i class="icon-star-sparkle" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
+              <span class="template-badge-pill"><i class="fa-solid fa-users" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
               <div class="template-components-chips">
                 ${t.standby ? '<span class="template-comp-chip"><i class="fa-solid fa-photo-film"></i> شاشة انتظار</span>' : ''}
                 ${t.slidesBg ? '<span class="template-comp-chip"><i class="fa-solid fa-image"></i> خلفية شرائح</span>' : ''}
@@ -8455,7 +8624,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="template-card-body">
               <div class="template-card-header">
                 <div class="template-card-title">
-                  <i class="fa-solid fa-sparkles" style="color:#2563eb;"></i>
+                  <i class="fa-solid fa-layer-group" style="color:#2563eb;"></i>
                   <span>${escapeHtml(t.name)}</span>
                 </div>
               </div>
@@ -8466,6 +8635,9 @@ document.addEventListener('DOMContentLoaded', () => {
                   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; gap:8px; flex-wrap:wrap;">
                     <div class="template-varieties-label">
                       <i class="fa-solid fa-palette"></i> النمط المختار: <b id="tmpl-selected-var-name-${escapeHtml(t.id)}" style="color:#2563eb;">${escapeHtml(initialVarName)}</b>
+                      <span class="variety-status-pill ${isVarietyUrlCached(initialVarUrl, t.id) ? 'cached' : 'not-cached'}" id="tmpl-var-status-${escapeHtml(t.id)}">
+                        ${isVarietyUrlCached(initialVarUrl, t.id) ? '<i class="fa-solid fa-circle-check"></i> جاهز' : '<i class="fa-solid fa-cloud"></i> غير محمل'}
+                      </span>
                     </div>
                     <label class="template-shuffle-toggle" title="تفعيل التبديل العشوائي التلقائي لخلفيات هذه المجموعة عند كل ترنيمة جديدة دون تكرار">
                       <input type="checkbox" class="chk-template-shuffle" data-tmpl-id="${escapeHtml(t.id)}" ${isTemplateShuffleEnabled(t.id) ? 'checked' : ''}>
@@ -8473,9 +8645,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </label>
                   </div>
                   <div class="template-varieties-bar">
-                    ${t.varieties.map((v, vIdx) => `
-                      <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-variety-idx="${vIdx}" data-url="${escapeHtml(v.url)}" data-thumb-url="${escapeHtml(v.thumbUrl || v.url)}" data-name="${escapeHtml(v.name)}" title="${escapeHtml(v.name)}" style="background-image: url('${escapeHtml(v.thumbUrl || v.url)}');"></button>
-                    `).join('')}
+                    ${t.varieties.map((v, vIdx) => {
+                      const isVarCached = isVarietyUrlCached(v.url, t.id);
+                      return `
+                        <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''} ${isVarCached ? 'is-cached' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-variety-idx="${vIdx}" data-url="${escapeHtml(v.url)}" data-thumb-url="${escapeHtml(v.thumbUrl || v.url)}" data-name="${escapeHtml(v.name)}" data-cached="${isVarCached ? '1' : '0'}" title="${escapeHtml(v.name)}${isVarCached ? ' (جاهز أوفلاين)' : ''}" style="background-image: url('${escapeHtml(v.thumbUrl || v.url)}');">
+                          ${isVarCached ? '<span class="var-check-badge"><i class="fa-solid fa-check"></i></span>' : ''}
+                        </button>
+                      `;
+                    }).join('')}
                   </div>
                 </div>
               ` : ''}
@@ -8486,6 +8663,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const sizeMB = getTemplateEstimatedSizeMB(t);
                     const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
                     const isCached = t.isCustom || isTemplatePrerendered(t.id);
+                    const isInitialVarCached = hasVarieties ? isVarietyUrlCached(initialVarUrl, t.id) : isCached;
+                    const canApply = hasVarieties ? (isInitialVarCached || isCached) : isCached;
                     
                     if (hasUpdate) {
                       return `
@@ -8493,20 +8672,38 @@ document.addEventListener('DOMContentLoaded', () => {
                           <i class="fa-solid fa-arrows-rotate"></i> <span>تحديث القالب</span> <span class="prerender-size-badge">${sizeStr}</span>
                         </button>
                         <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;" title="تطبيق النسخة الحالية">
-                          <i class="icon-star-sparkle"></i> تطبيق القالب
+                          <i class="fa-solid fa-check"></i> تطبيق القالب
+                        </button>
+                      `;
+                    }
+
+                    if (hasVarieties) {
+                      return `
+                        <button type="button" class="btn-download-single-var btn btn-sm ${isInitialVarCached ? 'cached' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-variety-idx="0" data-url="${escapeHtml(initialVarUrl)}" data-name="${escapeHtml(initialVarName)}" title="${isInitialVarCached ? 'النمط المختار محمل مسبقاً' : 'تحميل النمط المختار حالياً فقط'}">
+                          ${isInitialVarCached 
+                            ? `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span>النمط جاهز</span>` 
+                            : `<i class="fa-solid fa-download"></i> <span>تحميل هذا النمط</span>`
+                          }
+                        </button>
+                        ${!isCached ? `
+                          <button type="button" class="btn-prerender-template-card btn btn-sm" data-tmpl-id="${escapeHtml(t.id)}" title="تحميل وتجهيز جميع الأنماط (${t.varieties.length}) دفعة واحدة">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> <span>تحميل الكل (${t.varieties.length})</span> <span class="prerender-size-badge">${sizeStr}</span>
+                          </button>
+                        ` : ''}
+                        <button type="button" class="btn-apply-template-card btn btn-sm btn-primary ${canApply ? '' : 'hidden'}" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}" style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:${canApply ? 'inline-flex' : 'none'}; align-items:center; gap:6px; cursor:pointer;" title="تطبيق هذا القالب">
+                          <i class="fa-solid fa-check"></i> تطبيق القالب
                         </button>
                       `;
                     }
 
                     return `
-                      <button type="button" class="btn-prerender-template-card btn btn-sm ${isCached ? 'cached' : ''}" data-tmpl-id="${escapeHtml(t.id)}" title="${isCached ? 'تم تجهيز وتحميل هذا القالب مسبقاً' : 'تحميل وتجهيز كافة وسائط وخلفيات القالب مسبقاً في الذاكرة لتجنب أي بطء أثناء العرض'}">
-                        ${isCached 
-                          ? `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز${sizeStr}</span>`
-                          : `<i class="fa-solid fa-cloud-arrow-down"></i> <span>تحميل وتجهيز القالب</span> <span class="prerender-size-badge">${sizeStr}</span>`
-                        }
-                      </button>
-                      <button type="button" class="btn-apply-template-card btn btn-sm btn-primary ${isCached ? '' : 'hidden'}" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:${isCached ? 'inline-flex' : 'none'}; align-items:center; gap:6px; cursor:pointer;">
-                        <i class="icon-star-sparkle"></i> تطبيق القالب
+                      ${!isCached ? `
+                        <button type="button" class="btn-prerender-template-card btn btn-sm" data-tmpl-id="${escapeHtml(t.id)}" title="تحميل وتجهيز كافة وسائط وخلفيات القالب مسبقاً في الذاكرة لتجنب أي بطء أثناء العرض">
+                          <i class="fa-solid fa-cloud-arrow-down"></i> <span>تحميل وتجهيز القالب</span> <span class="prerender-size-badge">${sizeStr}</span>
+                        </button>
+                      ` : ''}
+                      <button type="button" class="btn-apply-template-card btn btn-sm btn-primary ${isCached ? '' : 'hidden'}" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:${isCached ? 'inline-flex' : 'none'}; align-items:center; gap:6px; cursor:pointer;">
+                        <i class="fa-solid fa-check"></i> تطبيق القالب
                       </button>
                     `;
                   })()}
@@ -8526,6 +8723,27 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       }).join('');
+
+      // Single Variety Download button listeners
+      container.querySelectorAll('.btn-download-single-var').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const tmplId = btn.dataset.tmplId;
+          const url = btn.dataset.url;
+          const name = btn.dataset.name;
+          const varietyIdx = parseInt(btn.dataset.varietyIdx, 10);
+          const allTmpls = (typeof sanitizeAndGroupTemplates === 'function') 
+            ? sanitizeAndGroupTemplates(state.availableTemplates || []) 
+            : (state.availableTemplates || []);
+          const tmpl = allTmpls.find(t => t.id === tmplId);
+          if (!tmpl || !tmpl.varieties) return;
+          const variety = (!isNaN(varietyIdx) && tmpl.varieties[varietyIdx])
+            ? tmpl.varieties[varietyIdx]
+            : (tmpl.varieties.find(v => v.url === url) || { url, name });
+          const card = btn.closest('.template-preview-card');
+          await downloadSingleVariety(tmpl, variety, btn, card);
+        });
+      });
 
       // Pre-render & Download button listeners
       container.querySelectorAll('.btn-prerender-template-card').forEach(btn => {
@@ -8602,11 +8820,52 @@ document.addEventListener('DOMContentLoaded', () => {
             const badgeEl = card.querySelector(`#tmpl-selected-var-badge-${tmplId}`);
             if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-palette"></i> ${escapeHtml(name)}`;
 
+            const isVarCached = isVarietyUrlCached(url, tmplId);
+
+            // Update single download button state
+            const singleBtn = card.querySelector('.btn-download-single-var');
+            if (singleBtn) {
+              singleBtn.dataset.url = url;
+              singleBtn.dataset.name = name;
+              singleBtn.dataset.varietyIdx = varietyIdx;
+              if (isVarCached) {
+                singleBtn.classList.add('cached');
+                singleBtn.classList.remove('downloading');
+                singleBtn.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span>النمط جاهز</span>`;
+                singleBtn.title = `النمط "${name}" محمل مسبقاً وجاهز للعرض`;
+              } else {
+                singleBtn.classList.remove('cached', 'downloading');
+                singleBtn.innerHTML = `<i class="fa-solid fa-download"></i> <span>تحميل هذا النمط</span>`;
+                singleBtn.title = `تحميل النمط "${name}" فقط`;
+              }
+            }
+
+            // Update status pill
+            const statusPill = card.querySelector(`#tmpl-var-status-${tmplId}`);
+            if (statusPill) {
+              if (isVarCached) {
+                statusPill.className = 'variety-status-pill cached';
+                statusPill.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز';
+              } else {
+                statusPill.className = 'variety-status-pill not-cached';
+                statusPill.innerHTML = '<i class="fa-solid fa-cloud"></i> غير محمل';
+              }
+            }
+
+            // Update apply button
             const applyBtn = card.querySelector('.btn-apply-template-card');
             if (applyBtn) {
               applyBtn.dataset.selectedVarietyIdx = varietyIdx;
               applyBtn.dataset.selectedVarietyUrl = url;
               applyBtn.dataset.selectedVarietyName = name;
+              const isTmplCached = isTemplatePrerendered(tmplId);
+              if (isVarCached || isTmplCached) {
+                applyBtn.style.display = 'inline-flex';
+                applyBtn.classList.remove('hidden');
+              } else {
+                applyBtn.style.display = 'none';
+                applyBtn.classList.add('hidden');
+              }
             }
           }
         });
@@ -9377,15 +9636,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1400);
     });
 
-    const btnSyncLiveFile = document.getElementById('btn-sync-live-file');
-    if (btnSyncLiveFile) {
-      btnSyncLiveFile.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const modal = document.getElementById('modal-live-file-format');
-        if (modal) modal.classList.remove('hidden');
-      });
-    }
-
     let highlightedSearchIndex = -1;
 
     function updateSearchHighlight(items, selectedIndex) {
@@ -9419,6 +9669,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     els.intelligentSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (!els.searchDropdown || els.searchDropdown.classList.contains('hidden'))) {
+        const q = (els.intelligentSearch.value || '').trim();
+        if (q) {
+          const bibleInfo = parseBibleSearchShortcut(q);
+          if (bibleInfo && bibleInfo.bookId) {
+            e.preventDefault();
+            const chNum = bibleInfo.chapter || 1;
+            const bId = bibleInfo.bookId;
+            const searchTarget = { query: q, verseNum: bibleInfo.verse, isBible: true };
+            els.intelligentSearch.value = '';
+            els.clearSearchBtn.classList.add('hidden');
+            openBibleChapterByBookAndChapter(bId, chNum, searchTarget);
+            return;
+          }
+        }
+      }
+
       if (!els.searchDropdown || els.searchDropdown.classList.contains('hidden')) return;
 
       const items = Array.from(els.searchDropdown.querySelectorAll('.search-item'));
@@ -9452,6 +9719,27 @@ document.addEventListener('DOMContentLoaded', () => {
         performIntelligentSearch(els.intelligentSearch.value);
       }
     });
+
+    function enableFrancoModeAndRerun(forcedQuery) {
+      state.francoAutoTranslate = true;
+      saveUserSettings();
+      if (els.francoToggleBtn) {
+        els.francoToggleBtn.classList.add('active');
+      }
+      try {
+        localStorage.setItem('gemini_franco_intro_seen', 'true');
+      } catch(e) {}
+
+      const q = (forcedQuery !== undefined ? forcedQuery : (els.intelligentSearch ? els.intelligentSearch.value : '')) || '';
+      if (q.trim()) {
+        renderSearchWordSuggestions(q);
+        performIntelligentSearch(q);
+      }
+      if (typeof showToast === 'function') {
+        showToast('تم تفعيل وضع الفرانكو بنجاح ⚡', 'success');
+      }
+    }
+    window.enableFrancoModeAndRerun = enableFrancoModeAndRerun;
 
     if (els.francoToggleBtn) {
       els.francoToggleBtn.addEventListener('click', (e) => {
@@ -9715,6 +10003,31 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(html, true);
     }
 
+    function scrollActiveSlideToTop(smooth = true) {
+      if (!els.presentationLinesContainer) return;
+      const container = els.presentationLinesContainer;
+      let targetEl = null;
+
+      if (state.presentationMode === 'allinone') {
+        const gIdx = state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0;
+        targetEl = container.querySelector(`.allinone-slide-group[data-group-idx="${gIdx}"]`) || container.querySelector('.active-allinone-group');
+      } else {
+        targetEl = container.querySelector('.line-item.active');
+      }
+
+      if (targetEl) {
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = targetEl.getBoundingClientRect();
+        const delta = targetRect.top - containerRect.top - (container.clientTop || 0);
+        const targetScrollTop = container.scrollTop + delta;
+        container.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: smooth ? 'smooth' : 'auto'
+        });
+      }
+    }
+    window.scrollActiveSlideToTopGlobal = scrollActiveSlideToTop;
+
     function jumpToBufferedSlide() {
       if (!numberJumpBuffer) return;
       const targetNum = parseInt(numberJumpBuffer);
@@ -9738,10 +10051,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.presentationMode === 'allinone') {
         state.allInOneActiveGroupIndex = targetIdx;
         syncLiveState();
-        if (els.presentationLinesContainer) {
-          const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${targetIdx}"]`);
-          if (targetG) targetG.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        }
+        scrollActiveSlideToTop(true);
         return;
       }
 
@@ -9753,11 +10063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isBlank = false;
         renderPresentationLinesList();
         syncLiveState();
-
-        if (els.presentationLinesList) {
-          const activeEl = els.presentationLinesList.children[targetIdx];
-          if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
+        scrollActiveSlideToTop(true);
       } else if (!isNaN(targetNum)) {
         showToast(`رقم الشريحة غير موجود (${targetNum}) — الإجمالي ${lines.length}`);
       }
@@ -10345,6 +10651,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Franco prompt chip if Franco is off and user typed English words
+    if (!state.francoAutoTranslate && /[a-z]/i.test(trimmed)) {
+      suggestions.unshift({
+        value: '__enable_franco__',
+        label: 'تفعيل وضع الفرانكو (Turn on Franco Mode)',
+        icon: 'fa-wand-magic-sparkles',
+        isFrancoAction: true
+      });
+    }
+
     if (suggestions.length === 0) {
       els.searchSuggestionsChips.classList.add('hidden');
       els.searchSuggestionsChips.innerHTML = '';
@@ -10352,7 +10668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     els.searchSuggestionsChips.innerHTML = suggestions.slice(0, 6).map(s => `
-      <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.value)}">
+      <button class="suggestion-chip ${s.isFrancoAction ? 'franco-prompt-chip' : ''}" type="button" data-replacement="${escapeHtml(s.value)}" ${s.isFrancoAction ? 'data-action="enable-franco"' : ''}>
         <i class="fa-solid ${escapeHtml(s.icon)}" style="display:inline-block; vertical-align:-1px; margin-left:4px; color:#2563eb;"></i>
         <span>${escapeHtml(s.label)}</span>
       </button>
@@ -10363,6 +10679,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.searchSuggestionsChips.querySelectorAll('.suggestion-chip').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (btn.dataset.action === 'enable-franco' || btn.dataset.replacement === '__enable_franco__') {
+          enableFrancoModeAndRerun(els.intelligentSearch ? els.intelligentSearch.value : text);
+          return;
+        }
         const rep = btn.dataset.replacement;
         if (!rep) return;
 
@@ -11943,7 +12263,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const effectiveArabicTarget = isFrancoInput && qFrancoVariants.length > 0 ? qFrancoVariants[0] : searchTarget;
     const qNorm = normalizeArabic(effectiveArabicTarget);
-    if (!qNorm) return;
+    if (!qNorm) {
+      if (!state.francoAutoTranslate && /[a-z]/i.test(trimmedQuery)) {
+        renderSearchDropdown([], trimmedQuery, 15, false);
+      }
+      return;
+    }
 
     const spellingVariants = (typeof generateArabicSpellingVariants === 'function')
       ? generateArabicSpellingVariants(effectiveArabicTarget).map(normalizeArabic)
@@ -12201,6 +12526,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rawTranslated) {
         francoHeaderHtml = `<div class="franco-translation-header"><i class="icon-star-sparkle" style="display:inline-block; vertical-align:-1px; margin-left:6px; color:#2563eb;"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
+    } else if (!state.francoAutoTranslate && /[a-z]/i.test(query) && songs && songs.length > 0) {
+      francoHeaderHtml = `
+        <div class="search-franco-prompt-banner">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color:#2563eb;"></i>
+            <span>هل تبحث بالفرانكو؟</span>
+          </div>
+          <button type="button" id="btn-turn-on-franco-banner" class="btn-franco-banner-action" onclick="window.enableFrancoModeAndRerun && window.enableFrancoModeAndRerun()">
+            <i class="fa-solid fa-bolt"></i> تفعيل وضع الفرانكو (Turn on Franco Mode)
+          </button>
+        </div>
+      `;
     }
 
     let suggestionBannerHtml = '';
@@ -12226,17 +12563,50 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isApiPending) {
         els.searchDropdown.innerHTML = dropdownPrefixHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
       } else {
-        els.searchDropdown.innerHTML = dropdownPrefixHtml + `
-          <div class="search-item no-results-item" style="flex-direction:column; align-items:center; gap:8px; padding:16px; text-align:center;">
-            <div style="display:flex; align-items:center; gap:6px; color:#64748b;">
-              <i class="fa-solid fa-circle-exclamation"></i>
-              <span>لم يتم العثور على ترنيمة أو شاهد كتابي</span>
+        const isEnglishQuery = /[a-z]/i.test(query);
+        let emptyContentHtml = '';
+
+        if (isEnglishQuery && !state.francoAutoTranslate) {
+          emptyContentHtml = `
+            <div class="search-item no-results-item franco-turn-on-card">
+              <div class="franco-turn-on-icon">
+                <i class="fa-solid fa-language"></i>
+              </div>
+              <div class="franco-turn-on-title">
+                لم يتم العثور على نتائج باللغة الإنجليزية
+              </div>
+              <div class="franco-turn-on-desc">
+                هل تبحث بالفرانكو؟ وضع الفرانكو معطّل حالياً. اضغط لتشغيل الفرانكو والبحث الفوري:
+              </div>
+              <button type="button" id="btn-turn-on-franco-search" class="btn-turn-on-franco" onclick="window.enableFrancoModeAndRerun && window.enableFrancoModeAndRerun()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> تفعيل وضع الفرانكو (Turn on Franco Mode)
+              </button>
             </div>
-            <button type="button" id="btn-quick-add-from-search" class="btn btn-sm btn-primary" style="margin-top:4px; font-size:0.82rem; padding:6px 14px; font-weight:700; background:#2563eb; color:#fff; border-radius:8px;">
-              <i class="fa-solid fa-circle-plus"></i> إضافة ترنيمة جديدة باسم "${escapeHtml(query)}"
-            </button>
-          </div>
-        `;
+          `;
+        } else {
+          emptyContentHtml = `
+            <div class="search-item no-results-item" style="flex-direction:column; align-items:center; gap:8px; padding:16px; text-align:center;">
+              <div style="display:flex; align-items:center; gap:6px; color:#64748b;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>لم يتم العثور على ترنيمة أو شاهد كتابي</span>
+              </div>
+              <button type="button" id="btn-quick-add-from-search" class="btn btn-sm btn-primary" style="margin-top:4px; font-size:0.82rem; padding:6px 14px; font-weight:700; background:#2563eb; color:#fff; border-radius:8px;">
+                <i class="fa-solid fa-circle-plus"></i> إضافة ترنيمة جديدة باسم "${escapeHtml(query)}"
+              </button>
+            </div>
+          `;
+        }
+
+        els.searchDropdown.innerHTML = dropdownPrefixHtml + emptyContentHtml;
+
+        const btnTurnOnFranco = els.searchDropdown.querySelector('#btn-turn-on-franco-search');
+        if (btnTurnOnFranco) {
+          btnTurnOnFranco.addEventListener('click', (e) => {
+            e.stopPropagation();
+            enableFrancoModeAndRerun(query);
+          });
+        }
+
         const btnQuickAdd = els.searchDropdown.querySelector('#btn-quick-add-from-search');
         if (btnQuickAdd) {
           btnQuickAdd.addEventListener('click', (e) => {
@@ -12268,12 +12638,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let snippetHtml = '';
         let matchedLineIdx = -1;
         let isConsecutiveMatch = false;
+        let matchedLineText = '';
 
         if (allLines.length > 0) {
           try {
             const bestMatch = findBestLyricMatch(allLines, qNorm, allHighlightWords);
             if (bestMatch) {
               matchedLineIdx = bestMatch.idx;
+              matchedLineText = bestMatch.matchedLine || '';
               isConsecutiveMatch = Boolean(bestMatch.isConsecutive);
               const startIdx = Math.max(0, bestMatch.idx - 1);
               const previewSlice = allLines.slice(startIdx, startIdx + 3);
@@ -12314,7 +12686,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return `
-          <div class="search-item" data-id="${s.id || s.item_id}" data-is-bible="${isBibleItem ? '1' : '0'}">
+          <div class="search-item" data-id="${s.id || s.item_id}" data-is-bible="${isBibleItem ? '1' : '0'}" data-matched-line="${escapeHtml(matchedLineText)}" data-matched-idx="${matchedLineIdx}">
             <div class="item-top">
               <span class="item-title">${titleHighlighted}</span>
               <div class="item-badges-group">
@@ -12356,6 +12728,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    const btnTurnOnFrancoBanner = els.searchDropdown.querySelector('#btn-turn-on-franco-banner');
+    if (btnTurnOnFrancoBanner) {
+      btnTurnOnFrancoBanner.addEventListener('click', (e) => {
+        e.stopPropagation();
+        enableFrancoModeAndRerun(query);
+      });
+    }
+
     els.searchDropdown.querySelectorAll('.btn-toggle-item-preview').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -12382,14 +12762,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = item.dataset.id;
         const isBible = item.dataset.isBible === '1';
         if (!id) return;
+        const currentQuery = (els.intelligentSearch.value || query || '').trim();
+        const matchedText = item.dataset.matchedLine || '';
+        const matchedIdx = parseInt(item.dataset.matchedIdx);
+
         els.searchDropdown.classList.add('hidden');
         els.intelligentSearch.value = '';
         els.clearSearchBtn.classList.add('hidden');
         const matchedSong = state.lastSearchResultSongs ? state.lastSearchResultSongs[idx] : null;
+
+        const searchTarget = {
+          query: currentQuery,
+          matchedLine: matchedText,
+          matchedIdx: !isNaN(matchedIdx) ? matchedIdx : -1,
+          isBible: isBible
+        };
+
         if (matchedSong) {
-          openAndPresentItem(matchedSong, isBible);
+          openAndPresentItem(matchedSong, isBible, searchTarget);
         } else {
-          openAndPresentItem(id, isBible);
+          openAndPresentItem(id, isBible, searchTarget);
         }
       });
     });
@@ -12487,13 +12879,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return await bibleChaptersLoadingPromise;
   }
 
-  async function openAndPresentItem(songOrId, isBible = false) {
+  async function openAndPresentItem(songOrId, isBible = false, searchTarget = null) {
     if (!songOrId && songOrId !== 0) return;
 
     let inputObject = (typeof songOrId === 'object' && songOrId !== null) ? songOrId : null;
     let rawSongId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
     let isItemBible = Boolean(isBible || (inputObject && ((inputObject.is_bible === true || inputObject.is_bible === '1' || inputObject.is_bible === 1) || (inputObject.chapter_number !== undefined && inputObject.chapter_number !== null && inputObject.chapter_number !== ''))));
     
+    if (!searchTarget && inputObject && inputObject._searchTarget) {
+      searchTarget = inputObject._searchTarget;
+    }
+
     // Auto-apply assigned default template for Taranim or Bible
     applyAssignedDefaultTemplate(isItemBible);
 
@@ -12531,7 +12927,7 @@ document.addEventListener('DOMContentLoaded', () => {
           localChapter.chapter_number = parseInt(cNum);
           state.activeSong = localChapter;
           addToSessionRecents(localChapter);
-          loadSongIntoPresentation(localChapter);
+          loadSongIntoPresentation(localChapter, true, false, searchTarget);
           return;
         }
       }
@@ -12591,7 +12987,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const readySong = ensureSongVerses(targetSong);
       state.activeSong = readySong;
       addToSessionRecents(readySong);
-      loadSongIntoPresentation(readySong);
+      loadSongIntoPresentation(readySong, true, false, searchTarget);
     }
 
     // 4. PARALLEL API FETCH (Enrichment / Full Verses Loading)
@@ -12677,7 +13073,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const finalSong = ensureSongVerses(targetSong);
             state.activeSong = finalSong;
             addToSessionRecents(finalSong);
-            loadSongIntoPresentation(finalSong);
+            loadSongIntoPresentation(finalSong, true, false, searchTarget);
             return;
           }
         }
@@ -12694,7 +13090,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fallbackSong = ensureSongVerses(targetSong);
       state.activeSong = fallbackSong;
       addToSessionRecents(fallbackSong);
-      loadSongIntoPresentation(fallbackSong);
+      loadSongIntoPresentation(fallbackSong, true, false, searchTarget);
     }
 
     console.log('Resolved targetSong origin:', originSource, targetSong);
@@ -12703,7 +13099,7 @@ document.addEventListener('DOMContentLoaded', () => {
       targetSong = ensureSongVerses(targetSong);
       state.activeSong = targetSong;
       addToSessionRecents(targetSong);
-      loadSongIntoPresentation(targetSong);
+      loadSongIntoPresentation(targetSong, true, false, searchTarget);
     } else {
       showToast('تعذر تحميل بيانات العنصر.');
     }
@@ -13141,7 +13537,150 @@ document.addEventListener('DOMContentLoaded', () => {
     return song;
   }
 
-  function loadSongIntoPresentation(song, forceLive = true, skipDefaultTemplate = false) {
+  function findBestSlideIndexForQuery(linesList, searchTarget, song) {
+    if (!linesList || linesList.length === 0 || !searchTarget) return 0;
+
+    const isBible = Boolean(
+      (song && ((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible')) ||
+      (searchTarget && searchTarget.isBible)
+    );
+
+    const queryRaw = typeof searchTarget === 'string' ? searchTarget : (searchTarget.query || '');
+    let matchedLineText = (searchTarget && typeof searchTarget === 'object' && searchTarget.matchedLine) ? searchTarget.matchedLine : '';
+    const explicitVerseNum = (searchTarget && typeof searchTarget === 'object' && searchTarget.verseNum) ? parseInt(searchTarget.verseNum) : null;
+
+    // 1. If Bible query, extract verse number from shortcut, label, or query
+    let bibleVerse = explicitVerseNum;
+    if (!bibleVerse && matchedLineText) {
+      const vMatch = matchedLineText.match(/\[آية\s*(\d+)\]/i);
+      if (vMatch && vMatch[1]) {
+        bibleVerse = parseInt(vMatch[1]);
+      }
+    }
+    if (!bibleVerse && isBible && queryRaw) {
+      const bInfo = parseBibleSearchShortcut(queryRaw);
+      if (bInfo && bInfo.verse) {
+        bibleVerse = parseInt(bInfo.verse);
+      } else {
+        const vMatch = queryRaw.match(/(?:آية|ايه|عدد|:)\s*(\d+)/i) || queryRaw.match(/\b(\d+)\b/);
+        if (vMatch && vMatch[1]) {
+          bibleVerse = parseInt(vMatch[1]);
+        }
+      }
+    }
+
+    if (bibleVerse && isBible) {
+      for (let i = 0; i < linesList.length; i++) {
+        const slide = linesList[i];
+        if (slide.badgeText) {
+          const digits = slide.badgeText.match(/\d+/);
+          if (digits && parseInt(digits[0]) === bibleVerse) {
+            return i;
+          }
+        }
+        if (slide.label) {
+          const digits = slide.label.match(/\d+/);
+          if (digits && parseInt(digits[0]) === bibleVerse) {
+            return i;
+          }
+        }
+      }
+    }
+
+    // 2. Exact or substring match of matchedLineText
+    if (matchedLineText && matchedLineText.trim()) {
+      const cleanMatched = matchedLineText.replace(/\[آية\s*\d+\]/gi, '').trim();
+      const normTarget = normalizeArabic(cleanMatched).trim();
+      if (normTarget && normTarget.length >= 2) {
+        // 2a. Direct string contains check in slide lines
+        for (let i = 0; i < linesList.length; i++) {
+          const slide = linesList[i];
+          const slideLines = slide.lines || (slide.text ? [slide.text] : []);
+          for (const l of slideLines) {
+            const normLine = normalizeArabic(l).trim();
+            if (normLine && (normLine.includes(normTarget) || normTarget.includes(normLine))) {
+              return i;
+            }
+          }
+          const fullSlideNorm = normalizeArabic(slide.text || slideLines.join(' ')).trim();
+          if (fullSlideNorm && (fullSlideNorm.includes(normTarget) || normTarget.includes(fullSlideNorm))) {
+            return i;
+          }
+        }
+
+        // 2b. High-overlap words check from matchedLineText
+        const targetWords = normTarget.split(/\s+/).filter(w => w.length >= 2);
+        if (targetWords.length > 0) {
+          let maxOverlap = 0;
+          let bestIdx = -1;
+          for (let i = 0; i < linesList.length; i++) {
+            const slide = linesList[i];
+            const fullSlideNorm = normalizeArabic(slide.text || (slide.lines || []).join(' ')).trim();
+            let count = 0;
+            for (const w of targetWords) {
+              if (fullSlideNorm.includes(w)) count++;
+            }
+            if (count > maxOverlap) {
+              maxOverlap = count;
+              bestIdx = i;
+            }
+          }
+          if (bestIdx >= 0 && maxOverlap >= Math.min(2, targetWords.length)) {
+            return bestIdx;
+          }
+        }
+      }
+    }
+
+    // 3. Match using search query words / phrase against slide contents
+    if (queryRaw && queryRaw.trim()) {
+      const qNorm = normalizeArabic(queryRaw).trim();
+      let effectiveQNorm = qNorm;
+      if (isBible) {
+        const bInfo = parseBibleSearchShortcut(queryRaw);
+        if (bInfo) {
+          effectiveQNorm = effectiveQNorm.replace(normalizeArabic(bInfo.bookName || ''), '').replace(/\d+/g, '').trim();
+        }
+      }
+
+      if (effectiveQNorm && effectiveQNorm.length >= 2) {
+        const qWords = effectiveQNorm.split(/\s+/).filter(w => w.length >= 2);
+        let bestScore = 0;
+        let bestIdx = -1;
+
+        for (let i = 0; i < linesList.length; i++) {
+          const slide = linesList[i];
+          const fullSlideNorm = normalizeArabic(slide.text || (slide.lines || []).join(' ')).trim();
+          let score = 0;
+
+          if (fullSlideNorm.includes(effectiveQNorm)) {
+            score = 10000 + (effectiveQNorm.length * 10);
+          } else if (qWords.length > 0) {
+            let matched = 0;
+            for (const w of qWords) {
+              if (fullSlideNorm.includes(w)) matched++;
+            }
+            if (matched > 0) {
+              score = (matched / qWords.length) * 1000 + (matched * 50);
+            }
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestIdx = i;
+          }
+        }
+
+        if (bestIdx >= 0 && bestScore > 0) {
+          return bestIdx;
+        }
+      }
+    }
+
+    return 0;
+  }
+
+  function loadSongIntoPresentation(song, forceLive = true, skipDefaultTemplate = false, searchTarget = null) {
     if (!song) return;
 
     const isBibleSong = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
@@ -13390,11 +13929,13 @@ document.addEventListener('DOMContentLoaded', () => {
         state.allInOneScrollRatio = 0;
         const allGroupsHtml = [];
         const cleanStanzaTexts = [];
+        const allGroupsRawItems = [];
         let groupCounter = 0;
         let globalLineCounter = 0;
         orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
           const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
           slideItems.forEach(item => {
+            allGroupsRawItems.push(item);
             const bHtml = item.badgeText ? `<span class="slide-badge-layer ${item.badgeClass}">${escapeHtml(item.badgeText)}</span>` : '';
             const linesHtml = (item.lines || [item.text]).map(l => {
               const row = `<div class="obs-line-row slide-line-row" data-line-idx="${globalLineCounter}"><span class="obs-line-segment" data-line-idx="${globalLineCounter}">${escapeHtml(l)}</span></div>`;
@@ -13419,6 +13960,7 @@ document.addEventListener('DOMContentLoaded', () => {
           totalGroups: groupCounter,
           label: 'الترنيمة بالكامل'
         }];
+        linesList._allGroupsRawItems = allGroupsRawItems;
       } else {
         orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
           const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
@@ -13576,11 +14118,39 @@ document.addEventListener('DOMContentLoaded', () => {
       document.title = `${song.title} | Taranim Online`;
     }
 
+    let targetSlideIdx = -1;
+    if (searchTarget) {
+      if (mode === 'allinone') {
+        const rawGroups = linesList._allGroupsRawItems || [];
+        const gIdx = findBestSlideIndexForQuery(rawGroups, searchTarget, song);
+        if (gIdx >= 0) {
+          state.allInOneActiveGroupIndex = gIdx;
+        }
+      } else {
+        targetSlideIdx = findBestSlideIndexForQuery(linesList, searchTarget, song);
+      }
+    } else if (state.liveSong && song && getItemKey(state.liveSong) === getItemKey(song) && state.liveLineIndex > 0) {
+      const prevLine = state.livePresentationLines && state.livePresentationLines[state.liveLineIndex];
+      if (prevLine) {
+        if (mode === 'allinone') {
+          const rawGroups = linesList._allGroupsRawItems || [];
+          const gIdx = findBestSlideIndexForQuery(rawGroups, { matchedLine: prevLine.text }, song);
+          if (gIdx >= 0) {
+            state.allInOneActiveGroupIndex = gIdx;
+          }
+        } else {
+          targetSlideIdx = findBestSlideIndexForQuery(linesList, { matchedLine: prevLine.text }, song);
+        }
+      }
+    }
+
+    const initialSlideIdx = (mode !== 'allinone' && targetSlideIdx >= 0 && targetSlideIdx < linesList.length) ? targetSlideIdx : 0;
+
     if (forceLive || !state.liveSong) {
       state.liveSong = song;
       state.livePresentationLines = linesList;
-      state.liveLineIndex = 0;
-      state.currentLineIndex = 0;
+      state.liveLineIndex = initialSlideIdx;
+      state.currentLineIndex = initialSlideIdx;
       state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
@@ -13589,7 +14159,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isSameAsLive) {
         state.currentLineIndex = state.liveLineIndex;
       } else {
-        state.currentLineIndex = -1;
+        state.currentLineIndex = initialSlideIdx;
       }
       renderPresentationLinesList();
     }
@@ -13786,6 +14356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             g.classList.toggle('active-allinone-group', idx === gIdx);
           });
           syncLiveState();
+          scrollActiveSlideToTop(true);
         }
       });
     });
@@ -13833,6 +14404,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (state.presentationMode === 'allinone') {
+      const gIdx = state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0;
+      els.presentationLinesContainer.querySelectorAll('.allinone-slide-group').forEach((g) => {
+        const idx = parseInt(g.dataset.groupIdx);
+        g.classList.toggle('active-allinone-group', idx === gIdx);
+      });
+
       const activeHighlights = state.isHighlightMode ? (state.highlightedLineIndices || []) : [];
       const hColor = state.highlightColor || '#ef4444';
       els.presentationLinesContainer.querySelectorAll('.allinone-slide-group .obs-line-row, .allinone-slide-group .obs-line-segment').forEach((seg) => {
@@ -13850,10 +14427,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const activeEl = els.presentationLinesContainer.querySelector('.line-item.active');
-    if (activeEl) {
-      activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-    }
+    scrollActiveSlideToTop(true);
+    requestAnimationFrame(() => {
+      scrollActiveSlideToTop(true);
+    });
   }
 
   function getActivePlaylist() {
@@ -14418,7 +14995,7 @@ document.addEventListener('DOMContentLoaded', () => {
       slidesBgConfig: state.slidesBgConfig,
       transitionConfig: state.transitionConfig,
       textTransform: state.textTransform,
-      transitionType: state.transitionConfig ? state.transitionConfig.type : 'stinger',
+      transitionType: state.transitionConfig ? state.transitionConfig.type : 'fade',
       stingerMediaUrl: state.transitionConfig ? state.transitionConfig.stingerUrl : '',
       stingerCutPointMs: state.transitionConfig ? state.transitionConfig.cutPointMs : 1200,
       triggerTransition: Boolean(extraOptions && extraOptions.triggerTransition),
@@ -15022,13 +15599,17 @@ document.addEventListener('DOMContentLoaded', () => {
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
             seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+            seg.classList.remove('line-unhighlighting');
             if (!seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-unhighlighting');
               seg.classList.add('line-highlighted', 'line-animating');
-              setTimeout(() => seg.classList.remove('line-animating'), 650);
+              setTimeout(() => seg.classList.remove('line-animating'), 550);
             }
           } else {
-            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+            if (seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-highlighted', 'line-animating');
+              seg.classList.add('line-unhighlighting');
+              setTimeout(() => seg.classList.remove('line-unhighlighting'), 450);
+            }
           }
         });
 
@@ -15083,13 +15664,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
             if (isH) {
               seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+              seg.classList.remove('line-unhighlighting');
               if (!seg.classList.contains('line-highlighted')) {
-                seg.classList.remove('line-unhighlighting');
                 seg.classList.add('line-highlighted', 'line-animating');
-                setTimeout(() => seg.classList.remove('line-animating'), 650);
+                setTimeout(() => seg.classList.remove('line-animating'), 550);
               }
             } else {
-              seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+              if (seg.classList.contains('line-highlighted')) {
+                seg.classList.remove('line-highlighted', 'line-animating');
+                seg.classList.add('line-unhighlighting');
+                setTimeout(() => seg.classList.remove('line-unhighlighting'), 450);
+              }
             }
           });
 
@@ -15459,8 +16044,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.allInOneActiveGroupIndex = currentG + 1;
         syncLiveState();
         if (els.presentationLinesContainer) {
-          const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${state.allInOneActiveGroupIndex}"]`);
-          if (targetG) targetG.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          scrollActiveSlideToTop(true);
         }
       }
       return;
@@ -15509,8 +16093,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.allInOneActiveGroupIndex = currentG - 1;
         syncLiveState();
         if (els.presentationLinesContainer) {
-          const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${state.allInOneActiveGroupIndex}"]`);
-          if (targetG) targetG.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          scrollActiveSlideToTop(true);
         }
       }
       return;

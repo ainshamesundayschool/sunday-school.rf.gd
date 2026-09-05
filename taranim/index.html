@@ -161,14 +161,14 @@
         <div class="dropdown-wrapper">
           <div id="btn-menu-cast-wrapper">
             <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات">
-              <i class="fa-solid fa-tv"></i>
+              <i class="fa-brands fa-chromecast"></i>
             </button>
           </div>
 
           <div class="dropdown-popover hidden" id="popover-cast" style="min-width:280px; max-width:320px; padding:10px 12px; gap:8px;">
             <!-- 1. POPUP HEADER WITH REFRESH BUTTON -->
             <div class="popover-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; font-size:0.92rem; font-weight:800; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
-              <span><i class="fa-solid fa-display" style="color:#2563eb;"></i> البث والشاشات</span>
+              <span><i class="fa-brands fa-chromecast" style="color:#2563eb;"></i> البث والشاشات</span>
               <button id="btn-detect-screens" type="button" title="تحديث الشاشات الخارجية" style="background:#f1f5f9; border:none; color:#475569; width:26px; height:26px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:0.78rem; transition:all 0.15s ease;">
                 <i class="fa-solid fa-rotate"></i>
               </button>
@@ -177,20 +177,17 @@
             <!-- 2. EXTERNAL SCREENS SECTION -->
             <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
               <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
-                <i class="fa-solid fa-tv"></i> الشاشات الخارجية المتصلة:
+                <i class="fa-brands fa-chromecast"></i> الشاشات الخارجية المتصلة:
               </div>
               <div id="screens-cast-list" style="display:flex; flex-direction:column; gap:4px;">
                 <!-- Screens will be rendered dynamically -->
               </div>
             </div>
 
-            <!-- 3. ACTIONS ROW: COPY URL & DOWNLOAD LIVE FILE -->
-            <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:6px; margin-top:4px; border-top:1px solid #f1f5f9; padding-top:8px; align-items:center;">
+            <!-- 3. ACTIONS ROW: COPY URL -->
+            <div style="margin-top:4px; border-top:1px solid #f1f5f9; padding-top:8px;">
               <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:7px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="نسخ رابط العرض المباشر">
                 <i class="fa-solid fa-copy"></i> نسخ الرابط
-              </button>
-              <button id="btn-sync-live-file" class="btn btn-sm btn-primary" style="width:100%; font-size:0.78rem; padding:7px 8px; font-weight:700; background:#2563eb; color:#ffffff; display:flex; align-items:center; justify-content:center; gap:4px;" title="تحميل ملف البث المباشر">
-                <i class="fa-solid fa-file-arrow-down"></i> تحميل ملف live
               </button>
             </div>
 
@@ -368,7 +365,7 @@
             <i class="fa-solid fa-font"></i> الخط
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-effects">
-            <i class="icon-star-sparkle"></i> التأثيرات
+            <i class="fa-solid fa-sliders"></i> التأثيرات
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-display">
             <i class="fa-solid fa-palette"></i> الشاشة والموضع
@@ -852,25 +849,25 @@
 
             <!-- TRANSITIONS ENGINE CARD -->
             <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="icon-star-sparkle"></i> نمط حركة الانتقال (Transitions)</div>
+              <div class="style-card-title"><i class="fa-solid fa-repeat"></i> نمط حركة الانتقال (Transitions)</div>
               
               <div class="control-field">
                 <label>نوع ونمط الانتقال بين الشاشة والشرائح</label>
                 <select id="transition-type-select" class="control-select hidden">
-                  <option value="stinger" selected>ستنجر فيديو</option>
+                  <option value="stinger">ستنجر فيديو</option>
                   <option value="luma_sinus9">مسح ناعم</option>
-                  <option value="fade">تلاشي</option>
+                  <option value="fade" selected>تلاشي</option>
                   <option value="zoom">تكبير</option>
                   <option value="cut">قطع فوري</option>
                 </select>
                 <div class="segmented-control-group transition-source-segmented" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; margin-bottom:10px;">
-                  <button type="button" class="segmented-btn active" id="btn-trans-mode-stinger" data-trans-type="stinger" title="ستنجر فيديو بقناة ألفا">
-                    <i class="icon-star-sparkle"></i> ستنجر
+                  <button type="button" class="segmented-btn" id="btn-trans-mode-stinger" data-trans-type="stinger" title="ستنجر فيديو بقناة ألفا">
+                    <i class="fa-solid fa-bolt"></i> ستنجر
                   </button>
                   <button type="button" class="segmented-btn" id="btn-trans-mode-luma" data-trans-type="luma_sinus9" title="مسح متمركز دائري ناعم">
                     <i class="fa-solid fa-circle-notch"></i> مسح ناعم
                   </button>
-                  <button type="button" class="segmented-btn" id="btn-trans-mode-fade" data-trans-type="fade" title="تلاشي ناعم">
+                  <button type="button" class="segmented-btn active" id="btn-trans-mode-fade" data-trans-type="fade" title="تلاشي ناعم">
                     <i class="fa-solid fa-water"></i> تلاشي
                   </button>
                   <button type="button" class="segmented-btn" id="btn-trans-mode-zoom" data-trans-type="zoom" title="تكبير وانبثاق">
