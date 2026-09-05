@@ -1876,91 +1876,81 @@ input[type="checkbox"]:checked::after {
 }
 
 .obs-first-line-wrapper {
-  position: relative;
-  display: inline-block;
+  position: relative !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: baseline !important;
+  justify-content: center !important;
   text-align: center;
   max-width: 100%;
   overflow: visible !important;
+  gap: 0.22em !important;
 }
 
 .slide-badge-layer {
   position: absolute !important;
-  left: 100% !important;
+  left: calc(100% + 0.28em) !important;
   right: auto !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  margin-left: 8px !important;
-  margin-right: 0 !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 0.9 !important;
   font-weight: 800 !important;
-  font-size: 0.72em !important;
+  font-size: 0.52em !important;
   line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 15 !important;
   white-space: nowrap !important;
   pointer-events: none !important;
   user-select: none !important;
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 0.85 !important;
-  z-index: 15 !important;
 }
 
 .slide-badge-layer.chorus-badge-side,
 .slide-badge-layer.chorus-num {
   color: #ef4444 !important;
+  font-weight: 800 !important;
+  font-size: 0.52em !important;
 }
 
 .slide-badge-layer.stanza-badge-side,
 .slide-badge-layer.verse-badge-side,
 .slide-badge-layer.verse-num {
   color: #94a3b8 !important;
+  font-weight: 700 !important;
+  font-size: 0.52em !important;
 }
 
-/* VERTICAL MODE: Position verse/chorus badge at TOP MIDDLE above the first line */
+/* ALWAYS BESIDE LINE (NEVER ABOVE IT) IN ALL MODES */
 @media (max-aspect-ratio: 1/1), (orientation: portrait), (max-width: 768px) {
   .obs-first-line-wrapper {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: baseline !important;
     justify-content: center !important;
-    position: relative !important;
-    width: 100% !important;
+    gap: 0.22em !important;
   }
   .obs-first-line-wrapper .slide-badge-layer,
   .slide-badge-layer {
-    display: block !important;
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: none !important;
-    margin: 0 0 0.35em 0 !important;
-    text-align: center !important;
-    align-self: center !important;
-    font-size: 0.85em !important;
+    display: inline-block !important;
+    margin: 0 0.18em !important;
+    font-size: 0.52em !important;
   }
 }
 
 .obs-vertical-mode .obs-first-line-wrapper {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: baseline !important;
   justify-content: center !important;
-  position: relative !important;
-  width: 100% !important;
+  gap: 0.22em !important;
 }
 .obs-vertical-mode .obs-first-line-wrapper .slide-badge-layer,
 .obs-vertical-mode .slide-badge-layer {
-  display: block !important;
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: none !important;
-  margin: 0 0 0.35em 0 !important;
-  text-align: center !important;
-  align-self: center !important;
-  font-size: 0.85em !important;
+  display: inline-block !important;
+  margin: 0 0.18em !important;
+  font-size: 0.52em !important;
 }
 
 .slide-index-corner {

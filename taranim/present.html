@@ -303,39 +303,44 @@
       border-bottom: none !important;
     }
 
-    @media (max-width: 768px) {
-      .lower-third-container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 96vw;
-        max-width: 96vw;
-        height: auto;
-        max-height: 90vh;
-        margin: 0 auto;
-        padding: 5px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+    @media (max-width: 768px), (orientation: portrait) {
+      .lower-third-container,
+      #presenter-box {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        aspect-ratio: 16 / 9 !important;
+        height: auto !important;
+        max-height: calc(100vw * 9 / 16) !important;
+        margin: 0 auto !important;
+        padding: 6px 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
       }
       .line-text {
-        height: auto;
-        line-height: 1.35;
-        width: 100%;
-        max-width: 96vw;
-        margin: 0 auto;
+        height: auto !important;
+        line-height: 1.35 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
       }
       .obs-line-segment {
-        width: 100%;
-        white-space: normal;
-        word-break: keep-all;
-        overflow-wrap: break-word;
-        display: block;
-        text-align: center;
-        margin-top: 0.15em;
-        margin-bottom: 0.15em;
+        width: auto !important;
+        max-width: 100% !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        display: inline-block !important;
+        text-align: center !important;
+        margin-top: 0.12em !important;
+        margin-bottom: 0.12em !important;
       }
     }
 
@@ -725,13 +730,6 @@
     body.controls-hidden #presenter-slide-counter,
     body.controls-hidden #obs-slide-counter,
     body.controls-hidden .obs-top-left-header,
-    body.controls-hidden .slide-badge-layer,
-    body.controls-hidden .verse-badge-side,
-    body.controls-hidden .chorus-badge-side,
-    body.controls-hidden .stanza-badge-side,
-    body.controls-hidden .verse-num,
-    body.controls-hidden .badge-num,
-    body.controls-hidden .chorus-num,
     body.controls-hidden .bible-verse-ref,
     body.controls-hidden .overlay-bottom-left-controls {
       display: none !important;
@@ -753,13 +751,14 @@
       font-family: inherit;
     }
 
+    /* VERSE NUMBER & CHORUS BADGES: ALWAYS VISIBLE, BESIDE LINE, REFINED SMALLER SIZE */
     .chorus-num,
     .chorus-badge-side,
     .slide-badge-layer.chorus-badge-side,
     .slide-badge-layer.chorus-num {
       color: #ef4444 !important;
-      font-weight: 700 !important;
-      font-size: 0.62em !important;
+      font-weight: 800 !important;
+      font-size: 0.52em !important;
     }
 
     .badge-num,
@@ -768,58 +767,65 @@
     .verse-badge-side,
     .slide-badge-layer {
       color: #94a3b8 !important;
-      font-size: 0.68em !important;
+      font-size: 0.52em !important;
       font-weight: 700 !important;
-      display: inline-block;
-      margin: 0 4px;
-      line-height: 1;
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 0.9 !important;
+      line-height: 1 !important;
+      position: absolute !important;
+      left: calc(100% + 0.28em) !important;
+      right: auto !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: 15 !important;
+      pointer-events: none !important;
+      white-space: nowrap !important;
     }
 
-    /* VERTICAL MODE: Position verse/chorus badge at TOP MIDDLE above the first line */
+    .obs-first-line-wrapper {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: baseline !important;
+      justify-content: center !important;
+      position: relative !important;
+      width: auto !important;
+      max-width: 100% !important;
+      overflow: visible !important;
+      gap: 0.25em !important;
+      margin: 0 auto !important;
+    }
+
     @media (max-aspect-ratio: 1/1), (orientation: portrait), (max-width: 768px) {
       .obs-first-line-wrapper {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: baseline !important;
         justify-content: center !important;
-        position: relative !important;
-        width: 100% !important;
+        width: auto !important;
+        gap: 0.25em !important;
       }
       .obs-first-line-wrapper .slide-badge-layer {
-        display: block !important;
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        bottom: auto !important;
-        transform: none !important;
-        margin: 0 0 0.35em 0 !important;
-        text-align: center !important;
-        align-self: center !important;
-        font-size: 0.85em !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        font-size: 0.52em !important;
       }
     }
 
     .obs-vertical-mode .obs-first-line-wrapper {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: baseline !important;
       justify-content: center !important;
-      position: relative !important;
-      width: 100% !important;
+      width: auto !important;
+      gap: 0.25em !important;
     }
     .obs-vertical-mode .obs-first-line-wrapper .slide-badge-layer {
-      display: block !important;
-      position: relative !important;
-      top: auto !important;
-      left: auto !important;
-      right: auto !important;
-      bottom: auto !important;
-      transform: none !important;
-      margin: 0 0 0.35em 0 !important;
-      text-align: center !important;
-      align-self: center !important;
-      font-size: 0.85em !important;
+      display: inline-block !important;
+      margin: 0 !important;
+      font-size: 0.52em !important;
     }
 
     .rep-num-grey,
@@ -1435,8 +1441,9 @@
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
-        s.style.display = 'block';
-        s.style.width = '100%';
+        s.style.display = 'inline-block';
+        s.style.width = 'auto';
+        s.style.maxWidth = '100%';
         s.style.whiteSpace = 'normal'; // Allow clean word wrap if text reaches edge
         s.style.wordBreak = 'normal';
         s.style.overflowWrap = 'break-word';
@@ -1465,15 +1472,37 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      // Proportional scale factor based on screen width (1920 is standard reference width)
-      const isPortrait = (curH > curW) || (curW < 768 && curH >= curW);
-      let scaleFactor = curW / 1920;
-      if (isPortrait) {
-        scaleFactor = Math.max(scaleFactor * 1.85, curW / 1050);
+      // Uniform Auto-Fit per Tarnima (all slides of the same tarnima share the exact same font size)
+      const isPortrait = (window.innerHeight > window.innerWidth) || (curW <= 768 && window.innerHeight >= curW);
+      const boxW = Math.max(320, curW);
+      const boxH = isPortrait ? (boxW * 9 / 16) : Math.max(240, curH);
+
+      const safeW = boxW * 0.90;
+      const safeH = boxH * 0.84;
+
+      const songMaxLines = Math.max(1, (lastStyleData && lastStyleData.songMaxLines) || 2);
+      const songMaxChars = Math.max(16, (lastStyleData && lastStyleData.songMaxChars) || 28);
+
+      const effectiveLH = isJomhuria ? 0.95 : (lHeight !== undefined ? lHeight : 1.35);
+      const maxFontH = safeH / (songMaxLines * effectiveLH);
+      const charWidthFactor = isJomhuria ? 0.36 : 0.52;
+      const maxFontW = safeW / (songMaxChars * charWidthFactor);
+
+      let uniformFitSize = Math.min(maxFontH, maxFontW);
+
+      // User slider scaling ratio (reference base 105)
+      const userScaleRatio = (lastStyleData && lastStyleData.baseFontSize) ? (lastStyleData.baseFontSize / 105) : 1.0;
+      let scaledFontSize = Math.max(16, Math.min(155, Math.round(uniformFitSize * userScaleRatio)));
+
+      // Consistent uniform font size per song
+      const songKey = (lastStyleData && (lastStyleData.songKey || lastStyleData.songTitle)) || '';
+      if (songKey && _uniformSongKey === songKey && _uniformFontSize) {
+        scaledFontSize = _uniformFontSize;
+      } else if (songKey) {
+        _uniformSongKey = songKey;
+        _uniformFontSize = scaledFontSize;
       }
 
-      // Compute primary font size - bold, generous, and fills the screen
-      let scaledFontSize = Math.max(28, Math.round(baseSize * scaleFactor));
       textEl.style.fontSize = `${scaledFontSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
@@ -1482,13 +1511,14 @@
       wrapper.style.maxWidth = '100%';
       wrapper.style.width = '100%';
 
-      // BOUNDS CHECK: Only gently downscale if content physically exceeds screen height
-      const presenterBox = document.getElementById('presenter-box') || textEl.parentElement;
+      // BOUNDS CHECK: Only gently downscale if text content physically exceeds screen height
       const maxAllowedH = curH * 0.88;
+      const actualTextH = textEl.scrollHeight;
 
-      if (presenterBox && presenterBox.scrollHeight > maxAllowedH && scaledFontSize > 26) {
-        const fitRatio = Math.max(0.68, maxAllowedH / presenterBox.scrollHeight);
-        scaledFontSize = Math.max(24, Math.round(scaledFontSize * fitRatio));
+      if (actualTextH > maxAllowedH && scaledFontSize > 28) {
+        const fitRatio = Math.max(0.68, maxAllowedH / actualTextH);
+        scaledFontSize = Math.max(26, Math.round(scaledFontSize * fitRatio));
+        _uniformFontSize = scaledFontSize; // keep uniform across all slides if downscaled
         textEl.style.fontSize = `${scaledFontSize}px`;
       }
 
@@ -1767,7 +1797,7 @@
         const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
 
         if (idx === 0) {
-          return `<div class="${rowClass} obs-first-row" style="position:relative; width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; max-width: 100%; overflow: visible;">${badgeHtml}<span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; text-align: ${textAlignStyle}; position: relative;">${lineStr}</span></span></div>`;
+          return `<div class="${rowClass} obs-first-row" style="position:relative; width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; text-align: ${textAlignStyle}; position: relative;">${badgeHtml}${badgeHtml ? ' ' : ''}${lineStr}</span></div>`;
         }
         return `<div class="${rowClass}" style="width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: inline-block; width: auto; max-width: 100%; text-align: ${textAlignStyle}; position: relative;">${lineStr}</span></div>`;
       }).filter(Boolean).join('');

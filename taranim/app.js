@@ -14121,9 +14121,19 @@ document.addEventListener('DOMContentLoaded', () => {
       uniformScaleFactor = Math.min(uniformScaleFactor, charLimitScale);
     }
 
+    song._maxSlideLines = maxSlideLines;
+    song._maxSlideChars = maxSlideChars;
     song._uniformScaleFactor = uniformScaleFactor;
-    if (state.activeSong) state.activeSong._uniformScaleFactor = uniformScaleFactor;
-    if (state.liveSong) state.liveSong._uniformScaleFactor = uniformScaleFactor;
+    if (state.activeSong) {
+      state.activeSong._maxSlideLines = maxSlideLines;
+      state.activeSong._maxSlideChars = maxSlideChars;
+      state.activeSong._uniformScaleFactor = uniformScaleFactor;
+    }
+    if (state.liveSong) {
+      state.liveSong._maxSlideLines = maxSlideLines;
+      state.liveSong._maxSlideChars = maxSlideChars;
+      state.liveSong._uniformScaleFactor = uniformScaleFactor;
+    }
 
     if (song && song.title) {
       document.title = `${song.title} | Taranim Online`;
@@ -14834,7 +14844,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const textAlignStyle = state.styleOptions?.textAlign || 'center';
 
       if (idx === 0) {
-        return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; max-width: 100%; overflow: visible;">${badgeHtml}<span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${lineStr}</span></span></div>`;
+        return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${badgeHtml}${badgeHtml ? ' ' : ''}${lineStr}</span></div>`;
       }
       return `<div class="${rowClass}" style="display: block; width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${lineStr}</span></div>`;
     }).filter(Boolean).join('');
@@ -15080,6 +15090,9 @@ document.addEventListener('DOMContentLoaded', () => {
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.isHighlightMode ? (state.highlightedLineIndices || []) : [],
       highlightColor: state.highlightColor || '#ef4444',
+      songMaxLines: (targetSong && targetSong._maxSlideLines) || 2,
+      songMaxChars: (targetSong && targetSong._maxSlideChars) || 28,
+      songKey: targetSong ? (targetSong.id || targetSong.title || '') : '',
       mode: state.presentationMode,
       presentationMode: state.presentationMode,
       activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
@@ -15656,19 +15669,31 @@ document.addEventListener('DOMContentLoaded', () => {
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const baseSize = state.fontSize || 105;
-          const uniformScale = (targetSong && targetSong._uniformScaleFactor) || (state.activeSong && state.activeSong._uniformScaleFactor) || 1.0;
-          const effectiveBase = Math.round(baseSize * uniformScale);
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const containerW = Math.max(320, container.clientWidth || window.innerWidth);
+          const containerH = Math.max(240, container.clientHeight || window.innerHeight);
 
-          // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON CONTAINER WIDTH WITH PORTRAIT ENHANCEMENT
-          const isPortrait = (window.innerHeight > containerW) || (containerW < 768 && window.innerHeight >= containerW);
-          let scaleFactor = containerW / 1920;
-          if (isPortrait) {
-            scaleFactor = Math.max(scaleFactor * 1.85, containerW / 1050);
-          }
-          const scaledFontSize = Math.max(22, Math.round(effectiveBase * scaleFactor));
+          // UNIFORM AUTO-FIT BASED ON SONG'S BOTTLENECK SLIDE
+          const isPortrait = (window.innerHeight > window.innerWidth) || (containerW <= 768 && window.innerHeight >= containerW);
+          const boxW = Math.max(320, containerW);
+          const boxH = isPortrait ? (boxW * 9 / 16) : Math.max(240, containerH);
+
+          const safeW = boxW * 0.90;
+          const safeH = boxH * 0.84;
+
+          const songMaxLines = Math.max(1, (targetSong && targetSong._maxSlideLines) || 2);
+          const songMaxChars = Math.max(16, (targetSong && targetSong._maxSlideChars) || 28);
+
+          const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
+          const effectiveLH = isJomhuria ? 0.95 : (state.styleOptions.lineHeight || 1.35);
+          const maxFontH = safeH / (songMaxLines * effectiveLH);
+          const charWidthFactor = isJomhuria ? 0.36 : 0.52;
+          const maxFontW = safeW / (songMaxChars * charWidthFactor);
+
+          let uniformFitSize = Math.min(maxFontH, maxFontW);
+
+          const userScaleRatio = state.fontSize ? (state.fontSize / 105) : 1.0;
+          const scaledFontSize = Math.max(16, Math.min(155, Math.round(uniformFitSize * userScaleRatio)));
           els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
@@ -15677,8 +15702,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const isAllInOneMode = state.presentationMode === 'allinone' || Boolean(snapText && snapText.includes('allinone-slide-group'));
           const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
           segments.forEach(s => {
-            s.style.display = 'block';
-            s.style.width = '100%';
+            s.style.display = 'inline-block';
+            s.style.width = 'auto';
+            s.style.maxWidth = '100%';
             s.style.whiteSpace = 'pre-wrap';
             s.style.wordBreak = 'break-word';
             s.style.overflowWrap = 'break-word';
