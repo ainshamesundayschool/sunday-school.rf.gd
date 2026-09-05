@@ -1407,6 +1407,8 @@
 
     let _uniformFontSize = null;
     let _uniformSongKey = '';
+    let _uniformWindowW = 0;
+    let _uniformWindowH = 0;
 
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
@@ -1415,6 +1417,13 @@
       const container = document.getElementById('obs-overlay-container') || document.body;
       const curW = Math.max(320, container.clientWidth || window.innerWidth || 1920);
       const curH = Math.max(240, container.clientHeight || window.innerHeight || 1080);
+
+      // Dynamic resize: clear cached font size whenever window dimensions change
+      if (_uniformWindowW !== curW || _uniformWindowH !== curH) {
+        _uniformFontSize = null;
+        _uniformWindowW = curW;
+        _uniformWindowH = curH;
+      }
 
       const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 105;
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
@@ -1525,9 +1534,18 @@
       applyDynamicShadow();
     }
 
-        window.addEventListener('resize', () => {
+    window.addEventListener('resize', () => {
+      _uniformFontSize = null;
       fitTextToSafeArea();
     });
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        _uniformFontSize = null;
+        fitTextToSafeArea();
+      });
+      ro.observe(document.body);
+    }
 
     // AUTO POSITION WINDOW TO TARGET SCREEN IF QUERY PARAMS ARE PRESENT
     (function autoPositionWindow() {
