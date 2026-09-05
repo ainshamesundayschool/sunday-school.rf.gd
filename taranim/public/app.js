@@ -10003,30 +10003,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(html, true);
     }
 
-    function scrollActiveSlideToTop(smooth = true) {
-      if (!els.presentationLinesContainer) return;
-      const container = els.presentationLinesContainer;
-      let targetEl = null;
-
-      if (state.presentationMode === 'allinone') {
-        const gIdx = state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0;
-        targetEl = container.querySelector(`.allinone-slide-group[data-group-idx="${gIdx}"]`) || container.querySelector('.active-allinone-group');
-      } else {
-        targetEl = container.querySelector('.line-item.active');
-      }
-
-      if (targetEl) {
-        const containerRect = container.getBoundingClientRect();
-        const targetRect = targetEl.getBoundingClientRect();
-        const delta = targetRect.top - containerRect.top - (container.clientTop || 0);
-        const targetScrollTop = container.scrollTop + delta;
-        container.scrollTo({
-          top: Math.max(0, targetScrollTop),
-          behavior: smooth ? 'smooth' : 'auto'
-        });
-      }
-    }
-    window.scrollActiveSlideToTopGlobal = scrollActiveSlideToTop;
+    // (scrollActiveSlideToTop is defined at module level)
 
     function jumpToBufferedSlide() {
       if (!numberJumpBuffer) return;
@@ -14211,6 +14188,31 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.title = 'تقسيم جميع شرائح الترنيمة لسطرين';
     }
   }
+  function scrollActiveSlideToTop(smooth = true) {
+    if (!els.presentationLinesContainer) return;
+    const container = els.presentationLinesContainer;
+    let targetEl = null;
+
+    if (state.presentationMode === 'allinone') {
+      const gIdx = state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0;
+      targetEl = container.querySelector(`.allinone-slide-group[data-group-idx="${gIdx}"]`) || container.querySelector('.active-allinone-group');
+    } else {
+      targetEl = container.querySelector('.line-item.active');
+    }
+
+    if (targetEl) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const delta = targetRect.top - containerRect.top - (container.clientTop || 0);
+      const targetScrollTop = container.scrollTop + delta;
+      container.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: smooth ? 'smooth' : 'auto'
+      });
+    }
+  }
+  window.scrollActiveSlideToTop = scrollActiveSlideToTop;
+  window.scrollActiveSlideToTopGlobal = scrollActiveSlideToTop;
 
   function renderPresentationLinesList() {
     const { presentationLines } = state;
