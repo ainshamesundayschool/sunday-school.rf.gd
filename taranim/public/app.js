@@ -3627,7 +3627,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSlide();
       }
     } else if (cmd.type === 'TOGGLE_BLANK') {
-      toggleBlankScreen();
+      toggleBlank();
     } else if (cmd.type === 'TOGGLE_STANDBY') {
       toggleStandbyMode(true);
     } else if (cmd.type === 'PLAY_SONG' && cmd.song) {
@@ -7464,44 +7464,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         localStorage.setItem(STORAGE_KEY_MEDIA, JSON.stringify(config));
       } catch (e) {}
-    };
-
-    const updateStandbyButtonUI = () => {
-      const isStandby = Boolean(state.isStandbyMode);
-      // Slides mode: text icon (fa-solid fa-font) referring to text slides mode
-      // Standby mode: image icon (fa-solid fa-image) referring to standby mode
-      const iconClass = isStandby ? 'fa-solid fa-image' : 'fa-solid fa-font';
-      const titleText = isStandby ? 'العودة إلى عرض الشرائح والنص (S)' : 'التبديل إلى شاشة الانتظار (S)';
-
-      if (els.btnToggleStandby) {
-        els.btnToggleStandby.classList.toggle('active-mode', isStandby);
-        els.btnToggleStandby.title = titleText;
-        const iconEl = els.btnToggleStandby.querySelector('i');
-        if (iconEl) {
-          iconEl.className = iconClass;
-        } else {
-          els.btnToggleStandby.innerHTML = `<i class="${iconClass}"></i>`;
-        }
-      }
-      if (els.btnToggleStandbyTop) {
-        els.btnToggleStandbyTop.classList.toggle('active-mode', isStandby);
-        els.btnToggleStandbyTop.title = titleText;
-        const iconTopEl = els.btnToggleStandbyTop.querySelector('i');
-        if (iconTopEl) {
-          iconTopEl.className = iconClass;
-        } else {
-          els.btnToggleStandbyTop.innerHTML = `<i class="${iconClass}"></i>`;
-        }
-      }
-    };
-
-    const toggleStandbyMode = (triggerTransition = true) => {
-      state.isStandbyMode = !state.isStandbyMode;
-
-      updateStandbyButtonUI();
-
-      syncLiveState(false, false, { triggerTransition: triggerTransition });
-      showToast(state.isStandbyMode ? 'تم التبديل إلى شاشة الانتظار (Standby) ' : 'تمت العودة إلى عرض الشرائح ');
     };
 
     if (els.btnToggleStandbyTop) {
@@ -16190,6 +16152,51 @@ document.addEventListener('DOMContentLoaded', () => {
     state.isBlank = !state.isBlank;
     syncLiveState();
   }
+
+  function updateStandbyButtonUI() {
+    const isStandby = Boolean(state.isStandbyMode);
+    const iconClass = isStandby ? 'fa-solid fa-image' : 'fa-solid fa-font';
+    const titleText = isStandby ? 'العودة إلى عرض الشرائح والنص (S)' : 'التبديل إلى شاشة الانتظار (S)';
+
+    if (typeof els !== 'undefined' && els) {
+      if (els.btnToggleStandby) {
+        els.btnToggleStandby.classList.toggle('active-mode', isStandby);
+        els.btnToggleStandby.title = titleText;
+        const iconEl = els.btnToggleStandby.querySelector('i');
+        if (iconEl) {
+          iconEl.className = iconClass;
+        } else {
+          els.btnToggleStandby.innerHTML = `<i class="${iconClass}"></i>`;
+        }
+      }
+      if (els.btnToggleStandbyTop) {
+        els.btnToggleStandbyTop.classList.toggle('active-mode', isStandby);
+        els.btnToggleStandbyTop.title = titleText;
+        const iconTopEl = els.btnToggleStandbyTop.querySelector('i');
+        if (iconTopEl) {
+          iconTopEl.className = iconClass;
+        } else {
+          els.btnToggleStandbyTop.innerHTML = `<i class="${iconClass}"></i>`;
+        }
+      }
+    }
+  }
+
+  function toggleStandbyMode(triggerTransition = true) {
+    state.isStandbyMode = !state.isStandbyMode;
+
+    updateStandbyButtonUI();
+
+    if (typeof syncLiveState === 'function') {
+      syncLiveState(false, false, { triggerTransition: triggerTransition });
+    }
+    if (typeof showToast === 'function') {
+      showToast(state.isStandbyMode ? 'تم التبديل إلى شاشة الانتظار (Standby) ' : 'تمت العودة إلى عرض الشرائح ');
+    }
+  }
+
+  window.toggleStandbyMode = toggleStandbyMode;
+  window.updateStandbyButtonUI = updateStandbyButtonUI;
 
 
 
