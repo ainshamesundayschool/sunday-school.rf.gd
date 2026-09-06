@@ -792,8 +792,8 @@
       position: absolute !important;
       left: calc(100% + 0.28em) !important;
       right: auto !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
+      top: 0.15em !important;
+      transform: none !important;
       margin: 0 !important;
       padding: 0 !important;
       z-index: 15 !important;
@@ -807,6 +807,8 @@
     .is-ltr-badge {
       right: calc(100% + 0.28em) !important;
       left: auto !important;
+      top: 0.15em !important;
+      transform: none !important;
     }
 
     .obs-first-line-wrapper {
@@ -1527,46 +1529,107 @@
         }
       }
 
-      const safeW = boxW * 0.92;
-      // Target safe height for slide text in 16:9: generous 76% of 16:9 box height
-      const safeH = boxH * 0.76;
+      // True available safe space inside 16:9 box:
+      // Ample margins so text NEVER touches outer edges or gets cut out:
+      // Width: 92% (leaves 4% on each side)
+      // Height: 86% (leaves 7% on top and bottom)
+      const safeW = isPortrait ? (boxW * 0.94) : (boxW * 0.92);
+      const safeH = isPortrait ? (boxH * 0.88) : (boxH * 0.86);
 
-      const numLines = Math.max(1, segments.length);
-      const effectiveLH = isJomhuria ? 1.05 : finalLineHeight;
+      const box = document.getElementById('presenter-box') || document.querySelector('.lower-third-container');
+      if (box && !isPortrait) {
+        box.style.maxWidth = `${boxW}px`;
+        box.style.maxHeight = `${boxH}px`;
+      }
 
-      // 1. HEIGHT-FITTED BASE SIZE: text fills ~72% of safeH
-      const targetFontH = (safeH * 0.72) / (numLines * effectiveLH);
-
-      // User slider scaling ratio (reference base 105)
-      const userScaleRatio = (lastStyleData && lastStyleData.baseFontSize) ? (lastStyleData.baseFontSize / 105) : 1.0;
-      let calculatedSize = Math.max(isPortrait ? 14 : 24, Math.round(targetFontH * userScaleRatio));
-
-      // Apply candidate font size
-      textEl.style.fontSize = `${calculatedSize}px`;
+      textEl.style.maxWidth = `${safeW}px`;
+      textEl.style.width = '100%';
+      textEl.style.boxSizing = 'border-box';
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
-      wrapper.style.display = 'inline-block';
-      wrapper.style.maxWidth = '100%';
+      wrapper.style.maxWidth = `${safeW}px`;
       wrapper.style.width = '100%';
+      wrapper.style.boxSizing = 'border-box';
 
-      // 2. MEASURE ACTUAL DOM WIDTH & HEIGHT AND REFINE
-      // If widest line exceeds safeW, or total height exceeds safeH:
-      // scale down font size so it fits perfectly!
-      let widestLineW = 0;
-      segments.forEach(s => {
-        if (s.offsetWidth > widestLineW) widestLineW = s.offsetWidth;
+      lineRows.forEach(r => {
+        r.style.lineHeight = `${finalLineHeight}`;
+        r.style.maxWidth = '100%';
+        r.style.width = '100%';
+        r.style.boxSizing = 'border-box';
       });
-      let currentTextH = textEl.scrollHeight || wrapper.scrollHeight || 1;
 
-      if (widestLineW > safeW || currentTextH > safeH) {
-        const ratioW = safeW / Math.max(1, widestLineW);
-        const ratioH = safeH / Math.max(1, currentTextH);
-        const fitScale = Math.min(ratioW, ratioH);
-        if (fitScale < 1.0) {
-          calculatedSize = Math.max(isPortrait ? 12 : 20, Math.floor(calculatedSize * fitScale));
-          textEl.style.fontSize = `${calculatedSize}px`;
+      // BINARY SEARCH MAXIMUM FIT ENGINE
+      // Finds the exact maximum font size that fills available space without cut-off!
+      const userScaleRatio = (lastStyleData && lastStyleData.baseFontSize) ? (lastStyleData.baseFontSize / 105) : 1.0;
+      const minFont = isPortrait ? 12 : 20;
+
+      // Generous upper search limit:
+      // In 1080p safeH is ~928px -> maxFont = 240px
+      // In 720p safeH is ~619px -> maxFont = 240px
+      // In mobile portrait safeH is ~193px -> maxFont = 86px
+      const maxFont = isPortrait 
+        ? Math.max(minFont + 1, Math.floor(safeH * 0.45)) 
+        : Math.max(minFont + 1, Math.min(240, Math.floor(safeH * 0.50)));
+
+      const checkFits = (size) => {
+        textEl.style.fontSize = `${size}px`;
+        const currentH = Math.max(textEl.scrollHeight || 0, wrapper.scrollHeight || 0);
+        if (currentH > safeH + 1) return false;
+        for (let i = 0; i < segments.length; i++) {
+          const seg = segments[i];
+          if (seg.scrollWidth > safeW + 2 || seg.offsetWidth > safeW + 2) return false;
+          // Check badge boundaries on first line
+          const badge = seg.querySelector('.slide-badge-layer');
+          if (badge) {
+            const segRect = seg.getBoundingClientRect();
+            const badgeRect = badge.getBoundingClientRect();
+            const totalSpan = Math.max(segRect.right, badgeRect.right) - Math.min(segRect.left, badgeRect.left);
+            if (totalSpan > safeW + 4) return false;
+          }
         }
+        return true;
+      };
+
+      let low = minFont;
+      let high = maxFont;
+      let bestSize = minFont;
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        if (checkFits(mid)) {
+          bestSize = mid;
+          low = mid + 1; // Try bigger to maximize use of available space!
+        } else {
+          high = mid - 1; // Overflowed safe boundary, scale down!
+        }
+      }
+
+      // Apply user scale slider if customized (reference default = 1.0)
+      if (userScaleRatio !== 1.0) {
+        const adjustedSize = Math.max(minFont, Math.round(bestSize * userScaleRatio));
+        if (checkFits(adjustedSize)) {
+          bestSize = adjustedSize;
+        } else {
+          let aLow = minFont;
+          let aHigh = adjustedSize;
+          while (aLow <= aHigh) {
+            const aMid = Math.floor((aLow + aHigh) / 2);
+            if (checkFits(aMid)) {
+              bestSize = aMid;
+              aLow = aMid + 1;
+            } else {
+              aHigh = aMid - 1;
+            }
+          }
+        }
+      }
+
+      // Final safety check: apply bestSize and ensure no overflow
+      textEl.style.fontSize = `${bestSize}px`;
+      if (!checkFits(bestSize) && bestSize > minFont) {
+        bestSize = Math.max(minFont, bestSize - 2);
+        textEl.style.fontSize = `${bestSize}px`;
       }
 
       applyDynamicShadow();
