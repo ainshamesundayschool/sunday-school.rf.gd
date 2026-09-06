@@ -12169,7 +12169,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result.status === 'success') {
         // Direct browser dispatch to Google Apps Script as dual guarantee
         try {
-          const directAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzyEhUT015M2dbenXop-i5pPJtT9XMryARsn8Alx9i7W9W7H4ew4LQPjg5yXplizvE0/exec';
+          const directAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbwuidcfDZtPxuFTGV5-GxNY395DhD6MeP4tl10LVLMr0ptNvNMI0sOS9OBeZzD9RUg/exec';
           const versesSummary = (payload.verses || []).map((v, i) => {
             const isChorus = v.type == 1 || v.isChorus;
             const vTitle = isChorus ? '🌟 القرار' : `📖 العدد ${i + 1}`;
@@ -12190,14 +12190,16 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           `;
+          const formBody = new URLSearchParams();
+          formBody.append('action', 'sendEmail');
+          formBody.append('to', 'peterfayez107@gmail.com');
+          formBody.append('subject', `🎵 طلب اعتماد ترنيمة جديدة: ${payload.title || ''} — ${name}`);
+          formBody.append('htmlBody', emailHtml);
+
           fetch(directAppsScriptUrl, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              subject: `🎵 طلب اعتماد ترنيمة جديدة: ${payload.title || ''} — ${name}`,
-              htmlBody: emailHtml
-            })
+            body: formBody
           }).catch(() => {});
         } catch(e) {}
 

@@ -175,28 +175,27 @@ function rebuildCustomCatalogJson($customPdo) {
 }
 
 function sendGoogleScriptNotificationEmail($toEmail, $subject, $bodyHtml) {
-    // Current Apps Script Web App URL (can be updated when user provides new deployment link)
-    $appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzyEhUT015M2dbenXop-i5pPJtT9XMryARsn8Alx9i7W9W7H4ew4LQPjg5yXplizvE0/exec';
+    // Active Apps Script Web App URL
+    $appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwuidcfDZtPxuFTGV5-GxNY395DhD6MeP4tl10LVLMr0ptNvNMI0sOS9OBeZzD9RUg/exec';
     
-    $payload = json_encode([
+    $payloadData = [
+        'action' => 'sendEmail',
         'to' => $toEmail,
         'subject' => $subject,
         'htmlBody' => $bodyHtml
-    ], JSON_UNESCAPED_UNICODE);
+    ];
+    $postFields = http_build_query($payloadData);
 
     // Prefer cURL because Google Apps Script responds with a 302 redirect
     if (function_exists('curl_init')) {
         $ch = curl_init($appsScriptUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Accept: application/json'
-        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $result = curl_exec($ch);
@@ -207,8 +206,8 @@ function sendGoogleScriptNotificationEmail($toEmail, $subject, $bodyHtml) {
     $opts = [
         'http' => [
             'method' => 'POST',
-            'header' => "Content-Type: application/json\r\nAccept: application/json\r\n",
-            'content' => $payload,
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $postFields,
             'timeout' => 12,
             'ignore_errors' => true,
             'follow_location' => 1
@@ -360,7 +359,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'submit_custom_song') {
     ";
 
     // Send notification email to admin
-    $adminTargetEmail = 'admin@sunday-school.online';
+    $adminTargetEmail = 'peterfayez107@gmail.com';
     sendGoogleScriptNotificationEmail($adminTargetEmail, $emailSubject, $emailBodyHtml);
 
     // If submitter provided email, send them a confirmation receipt
