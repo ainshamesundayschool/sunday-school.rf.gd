@@ -10628,15 +10628,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Franco prompt chip if Franco is off and user typed English words
-    if (!state.francoAutoTranslate && /[a-z]/i.test(trimmed)) {
-      suggestions.unshift({
-        value: '__enable_franco__',
-        label: 'تفعيل وضع الفرانكو (Turn on Franco Mode)',
-        icon: 'fa-wand-magic-sparkles',
-        isFrancoAction: true
-      });
-    }
+
 
     if (suggestions.length === 0) {
       els.searchSuggestionsChips.classList.add('hidden');
@@ -12539,18 +12531,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rawTranslated) {
         francoHeaderHtml = `<div class="franco-translation-header"><i class="icon-star-sparkle" style="display:inline-block; vertical-align:-1px; margin-left:6px; color:#2563eb;"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
-    } else if (!state.francoAutoTranslate && /[a-z]/i.test(query) && songs && songs.length > 0) {
-      francoHeaderHtml = `
-        <div class="search-franco-prompt-banner">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <i class="fa-solid fa-wand-magic-sparkles" style="color:#2563eb;"></i>
-            <span>هل تبحث بالفرانكو؟</span>
-          </div>
-          <button type="button" id="btn-turn-on-franco-banner" class="btn-franco-banner-action" onclick="window.enableFrancoModeAndRerun && window.enableFrancoModeAndRerun()">
-            <i class="fa-solid fa-bolt"></i> تفعيل وضع الفرانكو (Turn on Franco Mode)
-          </button>
-        </div>
-      `;
     }
 
     let suggestionBannerHtml = '';
@@ -12576,49 +12556,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isApiPending) {
         els.searchDropdown.innerHTML = dropdownPrefixHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
       } else {
-        const isEnglishQuery = /[a-z]/i.test(query);
-        let emptyContentHtml = '';
-
-        if (isEnglishQuery && !state.francoAutoTranslate) {
-          emptyContentHtml = `
-            <div class="search-item no-results-item franco-turn-on-card">
-              <div class="franco-turn-on-icon">
-                <i class="fa-solid fa-language"></i>
-              </div>
-              <div class="franco-turn-on-title">
-                لم يتم العثور على نتائج باللغة الإنجليزية
-              </div>
-              <div class="franco-turn-on-desc">
-                هل تبحث بالفرانكو؟ وضع الفرانكو معطّل حالياً. اضغط لتشغيل الفرانكو والبحث الفوري:
-              </div>
-              <button type="button" id="btn-turn-on-franco-search" class="btn-turn-on-franco" onclick="window.enableFrancoModeAndRerun && window.enableFrancoModeAndRerun()">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> تفعيل وضع الفرانكو (Turn on Franco Mode)
-              </button>
+        const emptyContentHtml = `
+          <div class="search-item no-results-item" style="flex-direction:column; align-items:center; gap:8px; padding:16px 12px; text-align:center;">
+            <div style="display:flex; align-items:center; gap:6px; color:#64748b; font-size:0.9rem;">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <span>لم يتم العثور على ترنيمة أو شاهد كتابي</span>
             </div>
-          `;
-        } else {
-          emptyContentHtml = `
-            <div class="search-item no-results-item" style="flex-direction:column; align-items:center; gap:8px; padding:16px; text-align:center;">
-              <div style="display:flex; align-items:center; gap:6px; color:#64748b;">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <span>لم يتم العثور على ترنيمة أو شاهد كتابي</span>
-              </div>
-              <button type="button" id="btn-quick-add-from-search" class="btn btn-sm btn-primary" style="margin-top:4px; font-size:0.82rem; padding:6px 14px; font-weight:700; background:#2563eb; color:#fff; border-radius:8px;">
-                <i class="fa-solid fa-circle-plus"></i> إضافة ترنيمة جديدة باسم "${escapeHtml(query)}"
-              </button>
-            </div>
-          `;
-        }
+            <button type="button" id="btn-quick-add-from-search" class="btn btn-sm btn-primary search-quick-add-btn" style="margin-top:4px; font-size:0.84rem; padding:8px 16px; font-weight:700; background:#2563eb; color:#fff; border-radius:10px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(37,99,235,0.25);">
+              <i class="fa-solid fa-circle-plus"></i> إضافة ترنيمة جديدة باسم "${escapeHtml(query)}"
+            </button>
+          </div>
+        `;
 
         els.searchDropdown.innerHTML = dropdownPrefixHtml + emptyContentHtml;
-
-        const btnTurnOnFranco = els.searchDropdown.querySelector('#btn-turn-on-franco-search');
-        if (btnTurnOnFranco) {
-          btnTurnOnFranco.addEventListener('click', (e) => {
-            e.stopPropagation();
-            enableFrancoModeAndRerun(query);
-          });
-        }
 
         const btnQuickAdd = els.searchDropdown.querySelector('#btn-quick-add-from-search');
         if (btnQuickAdd) {
@@ -12723,10 +12673,28 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
-      els.searchDropdown.innerHTML = dropdownPrefixHtml + itemsHtml + loadMoreBtnHtml;
+      const footerAddHtml = `
+        <div class="search-dropdown-footer-add">
+          <span class="search-footer-add-hint">لم تجد ترنيمتك في النتائج؟</span>
+          <button type="button" id="btn-search-footer-add" class="btn-search-footer-add">
+            <i class="fa-solid fa-circle-plus"></i> إضافة ترنيمة جديدة باسم "${escapeHtml(query)}"
+          </button>
+        </div>
+      `;
+
+      els.searchDropdown.innerHTML = dropdownPrefixHtml + itemsHtml + loadMoreBtnHtml + footerAddHtml;
     }
 
     els.searchDropdown.classList.remove('hidden');
+
+    const btnFooterAdd = els.searchDropdown.querySelector('#btn-search-footer-add');
+    if (btnFooterAdd) {
+      btnFooterAdd.addEventListener('click', (e) => {
+        e.stopPropagation();
+        els.searchDropdown.classList.add('hidden');
+        openCustomSongEditor({ title: query.trim() });
+      });
+    }
 
     els.searchDropdown.querySelectorAll('.search-did-you-mean-banner, .clickable-suggestion-word').forEach(el => {
       el.addEventListener('click', (e) => {
@@ -12741,13 +12709,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    const btnTurnOnFrancoBanner = els.searchDropdown.querySelector('#btn-turn-on-franco-banner');
-    if (btnTurnOnFrancoBanner) {
-      btnTurnOnFrancoBanner.addEventListener('click', (e) => {
-        e.stopPropagation();
-        enableFrancoModeAndRerun(query);
-      });
-    }
+
 
     els.searchDropdown.querySelectorAll('.btn-toggle-item-preview').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -13730,22 +13692,28 @@ document.addEventListener('DOMContentLoaded', () => {
           let cleanLines = rawLines.map(l => l.trim()).filter(l => l.length > 0);
           const firstRawLine = rawLines[0] || '';
 
+          const allTextForLang = (cleanLines.join(' ') + ' ' + (song.title || '')).trim();
+          const enMatches = (allTextForLang.match(/[a-zA-Z]/g) || []).length;
+          const arMatches = (allTextForLang.match(/[\u0600-\u06FF]/g) || []).length;
+          const isEnglish = enMatches > 0 && enMatches >= arMatches;
+
           const isChorusVerse = (!isBible) && (
             rawVerseType === 1 ||
             rawVerseType === '1' ||
             verse.isChorus === true ||
             String(rawVerseType).toLowerCase() === 'chorus' ||
-            /القرار|قرار|^ق$/i.test(verse.title || '') ||
-            /^\s*[\(\[\{]\s*(القرار|قرار|ق)\s*[\)\]\}]/i.test(firstRawLine) ||
-            /^\s*(القرار|قرار)\s*[:\-\/]?\s*/i.test(firstRawLine) ||
+            /القرار|قرار|^ق$|chorus|refrain|^ch$|^c$/i.test(verse.title || '') ||
+            /^\s*[\(\[\{]\s*(القرار|قرار|ق|chorus|refrain|ch|c)\s*[\)\]\}]/i.test(firstRawLine) ||
+            /^\s*(القرار|قرار|chorus|refrain)\s*[:\-\/]?\s*/i.test(firstRawLine) ||
             /^\s*ق\s*[:\-\/\.]\s*/i.test(firstRawLine)
           );
 
           // Clean only explicit redundant leading badges in text
-          const stripBadgeRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق|[\d٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.]|[\d٠-٩]+\s*[:\-\.])\s*/i;
+          const stripBadgeRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق|chorus|refrain|ch|c|verse\s*\d+|v\d+|[\d٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:القرار|قرار|chorus|refrain|verse\s*\d+)\s*[:\-\/]?|(?:ق|ch)\s*[:\-\/\.]|v\d+\s*[:\-\.]|[\d٠-٩]+\s*[:\-\.])\s*/i;
           cleanLines = cleanLines.map(l => {
             return l.replace(stripBadgeRegex, '')
-                    .replace(/^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i, '')
+                    .replace(/^\s*[\(\[\{]?\s*(القرار|قرار|ق|chorus|refrain)\s*[\)\]\}]?\s*$/i, '')
+                    .replace(/^\s*[\(\[\{]?\s*(verse\s*\d+|v\d+)\s*[\)\]\}]?\s*$/i, '')
                     .trim();
           }).filter(l => l.length > 0);
 
@@ -13778,30 +13746,28 @@ document.addEventListener('DOMContentLoaded', () => {
             cleanLines = collapsed;
           }
 
-
-
-
-
           if (cleanLines.length > 0) {
             let badgeText = '';
             let badgeClass = '';
             let labelText = '';
 
+            const ltrBadgeClassSuffix = isEnglish ? ' is-ltr-badge' : '';
+
             if (isBible) {
               const vNum = slide.heading || slide.number || verse.heading || verse.number || verse.verse_number || (verseIndex + 1);
               badgeText = `(${vNum})`;
-              badgeClass = 'verse-badge-side';
-              labelText = `آية ${vNum}`;
+              badgeClass = 'verse-badge-side' + ltrBadgeClassSuffix;
+              labelText = isEnglish ? `Verse ${vNum}` : `آية ${vNum}`;
               isFirstSlideOfVerse = true;
             } else if (isChorusVerse) {
-              badgeText = `(ق)`;
-              badgeClass = 'chorus-badge-side';
-              labelText = `قرار`;
+              badgeText = isEnglish ? `(C)` : `(ق)`;
+              badgeClass = 'chorus-badge-side' + ltrBadgeClassSuffix;
+              labelText = isEnglish ? `Chorus` : `قرار`;
             } else {
               const sNum = stanzaNumOverride || verse.stanzaNum || (verseIndex + 1);
               badgeText = `(${sNum})`;
-              badgeClass = 'stanza-badge-side';
-              labelText = `عدد ${sNum}`;
+              badgeClass = 'stanza-badge-side' + ltrBadgeClassSuffix;
+              labelText = isEnglish ? `Verse ${sNum}` : `عدد ${sNum}`;
             }
 
             const pushSlideItem = (linesArray) => {
@@ -13814,7 +13780,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 lines: linesArray,
                 badgeText: curBadgeText,
                 badgeClass: curBadgeClass,
-                label: labelText
+                label: labelText,
+                isLtr: isEnglish,
+                dir: isEnglish ? 'ltr' : 'rtl'
               });
               isFirstSlideOfVerse = false;
             };
@@ -13868,12 +13836,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const isChorusVerseItem = (v) => {
         if (!v) return false;
+        const firstLine = (v.slides && v.slides[0] && (v.slides[0].lines ? v.slides[0].lines[0] : v.slides[0].text)) || '';
         return (
           v.type === 1 ||
           v.type === '1' ||
           v.isChorus === true ||
           String(v.type).toLowerCase() === 'chorus' ||
-          /القرار|قرار|^ق$/i.test(v.title || '')
+          /القرار|قرار|^ق$|chorus|refrain|^ch$|^c$/i.test(v.title || '') ||
+          /^\s*[\(\[\{]\s*(chorus|refrain|ch|c)\s*[\)\]\}]/i.test(firstLine) ||
+          /^\s*(chorus|refrain)\s*[:\-\/]?/i.test(firstLine)
         );
       };
 
@@ -14295,8 +14266,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="slide-line-row ${isHighlighted ? 'line-highlight-active' : ''}" data-line-idx="${lineIdx}" style="${isHighlighted ? `--highlight-color:${hColor}; --highlight-bg-light:${hBg};` : ''}"><span>${text}</span></div>`;
       }).join('');
 
+      const isEnglish = Boolean(l.isLtr || ((l.text || '').match(/[a-zA-Z]/g) || []).length > ((l.text || '').match(/[\u0600-\u06FF]/g) || []).length);
+      const dirAttr = isEnglish ? 'dir="ltr"' : 'dir="rtl"';
+      const dirClass = isEnglish ? 'is-ltr' : 'is-rtl';
+
       return `
-        <div class="line-item ${isActive ? 'active' : ''}" data-idx="${idx}">
+        <div class="line-item ${isActive ? 'active' : ''} ${dirClass}" ${dirAttr} data-idx="${idx}">
           <div class="line-item-actions-right">
             <button class="launch-fullscreen-btn" data-idx="${idx}" title="عرض ملء الشاشة">
               <i class="fa-solid fa-expand"></i>
@@ -14806,22 +14781,40 @@ document.addEventListener('DOMContentLoaded', () => {
     let detectedBadge = badgeTextOverride || '';
     let detectedBadgeClass = badgeClassOverride || '';
 
-    const badgeRegex = /^\s*(?:[\(\[\{]\s*(ق|قرار|\d+|[٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:قرار|\d+|[٠-٩]+)\s*[:\-\.]|ق\s*[:\-\/\.])\s*/i;
+    const enCount = (text.match(/[a-zA-Z]/g) || []).length;
+    const arCount = (text.match(/[\u0600-\u06FF]/g) || []).length;
+    const isEnglish = enCount > 0 && enCount >= arCount;
+
+    const badgeRegex = isEnglish
+      ? /^\s*(?:[\(\[\{]\s*(chorus|refrain|ch|c|verse\s*\d+|v\d+|\d+)\s*[\)\]\}]\s*[:\-\.]?|(?:chorus|refrain|verse\s*\d+)\s*[:\-\/]?|(?:ch)\s*[:\-\/\.]|v\d+\s*[:\-\.]|\d+\s*[:\-\.])\s*/i
+      : /^\s*(?:[\(\[\{]\s*(ق|قرار|\d+|[٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:قرار|\d+|[٠-٩]+)\s*[:\-\.]|ق\s*[:\-\/\.])\s*/i;
 
     if (!detectedBadge) {
       const badgeMatch = text.match(badgeRegex);
       if (badgeMatch) {
         const matched = (badgeMatch[1] || (badgeMatch[0].includes('ق') ? 'ق' : '')).trim();
-        const isChorus = /ق|قرار/i.test(matched);
-        detectedBadge = isChorus ? '(ق)' : `(${matched})`;
-        detectedBadgeClass = isChorus ? 'chorus-badge-side chorus-num' : 'stanza-badge-side verse-num';
+        const isChorus = isEnglish
+          ? /^(chorus|refrain|ch|c)$/i.test(matched) || /chorus|refrain/i.test(badgeMatch[0])
+          : /ق|قرار/i.test(matched);
+        
+        if (isChorus) {
+          detectedBadge = isEnglish ? '(C)' : '(ق)';
+          detectedBadgeClass = 'chorus-badge-side chorus-num' + (isEnglish ? ' is-ltr-badge' : '');
+        } else {
+          const numMatch = matched.match(/\d+|[٠-٩]+/);
+          const num = numMatch ? numMatch[0] : matched;
+          detectedBadge = `(${num})`;
+          detectedBadgeClass = 'stanza-badge-side verse-num' + (isEnglish ? ' is-ltr-badge' : '');
+        }
         text = text.replace(badgeRegex, '').trim();
       }
     } else {
-      const isChorus = /ق|قرار/i.test(detectedBadge);
+      const isChorus = /ق|قرار|chorus|refrain|^c$|^ch$/i.test(detectedBadge);
       if (isChorus) {
-        detectedBadge = '(ق)';
-        detectedBadgeClass = 'chorus-badge-side chorus-num';
+        detectedBadge = isEnglish ? '(C)' : '(ق)';
+        detectedBadgeClass = 'chorus-badge-side chorus-num' + (isEnglish ? ' is-ltr-badge' : '');
+      } else if (isEnglish && !detectedBadgeClass.includes('is-ltr-badge')) {
+        detectedBadgeClass = (detectedBadgeClass || 'stanza-badge-side verse-num') + ' is-ltr-badge';
       }
       text = text.replace(badgeRegex, '').trim();
     }
@@ -14834,6 +14827,9 @@ document.addEventListener('DOMContentLoaded', () => {
       badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${escapeHtml(detectedBadge)}</span>`;
     }
 
+    const dirAttr = isEnglish ? 'dir="ltr"' : 'dir="rtl"';
+    const dirClass = isEnglish ? 'is-ltr' : 'is-rtl';
+
     let lineSegments = lines.map((l, idx) => {
       let lineStr = l.trim();
       if (!lineStr) return '';
@@ -14842,17 +14838,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
-      const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
+      const rowClass = isBible ? `obs-line-row is-bible-row ${dirClass}` : `obs-line-row ${dirClass}`;
       const textAlignStyle = state.styleOptions?.textAlign || 'center';
 
       if (idx === 0) {
-        return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${badgeHtml}${badgeHtml ? ' ' : ''}${lineStr}</span></div>`;
+        return `<div class="${rowClass} obs-first-row" ${dirAttr} style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''} ${dirClass}" ${dirAttr} data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible; direction: ${isEnglish ? 'ltr' : 'rtl'};">${badgeHtml}${badgeHtml ? ' ' : ''}${lineStr}</span></div>`;
       }
-      return `<div class="${rowClass}" style="display: block; width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${lineStr}</span></div>`;
+      return `<div class="${rowClass}" ${dirAttr} style="display: block; width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''} ${dirClass}" ${dirAttr} data-line-idx="${idx}" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible; direction: ${isEnglish ? 'ltr' : 'rtl'};">${lineStr}</span></div>`;
     }).filter(Boolean).join('');
 
-    const wrapperClass = isBible ? 'obs-lines-wrapper is-bible-lines' : 'obs-lines-wrapper';
-    return `<div class="obs-slide-wrapper" style="overflow: visible; width: 100%;"><div class="${wrapperClass}" style="overflow: visible; width: 100%;">${lineSegments}</div></div>`;
+    const wrapperClass = isBible ? `obs-lines-wrapper is-bible-lines ${dirClass}` : `obs-lines-wrapper ${dirClass}`;
+    return `<div class="obs-slide-wrapper ${dirClass}" ${dirAttr} style="overflow: visible; width: 100%;"><div class="${wrapperClass}" style="overflow: visible; width: 100%;">${lineSegments}</div></div>`;
   }
 
   function exportPlaylistObj(targetPl) {
@@ -15053,6 +15049,8 @@ document.addEventListener('DOMContentLoaded', () => {
       badgeClass: badgeCls,
       isBible: isBible,
       is_bible: isBible,
+      isLtr: Boolean(currentSlideItem && currentSlideItem.isLtr !== undefined ? currentSlideItem.isLtr : ((text.match(/[a-zA-Z]/g) || []).length > (text.match(/[\u0600-\u06FF]/g) || []).length)),
+      dir: (currentSlideItem && currentSlideItem.dir) ? currentSlideItem.dir : (((text.match(/[a-zA-Z]/g) || []).length > (text.match(/[\u0600-\u06FF]/g) || []).length) ? 'ltr' : 'rtl'),
       bibleRef: bibleRefShortcut,
       songTitle: targetSong ? targetSong.title : '',
       prevSongTitle: prevSongTitle,

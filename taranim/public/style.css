@@ -797,101 +797,106 @@ input[type="checkbox"]:checked::after {
 }
 
 /* FRANCO PROMPT CARD & BANNER WHEN ENGLISH IS TYPED AND FRANCO IS OFF */
-.franco-turn-on-card {
+/* COMPACT FRANCO RECOMMENDATION CARD & BANNER */
+.search-franco-compact-card {
   display: flex !important;
-  flex-direction: column !important;
   align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
-  padding: 24px 20px !important;
-  gap: 12px !important;
-  background: #f8fafc !important;
-  border-radius: 16px !important;
-  margin: 12px !important;
-  border: 1px dashed #cbd5e1 !important;
-  cursor: default !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 8px 12px !important;
+  margin: 6px 8px 4px 8px !important;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(240, 249, 255, 0.9)) !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08) !important;
 }
 
-.franco-turn-on-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(37, 99, 235, 0.1);
+.franco-compact-lead {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--accent-blue);
-  font-size: 1.5rem;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e40af;
 }
 
-.franco-turn-on-title {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text-main);
+.franco-sparkle-icon {
+  color: #2563eb;
+  font-size: 1.05rem;
+  filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.4));
+  animation: francoSparklePulse 2s ease-in-out infinite;
 }
 
-.franco-turn-on-desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  max-width: 320px;
+@keyframes francoSparklePulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 1; }
 }
 
-.btn-turn-on-franco {
+.btn-franco-compact-action {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff !important;
   border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 800;
-  padding: 10px 24px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.btn-turn-on-franco:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-}
-
-.search-franco-prompt-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 16px;
-  background: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
-  color: #1e40af;
-  font-size: 0.88rem;
-  font-weight: 700;
-}
-
-.btn-franco-banner-action {
-  background: #2563eb;
-  color: #fff !important;
-  border: none;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 5px 12px;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-family: inherit;
-  transition: background 0.15s ease;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.btn-franco-banner-action:hover {
-  background: #1d4ed8;
+.btn-franco-compact-action:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+/* SEARCH DROPDOWN FOOTER: ADD NEW TARNIMA */
+.search-dropdown-footer-add {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 6px 8px 8px 8px;
+  background: rgba(248, 250, 252, 0.95);
+  border-top: 1px dashed #cbd5e1;
+  border-radius: 10px;
+}
+
+.search-footer-add-hint {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.btn-search-footer-add {
+  background: #f1f5f9;
+  color: #2563eb;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-search-footer-add:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .suggestion-chip.franco-prompt-chip {
@@ -1920,6 +1925,24 @@ input[type="checkbox"]:checked::after {
   color: #94a3b8 !important;
   font-weight: 700 !important;
   font-size: 0.52em !important;
+}
+
+/* FOR LTR / ENGLISH HYMNS: BADGE SITS TO THE LEFT OF THE FIRST LINE */
+[dir="ltr"] .slide-badge-layer,
+.is-ltr .slide-badge-layer,
+.is-ltr-badge {
+  right: calc(100% + 0.28em) !important;
+  left: auto !important;
+}
+
+[dir="ltr"] .slide-lines-body,
+.is-ltr .slide-lines-body {
+  text-align: left !important;
+}
+
+[dir="ltr"] .line-item,
+.is-ltr.line-item {
+  direction: ltr !important;
 }
 
 /* ALWAYS BESIDE LINE (NEVER ABOVE IT) IN ALL MODES */
