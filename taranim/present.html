@@ -1559,27 +1559,21 @@
         r.style.boxSizing = 'border-box';
       });
 
-      // BINARY SEARCH MAXIMUM FIT ENGINE
-      // Finds the exact maximum font size that fills available space without cut-off!
       const userScaleRatio = (lastStyleData && lastStyleData.baseFontSize) ? (lastStyleData.baseFontSize / 105) : 1.0;
       const minFont = isPortrait ? 12 : 20;
-
-      // Generous upper search limit:
-      // In 1080p safeH is ~928px -> maxFont = 240px
-      // In 720p safeH is ~619px -> maxFont = 240px
-      // In mobile portrait safeH is ~193px -> maxFont = 86px
       const maxFont = isPortrait 
         ? Math.max(minFont + 1, Math.floor(safeH * 0.45)) 
         : Math.max(minFont + 1, Math.min(240, Math.floor(safeH * 0.50)));
 
-      const checkFits = (size) => {
-        textEl.style.fontSize = `${size}px`;
-        const currentH = Math.max(textEl.scrollHeight || 0, wrapper.scrollHeight || 0);
+      const checkFitsElement = (el, size) => {
+        el.style.fontSize = `${size}px`;
+        const elWrap = el.querySelector('.obs-slide-wrapper') || el;
+        const currentH = Math.max(el.scrollHeight || 0, elWrap.scrollHeight || 0);
         if (currentH > safeH + 1) return false;
-        for (let i = 0; i < segments.length; i++) {
-          const seg = segments[i];
+        const elSegs = Array.from(el.querySelectorAll('.obs-line-segment'));
+        for (let i = 0; i < elSegs.length; i++) {
+          const seg = elSegs[i];
           if (seg.scrollWidth > safeW + 2 || seg.offsetWidth > safeW + 2) return false;
-          // Check badge boundaries on first line
           const badge = seg.querySelector('.slide-badge-layer');
           if (badge) {
             const segRect = seg.getBoundingClientRect();
@@ -1591,47 +1585,134 @@
         return true;
       };
 
-      let low = minFont;
-      let high = maxFont;
-      let bestSize = minFont;
+      const computeFitForHtml = (htmlContent, targetEl) => {
+        targetEl.innerHTML = htmlContent;
+        targetEl.style.maxWidth = `${safeW}px`;
+        targetEl.style.width = '100%';
+        targetEl.style.boxSizing = 'border-box';
+        targetEl.style.fontFamily = textEl.style.fontFamily;
+        targetEl.style.letterSpacing = textEl.style.letterSpacing;
+        targetEl.style.wordSpacing = textEl.style.wordSpacing;
+        targetEl.style.fontWeight = textEl.style.fontWeight;
+        targetEl.style.lineHeight = `${finalLineHeight}`;
+        targetEl.style.textAlign = textEl.style.textAlign;
+        targetEl.style.fontStyle = fStyle;
+        targetEl.style.textDecoration = tDeco;
 
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        if (checkFits(mid)) {
-          bestSize = mid;
-          low = mid + 1; // Try bigger to maximize use of available space!
-        } else {
-          high = mid - 1; // Overflowed safe boundary, scale down!
-        }
-      }
+        const w = targetEl.querySelector('.obs-slide-wrapper') || targetEl;
+        w.style.transform = 'none';
+        w.style.maxWidth = `${safeW}px`;
+        w.style.width = '100%';
+        w.style.boxSizing = 'border-box';
 
-      // Apply user scale slider if customized (reference default = 1.0)
-      if (userScaleRatio !== 1.0) {
-        const adjustedSize = Math.max(minFont, Math.round(bestSize * userScaleRatio));
-        if (checkFits(adjustedSize)) {
-          bestSize = adjustedSize;
-        } else {
-          let aLow = minFont;
-          let aHigh = adjustedSize;
-          while (aLow <= aHigh) {
-            const aMid = Math.floor((aLow + aHigh) / 2);
-            if (checkFits(aMid)) {
-              bestSize = aMid;
-              aLow = aMid + 1;
-            } else {
-              aHigh = aMid - 1;
-            }
+        const rows = targetEl.querySelectorAll('.obs-line-row');
+        rows.forEach(r => {
+          r.style.lineHeight = `${finalLineHeight}`;
+          r.style.maxWidth = '100%';
+          r.style.width = '100%';
+          r.style.boxSizing = 'border-box';
+        });
+
+        const segs = Array.from(targetEl.querySelectorAll('.obs-line-segment'));
+        segs.forEach(s => {
+          s.style.display = 'inline-block';
+          s.style.width = 'auto';
+          s.style.maxWidth = '100%';
+          s.style.whiteSpace = 'normal';
+          s.style.wordBreak = 'normal';
+          s.style.overflowWrap = 'break-word';
+          s.style.lineHeight = `${finalLineHeight}`;
+        });
+
+        let low = minFont;
+        let high = maxFont;
+        let best = minFont;
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          if (checkFitsElement(targetEl, mid)) {
+            best = mid;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
           }
         }
+        return best;
+      };
+
+      // UNIFORM TARNIMA FONT SIZE ENGINE
+      // Guarantees all slides of the same tarnima share the exact same uniform font size!
+      const currentSongKey = (lastStyleData && (lastStyleData.songKey || lastStyleData.songTitle)) || '';
+
+      if (currentSongKey && !isBible) {
+        // If uniform size is already known for this song, reuse it!
+        if (_uniformSongKey === currentSongKey && _uniformFontSize !== null) {
+          if (checkFitsElement(textEl, _uniformFontSize)) {
+            textEl.style.fontSize = `${_uniformFontSize}px`;
+            applyDynamicShadow();
+            return;
+          } else {
+            // Slide is longer than previously measured; adjust uniform size down so it fits
+            const curFit = computeFitForHtml(textEl.innerHTML, textEl);
+            _uniformFontSize = Math.min(_uniformFontSize, curFit);
+            textEl.style.fontSize = `${_uniformFontSize}px`;
+            applyDynamicShadow();
+            return;
+          }
+        }
+
+        // New song! Evaluate all slides to determine the uniform bottleneck size
+        const allSlides = (lastStyleData && lastStyleData.allSlideTexts && Array.isArray(lastStyleData.allSlideTexts) && lastStyleData.allSlideTexts.length > 0)
+          ? lastStyleData.allSlideTexts
+          : (statePresentationLines && Array.isArray(statePresentationLines) && statePresentationLines.length > 0 ? statePresentationLines : null);
+
+        let uniformSize = maxFont;
+
+        if (allSlides && allSlides.length > 0) {
+          let sandbox = document.getElementById('obs-fit-sandbox');
+          if (!sandbox) {
+            sandbox = document.createElement('div');
+            sandbox.id = 'obs-fit-sandbox';
+            sandbox.style.cssText = 'position: fixed; top: -99999px; left: -99999px; visibility: hidden; pointer-events: none; opacity: 0; z-index: -99999;';
+            document.body.appendChild(sandbox);
+          }
+
+          for (let i = 0; i < allSlides.length; i++) {
+            const sItem = allSlides[i];
+            const sText = (typeof sItem === 'string') ? sItem : (sItem && sItem.text ? sItem.text : '');
+            const sBadge = (sItem && sItem.badgeText) || '';
+            const sBadgeCls = (sItem && sItem.badgeClass) || '';
+            if (!sText || !sText.trim()) continue;
+
+            const slideHtml = formatPresenterText(sText, isBible, sBadge, sBadgeCls);
+            const slideFit = computeFitForHtml(slideHtml, sandbox);
+            if (slideFit < uniformSize) {
+              uniformSize = slideFit;
+            }
+          }
+        } else {
+          // Single slide fallback
+          uniformSize = computeFitForHtml(textEl.innerHTML, textEl);
+        }
+
+        // Apply user scale slider if customized
+        if (userScaleRatio !== 1.0) {
+          uniformSize = Math.max(minFont, Math.round(uniformSize * userScaleRatio));
+        }
+
+        _uniformFontSize = uniformSize;
+        _uniformSongKey = currentSongKey;
+
+        textEl.style.fontSize = `${_uniformFontSize}px`;
+        applyDynamicShadow();
+        return;
       }
 
-      // Final safety check: apply bestSize and ensure no overflow
+      // Standalone / Bible / Default Fallback
+      let bestSize = computeFitForHtml(textEl.innerHTML, textEl);
+      if (userScaleRatio !== 1.0) {
+        bestSize = Math.max(minFont, Math.round(bestSize * userScaleRatio));
+      }
       textEl.style.fontSize = `${bestSize}px`;
-      if (!checkFits(bestSize) && bestSize > minFont) {
-        bestSize = Math.max(minFont, bestSize - 2);
-        textEl.style.fontSize = `${bestSize}px`;
-      }
-
       applyDynamicShadow();
     }
 

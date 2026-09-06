@@ -15055,6 +15055,13 @@ document.addEventListener('DOMContentLoaded', () => {
       songMaxLines: (targetSong && targetSong._maxSlideLines) || 2,
       songMaxChars: (targetSong && targetSong._maxSlideChars) || 28,
       songKey: targetSong ? (targetSong.id || targetSong.title || '') : '',
+      allSlideTexts: (state.presentationLines && Array.isArray(state.presentationLines) && state.presentationLines.length > 0)
+        ? state.presentationLines.map(s => ({
+            text: (s && s.text) ? s.text : (Array.isArray(s.lines) ? s.lines.join('\n') : String(s || '')),
+            badgeText: (s && s.badgeText) || '',
+            badgeClass: (s && s.badgeClass) || ''
+          }))
+        : [],
       mode: state.presentationMode,
       presentationMode: state.presentationMode,
       activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
