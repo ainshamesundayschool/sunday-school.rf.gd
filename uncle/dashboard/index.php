@@ -13649,121 +13649,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 </div>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
-            <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
-                <button class="btn btn-xs btn-danger" id="deleteStudentBtn"
-                    style="width:100%;padding:8px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="siblingLinkModal" class="modal-overlay" style="z-index:1000007">
-        <div class="modal" style="max-width:620px">
-            <div class="modal-header">
-                <h3 id="siblingLinkModalTitle"><i class="fas fa-link"></i> إضافة أخت أو أخ</h3>
-                <button class="close-btn" id="closeSiblingLinkModal">&times;</button>
-            </div>
-            <div class="mbody">
-                <div id="siblingLinkSuggestion" class="sibling-empty" style="margin-bottom:10px">الاقتراحات ستظهر هنا
-                    تلقائيًا عندما تختار طفلًا.</div>
-                <div class="form-group sibling-link-search">
-                    <label class="form-label" id="siblingLinkSearchLabel">ابحث عن أخت أو أخ</label>
-                    <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text"
-                            id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
-                </div>
-                <div id="siblingLinkSummary" class="sibling-empty" style="margin-bottom:10px"></div>
-                <div id="siblingLinkCandidates" class="sibling-link-modal-list"></div>
-            </div>
-            <div class="mfooter" style="justify-content:space-between">
-                <button class="btn btn-ghost" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i>
-                    مسح</button>
-                <button class="btn btn-ghost" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i>
-                    إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="siblingSuggestionsModal" class="modal-overlay" style="z-index:1000008">
-        <div class="modal" style="max-width:720px">
-            <div class="modal-header">
-                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوات</h3>
-                <button class="close-btn" id="closeSiblingSuggestionsModal">&times;</button>
-            </div>
-            <div class="mbody">
-                <div id="siblingSuggestionsSummary" class="sibling-empty" style="margin-bottom:10px"></div>
-                <div class="sibling-review-section">
-                    <div class="sibling-panel-title" style="margin-bottom:8px">اقتراحات قوية</div>
-                    <div id="strongSiblingSuggestions" class="sibling-review-grid"></div>
-                </div>
-                <details class="sibling-review-collapse sibling-review-section">
-                    <summary>اقتراحات ضعيفة</summary>
-                    <div id="weakSiblingSuggestions" class="sibling-review-grid" style="margin-top:8px"></div>
-                </details>
-            </div>
-            <div class="mfooter">
-                <button class="btn btn-success" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"><i
-                        class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
-                <button class="btn btn-ghost" id="cancelSiblingSuggestionsBtn" type="button"><i
-                        class="fas fa-times"></i>
-                    إغلاق</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Merge Duplicate Kids Modal -->
-    <div id="mergeDuplicateModal" class="modal-overlay" style="z-index:1000009">
-        <div class="modal" style="max-width:900px; height: 90vh; max-height: 90vh;">
-            <div class="modal-header">
-                <h3><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</h3>
-                <button class="close-btn" onclick="closeMergeModal()">&times;</button>
-            </div>
-            <div class="mbody" style="overflow-y:auto; flex:1; padding-top:10px;">
-                <p style="font-size:0.78rem; color:var(--text-3); margin-bottom:12px; line-height:1.5;">
-                    اختر القيم التي تريد الاحتفاظ بها في الحساب الرئيسي. سيتم دمج الحسابين وحذف الحساب المكرر مع تحويل
-                    جميع السجلات المرتبطة (الحضور، التاسكات، الكوبونات، الرحلات) تلقائياً.
-                </p>
-                <div id="mergeModalContent"></div>
-            </div>
-            <div class="mfooter"
-                style="justify-content:space-between; padding-top:14px; border-top:1px solid var(--border-solid)">
-                <button class="btn btn-success" id="confirmMergeBtn" onclick="submitMergeDuplicate()" type="button"
-                    style="padding: 10px 24px; font-weight:700;">
-                    <i class="fas fa-check-double"></i> إتمام الدمج وحذف المكرر
-                </button>
-                <button class="btn btn-ghost" onclick="closeMergeModal()" type="button"><i class="fas fa-times"></i>
-                    إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sibling Comparison Modal -->
-    <div id="siblingComparisonModal" class="modal-overlay" style="z-index:1000009">
-        <div class="modal" style="max-width:800px">
-            <div class="modal-header">
-                <h3><i class="fas fa-scale-balanced"></i> المقارنة للتحقق</h3>
-                <button class="close-btn" id="closeSiblingComparisonModal">&times;</button>
-            </div>
-            <div class="mbody">
-                <div id="siblingComparisonContent"
-                    style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px"></div>
-            </div>
-            <div class="mfooter" style="justify-content:space-between">
-                <div>
-                    <button class="btn btn-success" id="confirmSiblingLinkBtn" type="button"><i
-                            class="fas fa-check"></i> تأكيد الربط</button>
-                </div>
-                <button class="btn btn-ghost" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i>
-                    إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Student Modal -->
-    <div id="editStudentForm" class="modal-overlay" style="z-index:1000006">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="editStudentModalTitle">تعديل بيانات الطفل</h3>
-                <button class="close-btn" id="cancelEditBtn">&times;</button>
-            </div>
+            <div id="studentEditContainer" style="display:none; margin-bottom:14px">
             <form id="editForm">
                 <div class="form-group">
                     <label class="form-label">الصورة الشخصية</label>
@@ -13924,10 +13810,122 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     </div>
                 </div>
 
-                <button type="submit" class="btn" style="width:100%"><i class="fas fa-save"></i> حفظ التعديلات</button>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button type="submit" class="btn" style="flex:1;"><i class="fas fa-save"></i> حفظ التعديلات</button>
+                    <button type="button" class="btn btn-ghost" onclick="goBackToMainDetails()" style="min-width:90px;"><i class="fas fa-times"></i> إلغاء</button>
+                </div>
             </form>
+            </div>
+            <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
+                <button class="btn btn-xs btn-danger" id="deleteStudentBtn"
+                    style="width:100%;padding:8px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
+            </div>
         </div>
     </div>
+
+    <div id="siblingLinkModal" class="modal-overlay" style="z-index:1000007">
+        <div class="modal" style="max-width:620px">
+            <div class="modal-header">
+                <h3 id="siblingLinkModalTitle"><i class="fas fa-link"></i> إضافة أخت أو أخ</h3>
+                <button class="close-btn" id="closeSiblingLinkModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingLinkSuggestion" class="sibling-empty" style="margin-bottom:10px">الاقتراحات ستظهر هنا
+                    تلقائيًا عندما تختار طفلًا.</div>
+                <div class="form-group sibling-link-search">
+                    <label class="form-label" id="siblingLinkSearchLabel">ابحث عن أخت أو أخ</label>
+                    <div class="input-icon-wrap"><i class="fas fa-search input-icon"></i><input type="text"
+                            id="siblingLinkSearch" class="form-input" placeholder="اسم، فصل، تليفون، عنوان..."></div>
+                </div>
+                <div id="siblingLinkSummary" class="sibling-empty" style="margin-bottom:10px"></div>
+                <div id="siblingLinkCandidates" class="sibling-link-modal-list"></div>
+            </div>
+            <div class="mfooter" style="justify-content:space-between">
+                <button class="btn btn-ghost" id="clearSiblingLinkBtn" type="button"><i class="fas fa-eraser"></i>
+                    مسح</button>
+                <button class="btn btn-ghost" id="cancelSiblingLinkBtn" type="button"><i class="fas fa-times"></i>
+                    إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="siblingSuggestionsModal" class="modal-overlay" style="z-index:1000008">
+        <div class="modal" style="max-width:720px">
+            <div class="modal-header">
+                <h3><i class="fas fa-wand-magic-sparkles sibling-suggestion-ai"></i> اقتراحات الإخوات</h3>
+                <button class="close-btn" id="closeSiblingSuggestionsModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingSuggestionsSummary" class="sibling-empty" style="margin-bottom:10px"></div>
+                <div class="sibling-review-section">
+                    <div class="sibling-panel-title" style="margin-bottom:8px">اقتراحات قوية</div>
+                    <div id="strongSiblingSuggestions" class="sibling-review-grid"></div>
+                </div>
+                <details class="sibling-review-collapse sibling-review-section">
+                    <summary>اقتراحات ضعيفة</summary>
+                    <div id="weakSiblingSuggestions" class="sibling-review-grid" style="margin-top:8px"></div>
+                </details>
+            </div>
+            <div class="mfooter">
+                <button class="btn btn-success" type="button" onclick="exportSiblingAllSuggestionsAsCSV()"><i
+                        class="fas fa-file-csv"></i> تصدير الجميع (CSV)</button>
+                <button class="btn btn-ghost" id="cancelSiblingSuggestionsBtn" type="button"><i
+                        class="fas fa-times"></i>
+                    إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Merge Duplicate Kids Modal -->
+    <div id="mergeDuplicateModal" class="modal-overlay" style="z-index:1000009">
+        <div class="modal" style="max-width:900px; height: 90vh; max-height: 90vh;">
+            <div class="modal-header">
+                <h3><i class="fas fa-code-merge"></i> دمج الحسابات المكررة</h3>
+                <button class="close-btn" onclick="closeMergeModal()">&times;</button>
+            </div>
+            <div class="mbody" style="overflow-y:auto; flex:1; padding-top:10px;">
+                <p style="font-size:0.78rem; color:var(--text-3); margin-bottom:12px; line-height:1.5;">
+                    اختر القيم التي تريد الاحتفاظ بها في الحساب الرئيسي. سيتم دمج الحسابين وحذف الحساب المكرر مع تحويل
+                    جميع السجلات المرتبطة (الحضور، التاسكات، الكوبونات، الرحلات) تلقائياً.
+                </p>
+                <div id="mergeModalContent"></div>
+            </div>
+            <div class="mfooter"
+                style="justify-content:space-between; padding-top:14px; border-top:1px solid var(--border-solid)">
+                <button class="btn btn-success" id="confirmMergeBtn" onclick="submitMergeDuplicate()" type="button"
+                    style="padding: 10px 24px; font-weight:700;">
+                    <i class="fas fa-check-double"></i> إتمام الدمج وحذف المكرر
+                </button>
+                <button class="btn btn-ghost" onclick="closeMergeModal()" type="button"><i class="fas fa-times"></i>
+                    إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sibling Comparison Modal -->
+    <div id="siblingComparisonModal" class="modal-overlay" style="z-index:1000009">
+        <div class="modal" style="max-width:800px">
+            <div class="modal-header">
+                <h3><i class="fas fa-scale-balanced"></i> المقارنة للتحقق</h3>
+                <button class="close-btn" id="closeSiblingComparisonModal">&times;</button>
+            </div>
+            <div class="mbody">
+                <div id="siblingComparisonContent"
+                    style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px"></div>
+            </div>
+            <div class="mfooter" style="justify-content:space-between">
+                <div>
+                    <button class="btn btn-success" id="confirmSiblingLinkBtn" type="button"><i
+                            class="fas fa-check"></i> تأكيد الربط</button>
+                </div>
+                <button class="btn btn-ghost" id="cancelSiblingComparisonBtn" type="button"><i class="fas fa-times"></i>
+                    إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal (placeholder for backwards compatibility) -->
+    <div id="editStudentForm" class="modal-overlay" style="display:none; z-index:1000006"></div>
 
     <!-- Add Student Modal -->
     <div id="addPersonModal" class="modal-overlay" style="z-index:1000006">
@@ -21133,12 +21131,28 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         function goBackToMainDetails() {
             if (!currentStudentForEdit) return;
 
-            // Move editForm back to editStudentForm if it is inside studentDetails
+            const modalEditContainer = document.getElementById('studentEditContainer');
             const editFormEl = document.getElementById('editForm');
-            const staticModal = document.getElementById('editStudentForm');
-            if (editFormEl && staticModal && editFormEl.parentElement !== staticModal) {
-                staticModal.appendChild(editFormEl);
+            if (modalEditContainer && editFormEl && editFormEl.parentElement !== modalEditContainer) {
+                modalEditContainer.appendChild(editFormEl);
             }
+            if (modalEditContainer) modalEditContainer.style.display = 'none';
+
+            if (window.currentStandaloneKidId) {
+                const sEditContainer = document.getElementById('standaloneEditContainer');
+                const sInfoBody = document.getElementById('standaloneDetailsBody_info');
+                if (sEditContainer) sEditContainer.style.display = 'none';
+                if (sInfoBody) sInfoBody.style.display = '';
+            } else {
+                const detailsContainer = document.getElementById('studentDetails');
+                if (detailsContainer) detailsContainer.style.display = '';
+            }
+
+            const headerEl = document.getElementById('studentDetailsHeader');
+            if (headerEl) headerEl.style.display = '';
+
+            const deleteFooter = document.getElementById('studentModalDeleteFooter');
+            if (deleteFooter) deleteFooter.style.display = '';
 
             showDetailsFooter();
 
@@ -21211,12 +21225,18 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             // Ensure details header is visible (resetting hidden state from edit mode)
             showDetailsFooter();
 
-            // Move editForm back to static editStudentForm if it is inside studentDetails
+            const modalEditContainer = document.getElementById('studentEditContainer');
             const editFormEl = document.getElementById('editForm');
-            const staticModal = document.getElementById('editStudentForm');
-            if (editFormEl && staticModal && editFormEl.parentElement !== staticModal) {
-                staticModal.appendChild(editFormEl);
+            if (modalEditContainer && editFormEl && editFormEl.parentElement !== modalEditContainer) {
+                modalEditContainer.appendChild(editFormEl);
             }
+            if (modalEditContainer) modalEditContainer.style.display = 'none';
+            const detailsContainer = document.getElementById('studentDetails');
+            if (detailsContainer) detailsContainer.style.display = '';
+            const headerEl = document.getElementById('studentDetailsHeader');
+            if (headerEl) headerEl.style.display = '';
+            const deleteFooter = document.getElementById('studentModalDeleteFooter');
+            if (deleteFooter) deleteFooter.style.display = '';
 
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
@@ -21287,15 +21307,23 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     const fd = new FormData(); fd.append('action', 'getStudentProfile'); fd.append('studentId', getStudentDbId(s));
                     const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include', signal: ctrl.signal }).then(r => r.json()).catch(() => ({ success: false }));
                     clearTimeout(timer);
+                    const editContainer = document.getElementById('studentEditContainer');
+                    const isEditing = (editContainer && editContainer.style.display !== 'none') || (window.currentStandaloneKidId && document.getElementById('standaloneEditContainer')?.style.display !== 'none');
                     if (!resp.success || !resp.student) {
-                        buildStudentDetailsFromCache(s);
+                        if (!isEditing) buildStudentDetailsFromCache(s);
                         return;
                     }
                     const full = resp.student;
                     currentStudentForEdit = full;
-                    buildStudentDetailsFromProfile(full);
+                    if (!isEditing) {
+                        buildStudentDetailsFromProfile(full);
+                    }
                 } catch (e) {
-                    buildStudentDetailsFromCache(s);
+                    const editContainer = document.getElementById('studentEditContainer');
+                    const isEditing = (editContainer && editContainer.style.display !== 'none') || (window.currentStandaloneKidId && document.getElementById('standaloneEditContainer')?.style.display !== 'none');
+                    if (!isEditing) {
+                        buildStudentDetailsFromCache(s);
+                    }
                 }
             })();
         }
@@ -22778,6 +22806,23 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             <div class="detail-val copy-holdable" data-copy-text="${String(full.coupons || 0)}">${full.coupons || 0} <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i></div>
         </div>`;
 
+            // Append custom fields
+            const info = parseStudentCustomInfo(full);
+            if (churchCustomFields && churchCustomFields.length) {
+                churchCustomFields.forEach((cf, idx) => {
+                    const key = 'field_' + idx;
+                    const val = info[key] || info['field_' + idx] || (idx === 0 ? (info.value || '') : '');
+                    if (val) {
+                        rows += `
+        <div class="detail-row">
+            <div class="detail-icon orange"><i class="fas ${cf.icon || 'fa-tag'}"></i></div>
+            <div class="detail-label">${cf.name}</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(val)}">${val}</div>
+        </div>`;
+                    }
+                });
+            }
+
             // Trip points summary
             let tpList = [];
             if (Array.isArray(full.trip_points_details)) {
@@ -22837,7 +22882,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             `;
 
             // Notes section inside modal details
-            const notesList = info._notes || [];
+            const notesList = (info && info._notes) ? info._notes : (parseStudentCustomInfo(full)._notes || []);
             const notesHtml = `
             <div class="navigation-row" onclick="showNotesSubPage()">
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -23380,15 +23425,19 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 currentStudentForEdit = null;
                 startAutoRefresh();
             }
-            // Move editForm back to static editStudentForm if it is inside studentDetails
+            const modalEditContainer = document.getElementById('studentEditContainer');
             const editFormEl = document.getElementById('editForm');
-            const staticModal = document.getElementById('editStudentForm');
-            if (editFormEl && staticModal && editFormEl.parentElement !== staticModal) {
-                staticModal.appendChild(editFormEl);
+            if (modalEditContainer && editFormEl && editFormEl.parentElement !== modalEditContainer) {
+                modalEditContainer.appendChild(editFormEl);
             }
+            if (modalEditContainer) modalEditContainer.style.display = 'none';
+            const detailsContainer = document.getElementById('studentDetails');
+            if (detailsContainer) detailsContainer.style.display = '';
             // Reset details header display just in case it was hidden
             const headerEl = document.getElementById('studentDetailsHeader');
             if (headerEl) headerEl.style.display = '';
+            const deleteFooter = document.getElementById('studentModalDeleteFooter');
+            if (deleteFooter) deleteFooter.style.display = '';
         }
         function showEditForm() {
             if (!currentStudentForEdit) return;
@@ -23401,14 +23450,29 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             setModalHeader(title, true);
 
             hideDetailsFooter();
+            const deleteFooter = document.getElementById('studentModalDeleteFooter');
+            if (deleteFooter) deleteFooter.style.display = 'none';
+            const headerEl = document.getElementById('studentDetailsHeader');
+            if (headerEl) headerEl.style.display = 'none';
             scrollToDetailsTop();
 
-            // Append editForm to studentDetails container
             const editFormEl = document.getElementById('editForm');
-            const detailsContainer = document.getElementById('studentDetails');
-            if (editFormEl && detailsContainer) {
-                detailsContainer.innerHTML = '';
-                detailsContainer.appendChild(editFormEl);
+            if (window.currentStandaloneKidId) {
+                const sEditContainer = document.getElementById('standaloneEditContainer');
+                const sInfoBody = document.getElementById('standaloneDetailsBody_info');
+                if (sEditContainer && editFormEl) {
+                    sEditContainer.appendChild(editFormEl);
+                    sEditContainer.style.display = 'block';
+                }
+                if (sInfoBody) sInfoBody.style.display = 'none';
+            } else {
+                const modalEditContainer = document.getElementById('studentEditContainer');
+                if (modalEditContainer && editFormEl && editFormEl.parentElement !== modalEditContainer) {
+                    modalEditContainer.appendChild(editFormEl);
+                }
+                if (modalEditContainer) modalEditContainer.style.display = 'block';
+                const detailsContainer = document.getElementById('studentDetails');
+                if (detailsContainer) detailsContainer.style.display = 'none';
             }
 
             // Adjust labels for guest mode
@@ -23534,20 +23598,24 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             }
 
             const cs = document.getElementById('editStudentClass');
-            cs.innerHTML = '<option value="">اختر الفصل</option>';
-            classes.forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
-            document.getElementById('editStudentName').value = s.name || s['الاسم'] || '';
+            if (cs) {
+                cs.innerHTML = '<option value="">اختر الفصل</option>';
+                classes.forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
+                const studentClass = s.class || s['الفصل'] || '';
+                const matchedOption = Array.from(cs.options).find(o =>
+                    o.textContent === studentClass || o.value === studentClass
+                );
+                if (matchedOption) cs.value = matchedOption.value;
+            }
+            const sNameEl = document.getElementById('editStudentName');
+            if (sNameEl) sNameEl.value = s.name || s['الاسم'] || '';
             if (document.getElementById('editStudentGender')) {
                 document.getElementById('editStudentGender').value = s.gender === 'female' || s['النوع'] === 'female' ? 'female' : 'male';
             }
-            // Match student's class by arabic_name or code against class/الفصل
-            const studentClass = s.class || s['الفصل'] || '';
-            const matchedOption = Array.from(cs.options).find(o =>
-                o.textContent === studentClass || o.value === studentClass
-            );
-            if (matchedOption) cs.value = matchedOption.value;
-            document.getElementById('editStudentAddress').value = s.address || s['العنوان'] || '';
-            document.getElementById('editStudentPhone').value = s.phone || s['رقم التليفون'] || '';
+            const sAddrEl = document.getElementById('editStudentAddress');
+            if (sAddrEl) sAddrEl.value = s.address || s['العنوان'] || '';
+            const sPhoneEl = document.getElementById('editStudentPhone');
+            if (sPhoneEl) sPhoneEl.value = s.phone || s['رقم التليفون'] || '';
             const pPhones = s._parentPhones || s.parent_phones || [];
             populateParentPhonesUI('editStudentParentPhonesList', pPhones, s.emergency_phone || s['تليفون الطوارئ'] || '', s.guardian_name || '');
             const studentEmergEl = document.getElementById('editStudentEmergencyPhone');
@@ -32681,6 +32749,16 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
         function closeStandaloneKidView() {
             window.currentStandaloneKidId = null;
+            const modalEditContainer = document.getElementById('studentEditContainer');
+            const editFormEl = document.getElementById('editForm');
+            if (modalEditContainer && editFormEl && editFormEl.parentElement !== modalEditContainer) {
+                modalEditContainer.appendChild(editFormEl);
+            }
+            const sEditContainer = document.getElementById('standaloneEditContainer');
+            if (sEditContainer) sEditContainer.style.display = 'none';
+            const sInfoBody = document.getElementById('standaloneDetailsBody_info');
+            if (sInfoBody) sInfoBody.style.display = '';
+
             document.getElementById('kidStandaloneContainer').style.display = 'none';
             document.body.style.overflow = ''; // Restore background scroll
 
@@ -32978,6 +33056,9 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 <div id="standaloneDetailsBody_info" style="padding: 0 16px;">
                     <!-- Details render here -->
                 </div>
+
+                <!-- Standalone Edit Container -->
+                <div id="standaloneEditContainer" style="display:none; padding: 0 16px; margin-bottom: 20px;"></div>
 
                 <!-- Dummy hidden elements representing the proxy targets for the complex renderer -->
                 <div id="standaloneDetailsBody" style="display:none !important"></div>
