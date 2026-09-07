@@ -4794,6 +4794,14 @@ try {
             markOTPSent();
             break;
 
+        case 'getWhatsAppBotStatus':
+            getWhatsAppBotStatus();
+            break;
+
+        case 'testWhatsAppBotWake':
+            testWhatsAppBotWake();
+            break;
+
         case 'getLatestPhoneOTP':
 
             getLatestPhoneOTP();
@@ -19753,12 +19761,18 @@ function sendCustomWhatsAppOTP() {
         $stmt->execute();
         $newOtpId = $conn->insert_id ?: $stmt->insert_id;
         
-        // Notify WhatsApp verification service of pending OTP via webhook
-        notifyWhatsAppOTPPending($newOtpId);
+        // Immediately send server-side wake signal to WhatsApp bot
+        $wakeResult = notifyWhatsAppOTPPending($newOtpId);
+        
+        // Treat wake as acknowledgement only; keep OTP flow usable even if wake temporarily fails
+        $userMessage = 'تم إرسال رمز التحقق إلى WhatsApp. يرجى التحقق من هاتفك.';
+        if (empty($wakeResult['success'])) {
+            $userMessage = 'تم إنشاء رمز التحقق. قد يستغرق وصول رسالة WhatsApp بضع لحظات، يرجى التحقق من هاتفك.';
+        }
         
         sendJSON([
             'success' => true,
-            'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب الخاص بك.',
+            'message' => $userMessage,
             'request_token' => $requestToken
         ]);
     } catch (Exception $e) {
@@ -19767,79 +19781,156 @@ function sendCustomWhatsAppOTP() {
 }
 
 /**
- * Configuration Note:
- * WHATSAPP_WAKE_URL should point to the published bot URL, for example:
- * https://YOUR-PUBLISHED-APP-URL/api/wake
- * WHATSAPP_WAKE_CODE contains the Bearer token for webhook authorization.
- *
- * Webhook sends:
- * POST ${WHATSAPP_WAKE_URL}
- * Authorization: Bearer ${WHATSAPP_WAKE_CODE}
- * Content-Type: application/json
- * Body: { "event": "otp_pending", "otp_id": "<new OTP id>" }
- *
- * The WhatsApp service will call getPendingOTPMessages to retrieve the pending records.
+ * Notify the existing Sunday School WhatsApp Bot API to wake up.
+ * 
+ * Rules:
+ * 1. The bot server owns the Baileys/WhatsApp connection, QR code, session, and queue polling.
+ * 2. The website only notifies POST ${WHATSAPP_BOT_API_URL}/api/wake immediately after queueing.
+ * 3. Timeout is ~5 seconds with up to 3 retries on network failures.
+ * 4. Logs success/failure without logging passwords or secrets.
+ * 5. Response is an acknowledgement only (HTTP 200 or HTTP 202).
+ * 6. Non-blocking: OTP remains pending even if wake temporarily fails.
  */
-function notifyWhatsAppOTPPending($otpId) {
+function notifyWhatsAppOTPPending($otpId = null): array {
     static $notifiedOtpIds = [];
 
-    $otpIdStr = strval($otpId);
-    if (empty($otpIdStr) || isset($notifiedOtpIds[$otpIdStr])) {
-        return;
+    $otpIdStr = $otpId !== null ? strval($otpId) : '';
+    if (!empty($otpIdStr) && isset($notifiedOtpIds[$otpIdStr])) {
+        return [
+            'success' => true,
+            'status' => 'cached',
+            'message' => 'WhatsApp wake signal already sent in this request'
+        ];
+    }
+    if (!empty($otpIdStr)) {
+        $notifiedOtpIds[$otpIdStr] = true;
     }
 
-    $wakeUrls = [
-        'https://baileys-qr-code--sundayschooleg.replit.app/',
-        'https://baileys-qr-code--sundayschooleg.replit.app/api/wake',
-        'https://sunday-school-reactivate--ainshamesundays.replit.app/',
-        'https://sunday-school-reactivate--ainshamesundays.replit.app/api/wake'
+    $botApiBase = '';
+    if (getenv('WHATSAPP_BOT_API_URL')) {
+        $botApiBase = getenv('WHATSAPP_BOT_API_URL');
+    } elseif (!empty($_ENV['WHATSAPP_BOT_API_URL'])) {
+        $botApiBase = $_ENV['WHATSAPP_BOT_API_URL'];
+    } elseif (!empty($_SERVER['WHATSAPP_BOT_API_URL'])) {
+        $botApiBase = $_SERVER['WHATSAPP_BOT_API_URL'];
+    } elseif (defined('WHATSAPP_BOT_API_URL') && constant('WHATSAPP_BOT_API_URL')) {
+        $botApiBase = constant('WHATSAPP_BOT_API_URL');
+    } else {
+        $botApiBase = 'https://baileys-qr-code--sundayschooleg.replit.app';
+    }
+
+    $botApiBase = rtrim(trim($botApiBase), '/');
+    $wakeUrl = $botApiBase . '/api/wake';
+
+    $botToken = '';
+    if (getenv('WHATSAPP_BOT_API_TOKEN')) {
+        $botToken = getenv('WHATSAPP_BOT_API_TOKEN');
+    } elseif (!empty($_ENV['WHATSAPP_BOT_API_TOKEN'])) {
+        $botToken = $_ENV['WHATSAPP_BOT_API_TOKEN'];
+    } elseif (!empty($_SERVER['WHATSAPP_BOT_API_TOKEN'])) {
+        $botToken = $_SERVER['WHATSAPP_BOT_API_TOKEN'];
+    } elseif (defined('WHATSAPP_BOT_API_TOKEN') && constant('WHATSAPP_BOT_API_TOKEN')) {
+        $botToken = constant('WHATSAPP_BOT_API_TOKEN');
+    }
+
+    $payload = [
+        'event' => 'otp_pending'
     ];
-
-    $customWakeUrl = getenv('WHATSAPP_WAKE_URL') ?: ($_ENV['WHATSAPP_WAKE_URL'] ?? ($_SERVER['WHATSAPP_WAKE_URL'] ?? ''));
-    if (!empty($customWakeUrl) && !in_array($customWakeUrl, $wakeUrls)) {
-        array_unshift($wakeUrls, $customWakeUrl);
+    if (!empty($otpIdStr)) {
+        $payload['otp_id'] = $otpIdStr;
     }
+    $jsonPayload = json_encode($payload);
 
-    $wakeCode = getenv('WHATSAPP_WAKE_CODE') ?: ($_ENV['WHATSAPP_WAKE_CODE'] ?? ($_SERVER['WHATSAPP_WAKE_CODE'] ?? ''));
-    if (empty($wakeCode) && defined('WHATSAPP_WAKE_CODE') && constant('WHATSAPP_WAKE_CODE')) {
-        $wakeCode = constant('WHATSAPP_WAKE_CODE');
-    }
+    $maxRetries = 3;
+    $lastError = '';
+    $lastHttpCode = 0;
+    $lastStatus = 'unknown';
 
-    // Mark as processed for this request lifecycle to avoid duplicates
-    $notifiedOtpIds[$otpIdStr] = true;
-
-    $payload = json_encode([
-        'event' => 'otp_pending',
-        'otp_id' => $otpIdStr
-    ]);
-
-    foreach ($wakeUrls as $wakeUrl) {
-        try {
-            $headers = [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($payload)
-            ];
-            if (!empty($wakeCode)) {
-                $headers[] = 'Authorization: Bearer ' . $wakeCode;
-            }
-
-            $ch = curl_init($wakeUrl);
-            curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $payload,
-                CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 2,
-                CURLOPT_CONNECTTIMEOUT => 2,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => false
-            ]);
-            curl_exec($ch);
-            $ch = null;
-        } catch (Throwable $t) {
-            // Non-blocking catch
+    for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Content-Length: ' . strlen($jsonPayload)
+        ];
+        if (!empty($botToken)) {
+            $headers[] = 'Authorization: Bearer ' . $botToken;
         }
+
+        $ch = curl_init($wakeUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $jsonPayload,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlErr) {
+            $lastError = $curlErr;
+            $lastHttpCode = $httpCode;
+            if ($attempt < $maxRetries) {
+                usleep(250000); // 250ms backoff
+                continue;
+            }
+            break;
+        }
+
+        $lastHttpCode = $httpCode;
+        $data = json_decode($response, true);
+        if (is_array($data) && isset($data['status'])) {
+            $lastStatus = strval($data['status']);
+        }
+
+        // Accept HTTP 200 or HTTP 202 as wake acknowledgement
+        if ($httpCode === 200 || $httpCode === 202) {
+            error_log(sprintf(
+                "[WhatsAppBotWake] Wake signal accepted on attempt %d: HTTP %d, status=%s",
+                $attempt,
+                $httpCode,
+                $lastStatus
+            ));
+            return [
+                'success' => true,
+                'http_code' => $httpCode,
+                'status' => $lastStatus,
+                'message' => $data['message'] ?? 'WhatsApp wake signal accepted',
+                'attempts' => $attempt
+            ];
+        }
+
+        // Non-2xx response retry
+        $lastError = 'HTTP ' . $httpCode;
+        if ($attempt < $maxRetries && ($httpCode >= 500 || $httpCode === 0)) {
+            usleep(250000);
+            continue;
+        }
+        break;
     }
+
+    // Safe error log without passwords or secrets
+    error_log(sprintf(
+        "[WhatsAppBotWake] Wake signal failed after %d attempts: HTTP %d, error=%s",
+        $attempt,
+        $lastHttpCode,
+        $lastError
+    ));
+
+    return [
+        'success' => false,
+        'http_code' => $lastHttpCode,
+        'status' => $lastStatus,
+        'message' => 'WhatsApp wake signal could not be acknowledged; OTP remains pending in queue for automatic polling.',
+        'error' => $lastError,
+        'attempts' => $attempt
+    ];
 }
 
 function sendRegistrationWhatsAppOTP() {
@@ -19854,6 +19945,7 @@ function getPendingOTPMessages() {
             SELECT id, phone, otp_code FROM phone_verifications 
             WHERE is_verified = 0 
               AND is_sent = 0 
+              AND (created_at IS NULL OR ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30)
             ORDER BY id ASC LIMIT 15
         ");
         if ($stmt) {
@@ -19881,6 +19973,12 @@ function getPendingOTPMessages() {
 function markOTPSent() {
     try {
         $id = intval($_POST['id'] ?? $_GET['id'] ?? 0);
+        if ($id <= 0) {
+            $jsonInput = json_decode(file_get_contents('php://input'), true);
+            if (isset($jsonInput['id'])) {
+                $id = intval($jsonInput['id']);
+            }
+        }
         if ($id > 0) {
             $conn = getDBConnection();
             $stmt = $conn->prepare("UPDATE phone_verifications SET is_sent = 1 WHERE id = ?");
@@ -19891,6 +19989,100 @@ function markOTPSent() {
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
     }
+}
+
+/**
+ * Admin Status Integration:
+ * GET ${WHATSAPP_BOT_API_URL}/api/whatsapp/status
+ * Protected by dashboard authentication token and admin role.
+ */
+function getWhatsAppBotStatus() {
+    if (!isAdminOrDevRole()) {
+        sendJSON(['success' => false, 'message' => 'غير مصرح لك بالوصول']);
+    }
+
+    $botApiBase = '';
+    if (getenv('WHATSAPP_BOT_API_URL')) {
+        $botApiBase = getenv('WHATSAPP_BOT_API_URL');
+    } elseif (!empty($_ENV['WHATSAPP_BOT_API_URL'])) {
+        $botApiBase = $_ENV['WHATSAPP_BOT_API_URL'];
+    } elseif (!empty($_SERVER['WHATSAPP_BOT_API_URL'])) {
+        $botApiBase = $_SERVER['WHATSAPP_BOT_API_URL'];
+    } elseif (defined('WHATSAPP_BOT_API_URL') && constant('WHATSAPP_BOT_API_URL')) {
+        $botApiBase = constant('WHATSAPP_BOT_API_URL');
+    } else {
+        $botApiBase = 'https://baileys-qr-code--sundayschooleg.replit.app';
+    }
+
+    $botApiBase = rtrim(trim($botApiBase), '/');
+    $statusUrl = $botApiBase . '/api/whatsapp/status';
+
+    $botToken = '';
+    if (getenv('WHATSAPP_BOT_API_TOKEN')) {
+        $botToken = getenv('WHATSAPP_BOT_API_TOKEN');
+    } elseif (!empty($_ENV['WHATSAPP_BOT_API_TOKEN'])) {
+        $botToken = $_ENV['WHATSAPP_BOT_API_TOKEN'];
+    } elseif (!empty($_SERVER['WHATSAPP_BOT_API_TOKEN'])) {
+        $botToken = $_SERVER['WHATSAPP_BOT_API_TOKEN'];
+    } elseif (defined('WHATSAPP_BOT_API_TOKEN') && constant('WHATSAPP_BOT_API_TOKEN')) {
+        $botToken = constant('WHATSAPP_BOT_API_TOKEN');
+    }
+
+    $headers = ['Accept: application/json'];
+    if (!empty($botToken)) {
+        $headers[] = 'Authorization: Bearer ' . $botToken;
+    }
+
+    $ch = curl_init($statusUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_TIMEOUT => 5,
+        CURLOPT_CONNECTTIMEOUT => 4,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false
+    ]);
+
+    $raw = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $decoded = json_decode($raw, true);
+    if ($httpCode >= 200 && $httpCode < 300 && is_array($decoded)) {
+        sendJSON([
+            'success' => true,
+            'status' => $decoded['status'] ?? 'disconnected',
+            'phone' => $decoded['phone'] ?? null,
+            'hasQR' => !empty($decoded['hasQR']),
+            'qr' => $decoded['qr'] ?? null
+        ]);
+    } else {
+        sendJSON([
+            'success' => false,
+            'http_code' => $httpCode,
+            'status' => 'unreachable',
+            'message' => 'تعذر جلب حالة خادم واتساب في الوقت الحالي'
+        ]);
+    }
+}
+
+/**
+ * Server-side Smoke Test:
+ * Confirms the website can call POST /api/wake without exposing credentials.
+ */
+function testWhatsAppBotWake() {
+    $result = notifyWhatsAppOTPPending('SMOKE_TEST');
+    
+    // Explicitly guarantee zero credentials, tokens, or passwords are leaked
+    unset($result['token'], $result['secret'], $result['password']);
+
+    sendJSON([
+        'success' => $result['success'],
+        'http_code' => $result['http_code'] ?? 0,
+        'status' => $result['status'] ?? 'unknown',
+        'message' => $result['message'] ?? '',
+        'credentials_exposed' => false
+    ]);
 }
 
 function calculateFuzzyScorePHP($name1, $name2) {

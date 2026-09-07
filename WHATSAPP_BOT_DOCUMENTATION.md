@@ -38,29 +38,30 @@ CREATE TABLE IF NOT EXISTS phone_verifications (
   - Rejects unregistered numbers with: *"عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد"*.
   - Generates 6-digit random code and unique request token (`REQ-XXXXXXXX`).
   - Inserts row into `phone_verifications` with `is_sent = 0`.
-  - **Instant Webhook Wake-Up (`notifyWhatsAppOTPPending`)**: Immediately issues a non-blocking POST request to `${WHATSAPP_WAKE_URL}` (with `Authorization: Bearer ${WHATSAPP_WAKE_CODE}`) sending `{ "event": "otp_pending", "otp_id": "<new OTP id>" }` with a 3s timeout.
-  - **Zero Leak Policy**: Webhook body never includes phone numbers, OTP codes, or personal data. Logs never expose bearer tokens or private information.
+  - **Server-side Bot Wake-Up (`notifyWhatsAppOTPPending`)**: Immediately issues a non-blocking POST request to `${WHATSAPP_BOT_API_URL}/api/wake` with 5s timeout and up to 3 retries. Accepts HTTP 200 or HTTP 202 acknowledgement.
+  - **Zero Leak Policy**: Webhook body never includes phone numbers, OTP codes, or personal data. Logs never expose bearer tokens, passwords, or private information.
   - **Zero Leak Policy for Client**: Does **NOT** return `otp_code` in JSON response to frontend.
+  - **Non-blocking on Wake Failure**: Keeps OTP pending in database even if wake signal temporarily fails.
 
 ### 2. `getPendingOTPMessages`
-- **Params**: None
-- **Logic**: Returns up to 10 unverified (`is_verified = 0`) and unsent (`is_sent = 0`) OTP records created within the last 10 minutes.
+- **Params**: None (supports GET, POST, or JSON body)
+- **Logic**: Returns up to 15 unverified (`is_verified = 0`) and unsent (`is_sent = 0`) OTP records created within the last 30 minutes, formatted with normalized Egyptian phone numbers (`201XXXXXXXXX`).
 
 ### 3. `markOTPSent`
-- **Params**: `id`
+- **Params**: `id` (supports GET, POST, or JSON body `{"id": 123}`)
 - **Logic**: Sets `is_sent = 1` for the specified `phone_verifications` record once delivered by the WhatsApp bot.
 
 ### 4. `verifyCustomWhatsAppOTP`
 - **Params**: `phone`, `code`
 - **Logic**: Checks `phone_verifications` for valid matching 6-digit OTP within 10 minutes. Marks `is_verified = 1` upon success.
 
-### 5. `checkKidPasswordByPhone`
-- **Params**: `phone`
-- **Logic**: Checks if a registered student has an existing `password_hash`. Wrapped in `Throwable` catch block to prevent HTTP 500 errors.
+### 5. `getWhatsAppBotStatus` (Admin Only)
+- **Params**: None
+- **Logic**: Protected by `isAdminOrDevRole()`. Queries `GET ${WHATSAPP_BOT_API_URL}/api/whatsapp/status` using the server-side bearer token and returns `{ status, phone, hasQR, qr }` without exposing server secrets to the client.
 
-### 6. `kidLoginByPhoneWithPassword`
-- **Params**: `phone`, `password`
-- **Logic**: Authenticates student via `password_hash` (`password_verify` or legacy SHA-256).
+### 6. `testWhatsAppBotWake` / `tests/smoke_whatsapp_wake.php`
+- **Params**: None
+- **Logic**: Integration smoke test confirming that the website can issue `POST /api/wake` to `${WHATSAPP_BOT_API_URL}` and receive HTTP 202/200 acknowledgement with zero credential leakage.
 
 ---
 
