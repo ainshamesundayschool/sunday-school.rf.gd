@@ -653,83 +653,59 @@
             <!-- Will be populated dynamically -->
         </div>
 
-        <!-- Inbound WhatsApp Verification Container -->
+        <!-- Phone WhatsApp OTP Verification Container -->
         <div class="password-setup-container" id="otpVerificationContainer">
             <div style="text-align:center; margin-bottom:18px;">
-                <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #25D366, #128C7E); color:white; display:inline-flex; align-items:center; justify-content:center; font-size:2rem; margin-bottom:12px; animation:pulseWa 2s infinite;">
+                <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #25D366, #128C7E); color:white; display:inline-flex; align-items:center; justify-content:center; font-size:1.8rem; margin-bottom:12px; box-shadow:0 6px 16px rgba(37, 211, 102, 0.3);">
                     <i class="fab fa-whatsapp"></i>
                 </div>
-                <h3 style="color:var(--dark); font-size:1.25rem; font-weight:800; margin-bottom:6px;">التحقق السريع عبر واتساب 📲</h3>
+                <h3 style="color:var(--dark); font-size:1.25rem; font-weight:800; margin-bottom:6px;">التحقق من رقم الهاتف عبر واتساب 📲</h3>
                 <p style="color:var(--secondary); font-size:0.88rem; line-height:1.6; margin-bottom:8px;">
-                    لتأكيد ملكية رقمك بأمان وبشكل مجاني تماماً:
+                    تم إرسال كود التحقق المكون من 6 أرقام في رسالة واتساب إلى رقمك:
                     <br>
                     <span id="otpPhoneDisplay" dir="ltr" style="font-weight:700; color:#128C7E; font-size:1.05rem;"></span>
                 </p>
-                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:10px 12px; font-size:0.84rem; color:#166534; line-height:1.5;">
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:8px 12px; font-size:0.83rem; color:#166534;">
                     <i class="fas fa-info-circle" style="color:#16a34a; margin-left:4px;"></i>
-                    اضغط على الزر الأخضر أدناه لفتح تطبيق واتساب وإرسال رسالة التأكيد، وسيتم تفعيل حسابك تلقائياً فور الإرسال!
+                    يرجى مراجعة رسائل تطبيق واتساب وإدخال الكود أدناه
                 </div>
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
-                <!-- Main WhatsApp Direct Link Button -->
-                <a id="waDirectSendBtn" href="#" target="_blank" class="wa-btn">
-                    <i class="fab fa-whatsapp" style="font-size:1.4rem;"></i>
-                    <span>فتح واتساب وإرسال رسالة التأكيد</span>
-                </a>
-
-                <!-- Live Auto-Verification Status Badge -->
-                <div id="waPollingStatus" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; background:rgba(79, 70, 229, 0.05); border:1px solid rgba(79, 70, 229, 0.12); border-radius:var(--radius-sm); font-size:0.82rem; color:var(--dark); font-weight:600;">
-                    <div class="spinner" style="width:16px; height:16px; border-width:2px; margin:0; display:inline-block; vertical-align:middle;"></div>
-                    <span id="waPollingStatusText">في انتظار إرسال الرسالة من واتساب... (فحص تلقائي)</span>
+            <form id="otpVerificationForm" onsubmit="event.preventDefault(); submitPhoneOTP();">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label for="otpCodeInput" class="form-label" style="text-align:center; display:block;">أدخل الكود المكون من 6 أرقام</label>
+                    <div class="input-container">
+                        <i class="fas fa-shield-alt input-icon"></i>
+                        <input type="text"
+                               id="otpCodeInput"
+                               class="form-input"
+                               required
+                               maxlength="6"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               style="text-align:center; font-size:1.4rem; font-weight:800; letter-spacing:8px;"
+                               placeholder="------"
+                               autocomplete="one-time-code">
+                    </div>
                 </div>
 
-                <!-- Manual Verification Check Button -->
-                <button type="button" class="login-btn" id="checkWaStatusBtn" onclick="checkWhatsAppVerificationManual()" style="background:white; color:var(--dark); border:2px solid var(--border); box-shadow:none; font-size:0.88rem; padding:10px 14px;">
-                    <i class="fas fa-sync-alt" id="checkWaStatusIcon" style="margin-left:6px;"></i>
-                    <span id="checkWaStatusBtnText">لقد أرسلت الرسالة بالفعل (تحقق الآن)</span>
-                </button>
-            </div>
+                <div class="error-message" id="otpErrorMessage" style="display:none; margin-bottom:14px;"></div>
+                <div class="success-message" id="otpSuccessMessage" style="display:none; margin-bottom:14px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:12px; border-radius:var(--radius-sm); text-align:center; font-weight:700; font-size:0.9rem;"></div>
 
-            <!-- Fallback OTP Section (Collapsible) -->
-            <div style="margin-top:10px; border-top:1px dashed var(--border); padding-top:12px;">
-                <button type="button" onclick="toggleOtpInputFallback()" style="background:none; border:none; color:var(--primary); font-size:0.84rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin:0 auto 10px;">
-                    <span>أو أدخل كود التحقق يدويًا (6 أرقام)</span>
-                    <i class="fas fa-chevron-down" id="otpFallbackChevron"></i>
+                <button type="submit" class="login-btn" id="verifyOtpBtn" style="margin-bottom:12px;">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="verifyOtpText">تأكيد الكود ومتابعة</span>
                 </button>
 
-                <div id="otpFallbackBox" style="display:none;">
-                    <form id="otpVerificationForm" onsubmit="event.preventDefault(); submitPhoneOTP();">
-                        <div class="form-group" style="margin-bottom:12px;">
-                            <div class="input-container">
-                                <i class="fas fa-shield-alt input-icon"></i>
-                                <input type="text"
-                                       id="otpCodeInput"
-                                       class="form-input"
-                                       maxlength="6"
-                                       inputmode="numeric"
-                                       pattern="[0-9]*"
-                                       style="text-align:center; font-size:1.3rem; font-weight:800; letter-spacing:6px;"
-                                       placeholder="------"
-                                       autocomplete="one-time-code">
-                            </div>
-                        </div>
-                        <button type="submit" class="login-btn" id="verifyOtpBtn" style="padding:10px 14px; font-size:0.9rem; margin-bottom:8px;">
-                            <i class="fas fa-check-circle"></i>
-                            <span id="verifyOtpText">تأكيد الكود ومتابعة</span>
-                        </button>
-                    </form>
+                <div style="text-align:center; display:flex; flex-direction:column; gap:8px;">
+                    <button type="button" id="resendOtpBtn" onclick="resendPhoneOTP()" style="background:none; border:none; color:#128C7E; font-size:0.86rem; font-weight:700; cursor:pointer;" disabled>
+                        إعادة إرسال الكود عبر واتساب (<span id="otpCountdown">60</span> ثانية)
+                    </button>
+                    <button type="button" onclick="cancelOTPVerification()" style="background:none; border:none; color:var(--secondary); font-size:0.83rem; cursor:pointer; text-decoration:underline;">
+                        تغيير رقم الهاتف أو العودة
+                    </button>
                 </div>
-            </div>
-
-            <div class="error-message" id="otpErrorMessage" style="display:none; margin-bottom:14px;"></div>
-            <div class="success-message" id="otpSuccessMessage" style="display:none; margin-bottom:14px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:12px; border-radius:var(--radius-sm); text-align:center; font-weight:700; font-size:0.9rem;"></div>
-
-            <div style="text-align:center; margin-top:8px;">
-                <button type="button" onclick="cancelOTPVerification()" style="background:none; border:none; color:var(--secondary); font-size:0.84rem; cursor:pointer; text-decoration:underline;">
-                    تغيير رقم الهاتف أو العودة
-                </button>
-            </div>
+            </form>
         </div>
 
         <!-- Loading State -->
@@ -749,6 +725,9 @@
 
     <script>
         // Global variables
+        const isTestingEnv = window.location.pathname.indexOf('/testing/') !== -1;
+        const API_URL = isTestingEnv ? '/testing/api.php' : '/api.php';
+
         let currentLoginType = 'phone';
         let phoneLoginHasPassword = false;
         let currentPhoneForSetup = '';
@@ -973,7 +952,7 @@
             formData.append('username', identifier);
             formData.append('password', password);
 
-            fetch('/api.php', { method: 'POST', body: formData, credentials: 'include' })
+            fetch(API_URL, { method: 'POST', body: formData, credentials: 'include' })
             .then(r => r.json())
             .then(data => {
                 if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
@@ -986,7 +965,7 @@
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
-                    setTimeout(() => { window.location.href = '/user/profile/'; }, 1500);
+                    setTimeout(() => { window.location.href = isTestingEnv ? '/testing/user/profile/' : '/user/profile/'; }, 1500);
                 } else {
                     if (!isAutoLogin) showPhoneError(data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
                     else {
@@ -1009,7 +988,7 @@
             formData.append('action', 'checkKidPasswordByPhone');
             formData.append('phone', cleanPhoneNumber(phone));
             
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1062,7 +1041,7 @@
             formData.append('phone', cleanPhoneNumber(phone));
             formData.append('password', password);
             
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1082,7 +1061,7 @@
                     
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
-                        window.location.href = '/user/profile/';
+                        window.location.href = isTestingEnv ? '/testing/user/profile/' : '/user/profile/';
                     }, 1500);
                 } else {
                     showPhoneError(data.message || 'كلمة المرور غير صحيحة');
@@ -1103,7 +1082,7 @@
             formData.append('action', 'getStudentByPhone');
             formData.append('phone', cleanPhoneNumber(phone));
             
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1122,7 +1101,7 @@
                     
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
-                        window.location.href = '/user/profile/';
+                        window.location.href = isTestingEnv ? '/testing/user/profile/' : '/user/profile/';
                     }, 1500);
                 } else {
                     showPhoneError(data.message || 'رقم الهاتف غير مسجل');
@@ -1145,7 +1124,7 @@
             formData.append('username', username);
             formData.append('password', password);
             
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1165,7 +1144,7 @@
                     
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
-                        window.location.href = '/user/profile/';
+                        window.location.href = isTestingEnv ? '/testing/user/profile/' : '/user/profile/';
                     }, 1500);
                 } else {
                     if (!isAutoLogin) {
@@ -1308,7 +1287,7 @@
             formData.append('phone', cleanPhoneNumber(phone));
             formData.append('password', newPassword);
             
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1342,21 +1321,20 @@
             });
         }
 
-        // ===== INBOUND WHATSAPP SMART LINK VERIFICATION =====
+        // ===== WHATSAPP OTP CODE VERIFICATION =====
         let pendingVerification = null;
-        let waPollingInterval = null;
-        let isCheckingWaStatus = false;
+        let otpCountdownInterval = null;
 
         function startPhoneVerification(phone, studentId, mode = 'first_time') {
             pendingVerification = { phone, studentId, mode };
             clearErrors();
-            showLoading('جاري تجهيز رابط التحقق الذكي عبر واتساب...');
+            showLoading('جاري إرسال كود التحقق عبر واتساب...');
 
             const formData = new FormData();
             formData.append('action', 'sendCustomWhatsAppOTP');
             formData.append('phone', cleanPhoneNumber(phone));
 
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1368,10 +1346,7 @@
                     window.location.reload();
                     return;
                 }
-                if (data.success && data.request_token) {
-                    pendingVerification.token = data.request_token;
-
-                    // Transition UI
+                if (data.success) {
                     elements.phoneLoginForm.classList.remove('active');
                     elements.usernameLoginForm.classList.remove('active');
                     elements.passwordSetupContainer.classList.remove('active');
@@ -1382,23 +1357,21 @@
                     const displayEl = document.getElementById('otpPhoneDisplay');
                     if (displayEl) displayEl.textContent = phone;
 
-                    const waBtn = document.getElementById('waDirectSendBtn');
-                    if (waBtn) {
-                        waBtn.href = data.wa_link || `https://api.whatsapp.com/send?phone=201037011355&text=${encodeURIComponent('تأكيد حسابي في مدارس الأحد: ' + data.request_token)}`;
+                    const codeInput = document.getElementById('otpCodeInput');
+                    if (codeInput) {
+                        codeInput.value = '';
+                        setTimeout(() => codeInput.focus(), 150);
                     }
 
-                    // Reset fallback input & messages
-                    const codeInput = document.getElementById('otpCodeInput');
-                    if (codeInput) codeInput.value = '';
                     const errEl = document.getElementById('otpErrorMessage');
                     if (errEl) errEl.style.display = 'none';
+
                     const succEl = document.getElementById('otpSuccessMessage');
                     if (succEl) succEl.style.display = 'none';
 
-                    // Start auto-polling verification status
-                    startWhatsAppPolling(data.request_token, phone);
+                    startOtpCountdown(60);
                 } else {
-                    showPhoneError(data.message || 'فشل في بدء عملية التحقق عبر واتساب');
+                    showPhoneError(data.message || 'فشل في إرسال كود التحقق عبر واتساب');
                 }
             })
             .catch(err => {
@@ -1407,98 +1380,69 @@
             });
         }
 
-        function startWhatsAppPolling(token, phone) {
-            if (waPollingInterval) clearInterval(waPollingInterval);
+        function startOtpCountdown(seconds = 60) {
+            if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+            let remaining = seconds;
+            const resendBtn = document.getElementById('resendOtpBtn');
 
-            // Poll every 2.5 seconds
-            waPollingInterval = setInterval(() => {
-                pollWhatsAppStatus(token, phone, false);
-            }, 2500);
+            const updateDisplay = () => {
+                if (!resendBtn) return;
+                if (remaining > 0) {
+                    resendBtn.innerHTML = `إعادة إرسال الكود عبر واتساب (<span id="otpCountdown">${remaining}</span> ثانية)`;
+                    resendBtn.disabled = true;
+                    resendBtn.style.opacity = '0.6';
+                    resendBtn.style.cursor = 'not-allowed';
+                } else {
+                    resendBtn.innerHTML = `<i class="fab fa-whatsapp" style="margin-left:4px;"></i> إعادة إرسال الكود عبر واتساب`;
+                    resendBtn.disabled = false;
+                    resendBtn.style.opacity = '1';
+                    resendBtn.style.cursor = 'pointer';
+                    clearInterval(otpCountdownInterval);
+                }
+            };
+
+            updateDisplay();
+            otpCountdownInterval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+            }, 1000);
         }
 
-        function pollWhatsAppStatus(token, phone, isManual = false) {
-            if (isCheckingWaStatus) return;
-            isCheckingWaStatus = true;
+        function resendPhoneOTP() {
+            if (!pendingVerification || !pendingVerification.phone) return;
+            const errEl = document.getElementById('otpErrorMessage');
+            if (errEl) errEl.style.display = 'none';
+            showLoading('جاري إعادة إرسال كود التحقق عبر واتساب...');
 
             const formData = new FormData();
-            formData.append('action', 'checkWhatsAppVerificationStatus');
-            formData.append('token', token);
-            formData.append('phone', cleanPhoneNumber(phone));
+            formData.append('action', 'sendCustomWhatsAppOTP');
+            formData.append('phone', cleanPhoneNumber(pendingVerification.phone));
 
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
             })
             .then(res => res.json())
             .then(data => {
-                isCheckingWaStatus = false;
-                if (data && data.success && data.verified) {
-                    // Success! WhatsApp verified
-                    if (waPollingInterval) clearInterval(waPollingInterval);
-
-                    const succEl = document.getElementById('otpSuccessMessage');
-                    const errEl = document.getElementById('otpErrorMessage');
-                    if (errEl) errEl.style.display = 'none';
-                    if (succEl) {
-                        succEl.innerHTML = '<i class="fas fa-check-circle" style="margin-left:6px;"></i> تم تأكيد رقم هاتفك بنجاح! جاري المتابعة...';
-                        succEl.style.display = 'block';
-                    }
-
-                    const statusText = document.getElementById('waPollingStatusText');
-                    if (statusText) statusText.textContent = '✅ تم تأكيد الرقم بنجاح!';
-
-                    setTimeout(() => {
-                        const otpContainer = document.getElementById('otpVerificationContainer');
-                        if (otpContainer) otpContainer.classList.remove('active');
-                        if (pendingVerification) {
-                            const { phone, studentId, mode } = pendingVerification;
-                            showPasswordSetup(phone, studentId, mode);
-                        }
-                    }, 800);
-                } else if (isManual) {
-                    const errEl = document.getElementById('otpErrorMessage');
+                hideLoading();
+                if (data.success) {
+                    startOtpCountdown(60);
+                    showSuccess('تم إرسال كود تحقق جديد عبر واتساب بنجاح');
+                } else {
                     if (errEl) {
-                        errEl.textContent = 'لم يتم استلام رسالة التأكيد عبر واتساب بعد. يرجى التأكد من الضغط على زر "إرسال" داخل تطبيق واتساب ثم الضغط هنا مرة أخرى.';
+                        errEl.textContent = data.message || 'فشل في إعادة الإرسال';
                         errEl.style.display = 'block';
                     }
                 }
             })
-            .catch(err => {
-                isCheckingWaStatus = false;
+            .catch(() => {
+                hideLoading();
+                if (errEl) {
+                    errEl.textContent = 'خطأ في الاتصال بالخادم';
+                    errEl.style.display = 'block';
+                }
             });
-        }
-
-        function checkWhatsAppVerificationManual() {
-            if (!pendingVerification || !pendingVerification.token) return;
-
-            const icon = document.getElementById('checkWaStatusIcon');
-            const btnText = document.getElementById('checkWaStatusBtnText');
-            if (icon) icon.classList.add('fa-spin');
-            if (btnText) btnText.textContent = 'جاري التحقق...';
-
-            pollWhatsAppStatus(pendingVerification.token, pendingVerification.phone, true);
-
-            setTimeout(() => {
-                if (icon) icon.classList.remove('fa-spin');
-                if (btnText) btnText.textContent = 'لقد أرسلت الرسالة بالفعل (تحقق الآن)';
-            }, 1200);
-        }
-
-        function toggleOtpInputFallback() {
-            const box = document.getElementById('otpFallbackBox');
-            const chevron = document.getElementById('otpFallbackChevron');
-            if (!box) return;
-
-            if (box.style.display === 'none' || !box.style.display) {
-                box.style.display = 'block';
-                if (chevron) chevron.className = 'fas fa-chevron-up';
-                const input = document.getElementById('otpCodeInput');
-                if (input) setTimeout(() => input.focus(), 100);
-            } else {
-                box.style.display = 'none';
-                if (chevron) chevron.className = 'fas fa-chevron-down';
-            }
         }
 
         function submitPhoneOTP() {
@@ -1529,7 +1473,7 @@
             formData.append('phone', cleanPhoneNumber(pendingVerification.phone));
             formData.append('code', code);
 
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1545,7 +1489,7 @@
                 }
 
                 if (data.success) {
-                    if (waPollingInterval) clearInterval(waPollingInterval);
+                    if (otpCountdownInterval) clearInterval(otpCountdownInterval);
 
                     const succEl = document.getElementById('otpSuccessMessage');
                     if (succEl) {
@@ -1580,7 +1524,7 @@
         }
 
         function cancelOTPVerification() {
-            if (waPollingInterval) clearInterval(waPollingInterval);
+            if (otpCountdownInterval) clearInterval(otpCountdownInterval);
             const otpContainer = document.getElementById('otpVerificationContainer');
             if (otpContainer) otpContainer.classList.remove('active');
             elements.phoneLoginForm.classList.add('active');
@@ -1602,7 +1546,7 @@
             formData.append('action', 'checkKidPasswordByPhone');
             formData.append('phone', cleanPhoneNumber(phone));
             
-            fetch('/api.php', {
+            fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'

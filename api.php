@@ -19756,16 +19756,10 @@ function sendCustomWhatsAppOTP() {
         // Notify WhatsApp verification service of pending OTP via webhook
         notifyWhatsAppOTPPending($newOtpId);
         
-        $churchWaPhone = '201037011355';
-        $waMessage = "تأكيد حسابي في مدارس الأحد: " . $requestToken;
-        $waLink = "https://api.whatsapp.com/send?phone=" . $churchWaPhone . "&text=" . urlencode($waMessage);
-
         sendJSON([
             'success' => true,
-            'message' => 'تم إنشاء رابط التأكيد عبر واتساب بنجاح.',
-            'request_token' => $requestToken,
-            'wa_phone' => $churchWaPhone,
-            'wa_link' => $waLink
+            'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب الخاص بك.',
+            'request_token' => $requestToken
         ]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
