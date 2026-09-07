@@ -20287,88 +20287,94 @@ function adminCheckUserOTP() {
         $records = [];
 
         if ($churchId > 0) {
-            // Strict Church Scope: only numbers belonging to this church
+            // Strict Church Scope: collect 8-digit phone signatures belonging to this church
+            $churchPhoneLast8 = [];
+
+            // Uncles
+            $uQ = $conn->query("SELECT phone FROM uncles WHERE church_id = {$churchId} AND phone != '' AND (deleted IS NULL OR deleted = 0)");
+            if ($uQ) {
+                while ($ur = $uQ->fetch_assoc()) {
+                    $c = preg_replace('/[^\d]/', '', $ur['phone'] ?? '');
+                    if (strlen($c) >= 8) $churchPhoneLast8[substr($c, -8)] = true;
+                }
+            }
+
+            // Students
+            $sQ = $conn->query("SELECT phone, emergency_phone, parent_phones FROM students WHERE church_id = {$churchId}");
+            if ($sQ) {
+                while ($sr = $sQ->fetch_assoc()) {
+                    $p1 = preg_replace('/[^\d]/', '', $sr['phone'] ?? '');
+                    if (strlen($p1) >= 8) $churchPhoneLast8[substr($p1, -8)] = true;
+                    $p2 = preg_replace('/[^\d]/', '', $sr['emergency_phone'] ?? '');
+                    if (strlen($p2) >= 8) $churchPhoneLast8[substr($p2, -8)] = true;
+                    if (!empty($sr['parent_phones'])) {
+                        preg_match_all('/\d{8,}/', $sr['parent_phones'], $matches);
+                        if (!empty($matches[0])) {
+                            foreach ($matches[0] as $m) {
+                                $churchPhoneLast8[substr($m, -8)] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Pending registrations
+            $prQ = $conn->query("SELECT phone, parent_phones FROM pending_registrations WHERE church_id = {$churchId}");
+            if ($prQ) {
+                while ($pr = $prQ->fetch_assoc()) {
+                    $p = preg_replace('/[^\d]/', '', $pr['phone'] ?? '');
+                    if (strlen($p) >= 8) $churchPhoneLast8[substr($p, -8)] = true;
+                    if (!empty($pr['parent_phones'])) {
+                        preg_match_all('/\d{8,}/', $pr['parent_phones'], $matches);
+                        if (!empty($matches[0])) {
+                            foreach ($matches[0] as $m) {
+                                $churchPhoneLast8[substr($m, -8)] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $phoneKeys = array_keys($churchPhoneLast8);
+            $whereClause = "";
+            $types = "i";
+            $params = [$churchId];
+
+            if (!empty($phoneKeys)) {
+                $placeholders = implode(',', array_fill(0, count($phoneKeys), '?'));
+                $whereClause = "(church_id = ? OR RIGHT(phone, 8) IN ($placeholders))";
+                foreach ($phoneKeys as $pk) {
+                    $types .= "s";
+                    $params[] = $pk;
+                }
+            } else {
+                $whereClause = "church_id = ?";
+            }
+
             if (!empty($phone)) {
                 $cleanDigits = preg_replace('/[^\d]/', '', $phone);
                 $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
                 $normalized = normalizeEgyptianPhone($cleanDigits);
+                $whereClause .= " AND (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ? OR otp_code = ? OR request_token = ?)";
+                $types .= "sssss";
+                $params[] = $last8;
+                $params[] = $cleanDigits;
+                $params[] = $normalized;
+                $params[] = $phone;
+                $params[] = $phone;
+            }
 
-                $sql = "
-                    SELECT pv.id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
-                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago
-                    FROM phone_verifications pv
-                    WHERE (
-                        pv.church_id = ?
-                        OR EXISTS (
-                            SELECT 1 FROM uncles u 
-                            WHERE u.church_id = ? 
-                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) OR u.phone = pv.phone COLLATE utf8mb4_unicode_ci) 
-                              AND (u.deleted IS NULL OR u.deleted = 0)
-                        )
-                        OR EXISTS (
-                            SELECT 1 FROM students s 
-                            WHERE s.church_id = ? 
-                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
-                                   OR s.phone = pv.phone COLLATE utf8mb4_unicode_ci 
-                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
-                                   OR s.emergency_phone = pv.phone COLLATE utf8mb4_unicode_ci 
-                                   OR s.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%')
-                                   OR s.custom_info LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
-                        )
-                        OR EXISTS (
-                            SELECT 1 FROM pending_registrations pr 
-                            WHERE pr.church_id = ? 
-                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
-                                   OR pr.phone = pv.phone COLLATE utf8mb4_unicode_ci 
-                                   OR pr.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
-                        )
-                    )
-                    AND (pv.phone LIKE CONCAT('%', ?) OR RIGHT(pv.phone, 8) = RIGHT(?, 8) OR pv.phone = ? OR pv.otp_code = ? OR pv.request_token = ?)
-                    ORDER BY pv.id DESC LIMIT ?
-                ";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("iiiisssssi", $churchId, $churchId, $churchId, $churchId, $last8, $cleanDigits, $normalized, $phone, $phone, $limit);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                while ($row = $res->fetch_assoc()) {
-                    $records[] = $row;
-                }
-                $stmt->close();
-            } else {
-                $sql = "
-                    SELECT pv.id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
-                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago
-                    FROM phone_verifications pv
-                    WHERE (
-                        pv.church_id = ?
-                        OR EXISTS (
-                            SELECT 1 FROM uncles u 
-                            WHERE u.church_id = ? 
-                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) OR u.phone = pv.phone COLLATE utf8mb4_unicode_ci) 
-                              AND (u.deleted IS NULL OR u.deleted = 0)
-                        )
-                        OR EXISTS (
-                            SELECT 1 FROM students s 
-                            WHERE s.church_id = ? 
-                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
-                                   OR s.phone = pv.phone COLLATE utf8mb4_unicode_ci 
-                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
-                                   OR s.emergency_phone = pv.phone COLLATE utf8mb4_unicode_ci 
-                                   OR s.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%')
-                                   OR s.custom_info LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
-                        )
-                        OR EXISTS (
-                            SELECT 1 FROM pending_registrations pr 
-                            WHERE pr.church_id = ? 
-                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
-                                   OR pr.phone = pv.phone COLLATE utf8mb4_unicode_ci 
-                                   OR pr.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
-                        )
-                    )
-                    ORDER BY pv.id DESC LIMIT ?
-                ";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("iiiii", $churchId, $churchId, $churchId, $churchId, $limit);
+            $sql = "SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
+                           TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
+                    FROM phone_verifications
+                    WHERE {$whereClause}
+                    ORDER BY id DESC LIMIT ?";
+            $types .= "i";
+            $params[] = $limit;
+
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param($types, ...$params);
                 $stmt->execute();
                 $res = $stmt->get_result();
                 while ($row = $res->fetch_assoc()) {
