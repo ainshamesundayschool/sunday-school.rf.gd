@@ -42609,105 +42609,98 @@ function updateTask()
 
 
 
-        // Load old question IDs mapping to sort_order before deleting them
-        $oldQsStmt = $conn->prepare("SELECT id, sort_order FROM task_questions WHERE task_id=?");
+        // Load existing questions for this task to preserve their IDs across edits
+        $oldQsStmt = $conn->prepare("SELECT id, sort_order FROM task_questions WHERE task_id=? ORDER BY sort_order ASC, id ASC");
         $oldQsStmt->bind_param('i', $taskId);
         $oldQsStmt->execute();
         $oldQs = $oldQsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $oldQidToOrder = [];
-        foreach ($oldQs as $oq) {
-            $oldQidToOrder[$oq['id']] = (int)$oq['sort_order'];
-        }
-
-        $delQ = $conn->prepare("DELETE FROM task_questions WHERE task_id=?");
-
-        $delQ->bind_param('i', $taskId);
-
-        $delQ->execute();
-
-
+        $existingQids = array_column($oldQs, 'id');
+        $unclaimedOldIds = $existingQids;
 
         $questions = json_decode($questionsJson, true) ?: [];
+        $keptQids = [];
+        $oldToNewMap = [];
 
-        _insertTaskQuestions($conn, $taskId, $questions);
+        $updQStmt = $conn->prepare("UPDATE task_questions SET question_type=?, question_text=?, options=?, correct_index=?, degree=?, sort_order=?, image_url=? WHERE id=? AND task_id=?");
+        $insQStmt = $conn->prepare("INSERT INTO task_questions (task_id, question_type, question_text, options, correct_index, degree, sort_order, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
+        foreach ($questions as $i => $q) {
+            $type = in_array($q['question_type'] ?? 'mcq', ['mcq', 'open', 'tf']) ? $q['question_type'] : 'mcq';
+            $text = $q['question_text'] ?? '';
+            $opts = $type === 'open' ? '[]' : (is_array($q['options']) ? json_encode($q['options'], JSON_UNESCAPED_UNICODE) : ($q['options'] ?? '[]'));
+            $correct = ($type === 'open') ? null : (int) ($q['correct_index'] ?? 0);
+            $degree = isset($q['degree']) ? max(0, (int) $q['degree']) : 1;
+            $order = (int) ($q['sort_order'] ?? $i);
+            $imageUrl = $q['image_url'] ?? '';
 
+            $targetId = null;
+            if (!empty($q['id']) && in_array((int)$q['id'], $unclaimedOldIds)) {
+                $targetId = (int)$q['id'];
+            } elseif (!empty($unclaimedOldIds)) {
+                $targetId = array_shift($unclaimedOldIds);
+            }
 
-        // ── After inserting new questions, recalculate MCQ/TF scores ──
-
-        // Load the newly inserted questions
-
-        $newQsStmt = $conn->prepare("SELECT id, question_type, correct_index, degree, sort_order FROM task_questions WHERE task_id=?");
-
-        $newQsStmt->bind_param('i', $taskId);
-
-        $newQsStmt->execute();
-
-        $newQs = $newQsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $orderToNewQid = [];
-        foreach ($newQs as $nq) {
-            $orderToNewQid[(int)$nq['sort_order']] = $nq['id'];
+            if ($targetId !== null) {
+                $unclaimedOldIds = array_values(array_filter($unclaimedOldIds, fn($id) => $id !== $targetId));
+                $keptQids[] = $targetId;
+                $updQStmt->bind_param('ssssiisii', $type, $text, $opts, $correct, $degree, $order, $imageUrl, $targetId, $taskId);
+                $updQStmt->execute();
+                if (!empty($q['id']) && (int)$q['id'] !== $targetId) {
+                    $oldToNewMap[(int)$q['id']] = $targetId;
+                }
+            } else {
+                $insQStmt->bind_param('issssiis', $taskId, $type, $text, $opts, $correct, $degree, $order, $imageUrl);
+                $insQStmt->execute();
+                $newId = (int)$conn->insert_id;
+                $keptQids[] = $newId;
+                if (!empty($q['id'])) {
+                    $oldToNewMap[(int)$q['id']] = $newId;
+                }
+            }
         }
 
+        // Delete questions that were removed
+        $toDelete = array_diff($existingQids, $keptQids);
+        if (!empty($toDelete)) {
+            $inList = implode(',', array_map('intval', $toDelete));
+            $conn->query("DELETE FROM task_questions WHERE id IN ($inList) AND task_id=$taskId");
+        }
+
+        // Load questions in final sort order
+        $newQsStmt = $conn->prepare("SELECT id, question_type, correct_index, degree, sort_order FROM task_questions WHERE task_id=? ORDER BY sort_order ASC, id ASC");
+        $newQsStmt->bind_param('i', $taskId);
+        $newQsStmt->execute();
+        $newQs = $newQsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         // Load all submissions for this task
-
         $allSubsStmt = $conn->prepare("SELECT id, student_id, answers, score AS old_score, coupons_awarded AS old_coupons, open_scores, correction_notes FROM task_submissions WHERE task_id=?");
-
         $allSubsStmt->bind_param('i', $taskId);
-
         $allSubsStmt->execute();
-
         $allSubs = $allSubsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-
 
         $newMatrix = json_decode($couponMatrix, true) ?: [];
 
-
-
         foreach ($allSubs as $sub) {
-
             $answers = json_decode($sub['answers'] ?? '{}', true) ?: [];
-
             $openScores = json_decode($sub['open_scores'] ?? '{}', true) ?: [];
-
             $corrNotes = json_decode($sub['correction_notes'] ?? '{}', true) ?: [];
 
-
-            // Map old question IDs to new question IDs based on sort_order
             $newAnswers = [];
-            foreach ($answers as $oldQid => $ansVal) {
-                if (isset($oldQidToOrder[$oldQid])) {
-                    $order = $oldQidToOrder[$oldQid];
-                    if (isset($orderToNewQid[$order])) {
-                        $newQid = $orderToNewQid[$order];
-                        $newAnswers[$newQid] = $ansVal;
-                    }
-                }
+            foreach ($answers as $qid => $ansVal) {
+                $newQid = $oldToNewMap[(int)$qid] ?? $qid;
+                $newAnswers[$newQid] = $ansVal;
             }
 
             $newOpenScores = [];
-            foreach ($openScores as $oldQid => $scoreVal) {
-                if (isset($oldQidToOrder[$oldQid])) {
-                    $order = $oldQidToOrder[$oldQid];
-                    if (isset($orderToNewQid[$order])) {
-                        $newQid = $orderToNewQid[$order];
-                        $newOpenScores[$newQid] = $scoreVal;
-                    }
-                }
+            foreach ($openScores as $qid => $scoreVal) {
+                $newQid = $oldToNewMap[(int)$qid] ?? $qid;
+                $newOpenScores[$newQid] = $scoreVal;
             }
 
             $newCorrNotes = [];
-            foreach ($corrNotes as $oldQid => $noteVal) {
-                if (isset($oldQidToOrder[$oldQid])) {
-                    $order = $oldQidToOrder[$oldQid];
-                    if (isset($orderToNewQid[$order])) {
-                        $newQid = $orderToNewQid[$order];
-                        $newCorrNotes[$newQid] = $noteVal;
-                    }
-                }
+            foreach ($corrNotes as $qid => $noteVal) {
+                $newQid = $oldToNewMap[(int)$qid] ?? $qid;
+                $newCorrNotes[$newQid] = $noteVal;
             }
 
             $answersJson = json_encode($newAnswers, JSON_UNESCAPED_UNICODE);
@@ -43587,42 +43580,24 @@ function getStudentTasks()
 
                 // so both the kid view and uncle review can highlight right/wrong answers
 
+                // Fetch full answers blob from DB so student answers are always retained
+                $ansStmt = $conn->prepare("SELECT answers, open_scores, correction_notes FROM task_submissions WHERE id=? LIMIT 1");
+                $ansStmt->bind_param('i', $subRow['id']);
+                $ansStmt->execute();
+                $ansRow = $ansStmt->get_result()->fetch_assoc();
+                $mySubmission['answers'] = $ansRow ? json_decode($ansRow['answers'] ?? '{}', true) : [];
+                $mySubmission['open_scores'] = $ansRow ? json_decode($ansRow['open_scores'] ?? '{}', true) : [];
+                $mySubmission['correction_notes'] = $ansRow ? json_decode($ansRow['correction_notes'] ?? '{}', true) : [];
+
+                // Attach correct answers only if show_answers is ON
                 if (!empty($t['show_answers'])) {
-
-                    // Fetch full answers blob from DB (not in $sSel yet)
-
-                    $ansStmt = $conn->prepare("SELECT answers, open_scores, correction_notes FROM task_submissions WHERE id=? LIMIT 1");
-
-                    $ansStmt->bind_param('i', $subRow['id']);
-
-                    $ansStmt->execute();
-
-                    $ansRow = $ansStmt->get_result()->fetch_assoc();
-
-                    $mySubmission['answers'] = $ansRow ? json_decode($ansRow['answers'] ?? '{}', true) : [];
-
-                    $mySubmission['open_scores'] = $ansRow ? json_decode($ansRow['open_scores'] ?? '{}', true) : [];
-
-                    $mySubmission['correction_notes'] = $ansRow ? json_decode($ansRow['correction_notes'] ?? '{}', true) : [];
-
-
-
-                    // Also attach correct answers for each question so frontend can color-code
-
                     $correctMap = [];
-
                     foreach ($t['questions'] as $q) {
-
                         if ($q['question_type'] !== 'open') {
-
                             $correctMap[$q['id']] = (int) $q['correct_index'];
-
                         }
-
                     }
-
                     $mySubmission['correct_answers'] = $correctMap;
-
                 }
 
 

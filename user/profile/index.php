@@ -7962,33 +7962,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           ? `<div style="margin:0 0 2px;"><img src="${esc(q.image_url)}" alt="" style="width:100%;max-height:200px;object-fit:contain;display:block;background:var(--s2);"></div>`
           : '';
 
+        const getSaved = (qid, idx) => {
+          if (taskAnswers[String(qid)] !== undefined) return taskAnswers[String(qid)];
+          if (taskAnswers[qid] !== undefined) return taskAnswers[qid];
+          if (taskAnswers[idx] !== undefined) return taskAnswers[idx];
+          if (taskAnswers['q_' + idx] !== undefined) return taskAnswers['q_' + idx];
+          return undefined;
+        };
+
         // ── Open / essay ──────────────────────────────────────────
         if (qtype === 'open') {
-          const savedAns = taskAnswers[String(q.id)] || '';
+          const savedAns = getSaved(q.id, i) || '';
           const deg = parseInt(q.degree) || 0;
-          const isUngraded = deg === 0;
           return `<div class="qcard" id="qc_${q.id}">
         ${imgHtml}
         <div class="qhdr">
-          <div class="qnum" style="background:${isUngraded ? 'linear-gradient(135deg,#64748b,#475569)' : 'linear-gradient(135deg,#f59e0b,#d97706)'};">${i + 1}</div>
+          <div class="qnum" style="background:linear-gradient(135deg,#f59e0b,#d97706);">${i + 1}</div>
           <div class="qtext">${esc(q.question_text)}</div>
-          <span style="background:${isUngraded ? '#f1f5f9;color:#475569' : '#fef3c7;color:#92400e'};border-radius:var(--r-full);padding:2px 8px;font-size:.65rem;font-weight:700;flex-shrink:0;"><i class="fas fa-${isUngraded ? 'comments' : 'pen-nib'}"></i> ${isUngraded ? 'استطلاعي / رأي' : 'مفتوح'}</span>
-          <span class="qdeg" style="background:${isUngraded ? '#f1f5f9;color:#64748b' : '#fef3c7;color:#d97706'};">${isUngraded ? 'بدون درجات' : `${deg} درجة`}</span>
+          <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-size:.65rem;font-weight:700;flex-shrink:0;"><i class="fas fa-pen-nib"></i> مفتوح</span>
+          <span class="qdeg" style="background:#fef3c7;color:#d97706;">${deg} درجة</span>
         </div>
         <div class="qopts" style="padding:10px 12px;display:block;">
           <textarea class="open-ans-textarea" id="openans_${q.id}"
             placeholder="اكتب إجابتك هنا…"
             oninput="pickOpenAns(${q.id},this)">${esc(savedAns)}</textarea>
-          <div style="font-size:.69rem;color:var(--t4);margin-top:5px;display:flex;align-items:center;gap:4px;">
-            <i class="fas fa-info-circle"></i> ${isUngraded ? 'سؤال استطلاعي / مشاركة رأي — بدون درجات وتظهر نتيجتك فوراً بعد التسليم' : 'يُصحَّح من قِبَل الانكل أو الطنط — الدرجة النهائية ستظهر بعد التصحيح'}
-          </div>
+          ${deg > 0 ? `<div style="font-size:.69rem;color:var(--t4);margin-top:5px;display:flex;align-items:center;gap:4px;">
+            <i class="fas fa-info-circle"></i> يُصحَّح من قِبَل الانكل أو الطنط — الدرجة النهائية ستظهر بعد التصحيح
+          </div>` : ''}
         </div>
       </div>`;
         }
 
         // ── True / False ──────────────────────────────────────────
         if (qtype === 'tf') {
-          const saved = taskAnswers[String(q.id)];
+          const saved = getSaved(q.id, i);
           const trueOn = saved === 0; const falseOn = saved === 1;
           const deg = parseInt(q.degree) || 0;
           return `<div class="qcard" id="qc_${q.id}">
@@ -7996,7 +8003,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="qhdr">
           <div class="qnum">${i + 1}</div>
           <div class="qtext">${esc(q.question_text)}</div>
-          <span class="qdeg">${deg === 0 ? 'بدون درجات' : `${deg} درجة`}</span>
+          <span class="qdeg">${deg} درجة</span>
         </div>
         <div class="qopts" style="display:flex;gap:10px;padding:10px 12px;">
           <button id="tfbtn_${q.id}_0" onclick="pickOpt(${q.id},0,null)"
@@ -8013,7 +8020,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         // ── MCQ (default) ─────────────────────────────────────────
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-        const sel = taskAnswers[String(q.id)] !== undefined ? taskAnswers[String(q.id)] : null;
+        const savedVal = getSaved(q.id, i);
+        const sel = savedVal !== undefined ? savedVal : null;
         const deg = parseInt(q.degree) || 0;
         return `<div class="qcard" id="qc_${q.id}">
       ${imgHtml}
@@ -8021,7 +8029,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="qnum">${i + 1}</div>
         <div class="qtext">${esc(q.question_text)}</div>
         ${sel !== null ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 7px;font-size:.62rem;font-weight:700;flex-shrink:0;"><i class="fas fa-check"></i></span>` : ''}
-        <span class="qdeg">${deg === 0 ? 'بدون درجات' : `${deg} درجة`}</span>
+        <span class="qdeg">${deg} درجة</span>
       </div>
       <div class="qopts">${opts.map((o, j) => `<div class="qopt${sel === j ? ' selected' : ''}" onclick="pickOpt(${q.id},${j},this)"><div class="oradio"></div><div class="olet">${LETTERS[j]}</div>${esc(o)}</div>`).join('')}</div>
     </div>`;
@@ -9137,7 +9145,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         t.questions.forEach((q, i) => {
           const qType = q.question_type || 'mcq';
           const qId = String(q.id);
-          const given = ans[qId] !== undefined ? ans[qId] : ans[q.id];
+          let given = ans[qId] !== undefined ? ans[qId] : (ans[q.id] !== undefined ? ans[q.id] : undefined);
+          if (given === undefined && ans[i] !== undefined) given = ans[i];
+          if (given === undefined && ans['qc_' + q.id] !== undefined) given = ans['qc_' + q.id];
+          if (given === undefined) {
+            const ansVals = Object.values(ans);
+            if (ansVals[i] !== undefined) given = ansVals[i];
+          }
+
           // Use correct_answers map first (returned by API), fall back to q.correct_index
           const correctIdx = (correctMap[q.id] !== undefined)
             ? parseInt(correctMap[q.id])
@@ -9152,12 +9167,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
           if (qType === 'open') {
             const deg = parseInt(q.degree) || 0;
-            const openScore = openScores[qId] !== undefined ? openScores[qId] : (openScores[q.id] !== undefined ? openScores[q.id] : null);
+            let openScore = openScores[qId] !== undefined ? openScores[qId] : (openScores[q.id] !== undefined ? openScores[q.id] : undefined);
+            if (openScore === undefined && openScores[i] !== undefined) openScore = openScores[i];
+            if (openScore === undefined) {
+              const scoreVals = Object.values(openScores);
+              if (scoreVals[i] !== undefined) openScore = scoreVals[i];
+            }
+            if (openScore === undefined) openScore = null;
+
             let openScoreHtml;
             if (deg === 0) {
-              openScoreHtml = `<div style="margin-top:8px;font-size:.75rem;color:var(--t3);font-weight:700;"><i class="fas fa-info-circle"></i> سؤال استطلاعي / مشاركة رأي — بدون درجات</div>`;
+              openScoreHtml = `<div style="margin-top:8px;font-size:.75rem;color:var(--t3);font-weight:700;"><i class="fas fa-check-circle"></i> تم تسجيل إجابتك (0 درجة)</div>`;
             } else if (openScore !== null) {
-              const pct = Math.round((openScore / deg) * 100);
+              const pct = deg > 0 ? Math.round((openScore / deg) * 100) : 100;
               let colorVar = 'var(--ok)';
               // Color bands: high -> green, mid -> orange, low -> yellow
               if (pct >= 80) colorVar = 'var(--ok)';

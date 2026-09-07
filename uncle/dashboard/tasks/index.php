@@ -15835,6 +15835,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       var qtxt = data && data.question_text ? data.question_text : '';
       var div = document.createElement('div');
       div.className = 'qcard'; div.dataset.qid = id; div.dataset.qtype = qtype;
+      if (data && data.id) div.dataset.dbId = data.id;
       var n = document.querySelectorAll('.qcard').length + 1;
       div.innerHTML =
         '<div class="qhdr">' +
@@ -17355,6 +17356,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
       div.className = 'qcard'; div.dataset.qid = id; div.dataset.qtype = qtype;
+      if (data && data.id) div.dataset.dbId = data.id;
 
 
 
@@ -18604,78 +18606,26 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
       document.querySelectorAll('.qcard').forEach((card, qi) => {
-
-
-
+        const dbId = card.dataset.dbId ? parseInt(card.dataset.dbId) : null;
         const qtype2 = card.dataset.qtype || 'mcq';
-
-
-
         const qtext2 = (card.querySelector('.qi') || { value: '' }).value.trim();
-
-
-
         const degInp2 = card.querySelector('.qdeg-i');
         const degree2 = degInp2 && degInp2.value !== '' ? Math.max(0, parseInt(degInp2.value) || 0) : 0;
-
-
-
         const img2 = getQImg(card.dataset.qid) || '';
 
-
-
         if (qtype2 === 'open') {
-
-
-
-          questions.push({ sort_order: qi, question_type: 'open', question_text: qtext2, options: '[]', correct_index: null, degree: degree2, image_url: img2 });
-
-
-
+          questions.push({ id: dbId, sort_order: qi, question_type: 'open', question_text: qtext2, options: '[]', correct_index: null, degree: degree2, image_url: img2 });
         } else if (qtype2 === 'tf') {
-
-
-
           const ci2 = parseInt(card.dataset.tfAnswer || '0');
-
-
-
-          questions.push({ sort_order: qi, question_type: 'tf', question_text: qtext2, options: JSON.stringify(['\u0635\u062d\u064a\u062d', '\u062e\u0637\u0623']), correct_index: ci2, degree: degree2, image_url: img2 });
-
-
-
+          questions.push({ id: dbId, sort_order: qi, question_type: 'tf', question_text: qtext2, options: JSON.stringify(['\u0635\u062d\u064a\u062d', '\u062e\u0637\u0623']), correct_index: ci2, degree: degree2, image_url: img2 });
         } else {
-
-
-
           let ci2 = 0; const opts2 = [];
-
-
-
           card.querySelectorAll('.orow').forEach((r, oi) => {
-
-
-
             opts2.push((r.querySelector('.oinp') || { value: '' }).value.trim());
-
-
-
             if (r.querySelector('.oradio.ok')) ci2 = oi;
-
-
-
           });
-
-
-
-          questions.push({ sort_order: qi, question_type: 'mcq', question_text: qtext2, options: JSON.stringify(opts2), correct_index: ci2, degree: degree2, image_url: img2 });
-
-
-
+          questions.push({ id: dbId, sort_order: qi, question_type: 'mcq', question_text: qtext2, options: JSON.stringify(opts2), correct_index: ci2, degree: degree2, image_url: img2 });
         }
-
-
-
       });
 
 
