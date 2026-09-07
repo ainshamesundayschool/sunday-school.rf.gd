@@ -11845,67 +11845,64 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
     <!-- WhatsApp OTP Management Modal -->
     <div class="modal-overlay" id="adminOTPModal" style="z-index: 1000030;">
-        <div class="modal modal-lg" style="max-width: 840px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding:14px 18px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:38px; height:38px; border-radius:50%; background:rgba(37,211,102,0.12); color:#25d366; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
+        <div class="modal modal-lg" style="max-width: 680px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--r-md, 12px);">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding:10px 16px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:30px; height:30px; border-radius:50%; background:rgba(37,211,102,0.12); color:#25d366; display:flex; align-items:center; justify-content:center; font-size:1.05rem; flex-shrink:0;">
                         <i class="fab fa-whatsapp"></i>
                     </div>
                     <div>
-                        <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:var(--text-1); display:flex; align-items:center; gap:8px;">
+                        <h3 style="margin:0; font-size:0.95rem; font-weight:800; color:var(--text-1); display:flex; align-items:center; gap:6px;">
                             أكواد التحقق (WhatsApp OTP)
                         </h3>
-                        <p style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-3);">
-                            فحص أكواد التحقق للمستخدمين وإرسالها يدوياً أو عبر البوت
+                        <p style="margin:1px 0 0 0; font-size:0.7rem; color:var(--text-3);">
+                            فحص الأكواد وإرسالها يدوياً أو عبر البوت
                         </p>
                     </div>
                 </div>
-                <button class="close-btn" onclick="closeAdminOTPModal()">&times;</button>
+                <button class="close-btn" onclick="closeAdminOTPModal()" style="font-size:1.2rem; width:28px; height:28px;">&times;</button>
             </div>
             
-            <div class="modal-body" style="padding:16px; overflow-y:auto; flex:1; direction:rtl; text-align:right;">
+            <div class="modal-body" style="padding:12px 14px; overflow-y:auto; flex:1; direction:rtl; text-align:right;">
                 <!-- Controls & Search -->
-                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px;">
-                    <div class="inline-search-box" style="flex:1; min-width:240px; margin:0; background:var(--surface-3);">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="adminOtpSearchInput" placeholder="ابحث برقم الهاتف، الاسم، أو الكود..." oninput="filterAdminOTPs(this.value)" autocomplete="off">
-                        <button id="clearAdminOtpSearchBtn" onclick="clearAdminOtpSearch()" style="display:none;"><i class="fas fa-times"></i></button>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;">
+                    <div class="inline-search-box" style="flex:1; min-width:200px; margin:0; background:var(--surface-3); height:34px; padding:0 8px;">
+                        <i class="fas fa-search search-icon" style="font-size:0.8rem;"></i>
+                        <input type="text" id="adminOtpSearchInput" placeholder="بحث برقم الهاتف، الاسم، أو الكود..." oninput="filterAdminOTPs(this.value)" autocomplete="off" style="font-size:0.8rem;">
+                        <button id="clearAdminOtpSearchBtn" onclick="clearAdminOtpSearch()" style="display:none; font-size:0.75rem;"><i class="fas fa-times"></i></button>
                     </div>
-                    <div style="display:flex; gap:6px;">
-                        <button type="button" class="btn btn-outline" onclick="loadAdminOTPs(true)" id="adminOtpRefreshBtn" title="تحديث القائمة" style="padding:8px 12px; font-size:0.84rem; display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-sync-alt" id="adminOtpRefreshIcon"></i>
+                    <div style="display:flex; gap:5px;">
+                        <button type="button" class="btn btn-outline" onclick="loadAdminOTPs(true)" id="adminOtpRefreshBtn" title="تحديث" style="padding:5px 10px; font-size:0.78rem; display:flex; align-items:center; gap:4px; height:34px; border-radius:6px;">
+                            <i class="fas fa-sync-alt" id="adminOtpRefreshIcon" style="font-size:0.75rem;"></i>
                             <span>تحديث</span>
                         </button>
-                        <button type="button" class="btn btn-primary" onclick="toggleNewOTPGenerator()" style="padding:8px 14px; font-size:0.84rem; display:flex; align-items:center; gap:6px; background:#16a34a; border-color:#16a34a; color:#fff;">
-                            <i class="fas fa-plus"></i>
-                            <span>كود يدوي جديد</span>
+                        <button type="button" class="btn btn-primary" onclick="toggleNewOTPGenerator()" style="padding:5px 11px; font-size:0.78rem; display:flex; align-items:center; gap:4px; height:34px; background:#16a34a; border-color:#16a34a; color:#fff; border-radius:6px;">
+                            <i class="fas fa-plus" style="font-size:0.75rem;"></i>
+                            <span>كود يدوي</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Manual Generator Panel (collapsible) -->
-                <div id="adminOtpGenPanel" style="display:none; background:linear-gradient(135deg, rgba(37,211,102,0.06), rgba(22,163,74,0.02)); border:1.5px dashed rgba(37,211,102,0.4); border-radius:var(--r-md); padding:14px; margin-bottom:14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:0.88rem; font-weight:800; color:#15803d; display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-key"></i> إنشاء كود تحقق يدوي لأي رقم هاتف
+                <div id="adminOtpGenPanel" style="display:none; background:linear-gradient(135deg, rgba(37,211,102,0.06), rgba(22,163,74,0.02)); border:1px dashed rgba(37,211,102,0.4); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:0.82rem; font-weight:800; color:#15803d; display:flex; align-items:center; gap:5px;">
+                            <i class="fas fa-key"></i> توليد كود يدوي فوري
                         </span>
-                        <button type="button" onclick="toggleNewOTPGenerator(false)" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.1rem; line-height:1;">&times;</button>
+                        <button type="button" onclick="toggleNewOTPGenerator(false)" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1rem; line-height:1;">&times;</button>
                     </div>
-                    <p style="margin:0 0 10px 0; font-size:0.78rem; color:var(--text-3);">
-                        إذا كان هناك مستخدم يواجه مشكلة في استلام الكود، يمكنك كتابة رقمه هنا لإنشاء كود فوري وإرساله له يدوياً عبر واتساب أو عبر البوت.
-                    </p>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <input type="tel" id="adminGenPhoneInput" placeholder="أدخل رقم الهاتف (مثال: 01012345678)" style="flex:1; min-width:220px; padding:9px 12px; border-radius:var(--r-sm); border:1.5px solid var(--border-solid); background:var(--surface); font-size:0.88rem;">
-                        <button type="button" class="btn btn-primary" id="adminGenSubmitBtn" onclick="submitAdminGenerateOTP()" style="padding:9px 18px; background:#15803d; border-color:#15803d; color:#fff; font-size:0.86rem; font-weight:700; display:flex; align-items:center; gap:6px;">
-                            <span>توليد الكود</span>
-                            <i class="fas fa-paper-plane"></i>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <input type="tel" id="adminGenPhoneInput" placeholder="رقم الهاتف (01012345678)" style="flex:1; min-width:180px; padding:6px 10px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface); font-size:0.82rem;">
+                        <button type="button" class="btn btn-primary" id="adminGenSubmitBtn" onclick="submitAdminGenerateOTP()" style="padding:6px 12px; background:#15803d; border-color:#15803d; color:#fff; font-size:0.8rem; font-weight:700; display:flex; align-items:center; gap:5px; border-radius:6px;">
+                            <span>توليد</span>
+                            <i class="fas fa-paper-plane" style="font-size:0.75rem;"></i>
                         </button>
                     </div>
-                    <div id="adminGenResultBox" style="display:none; margin-top:12px; padding:12px 14px; background:var(--surface); border-radius:var(--r-sm); border:1px solid #bbf7d0;"></div>
+                    <div id="adminGenResultBox" style="display:none; margin-top:8px; padding:8px 10px; background:var(--surface); border-radius:6px; border:1px solid #bbf7d0; font-size:0.8rem;"></div>
                 </div>
 
                 <!-- Filters tabs: All, Active, Pending, Verified -->
-                <div style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;" id="adminOtpFilterTabs">
+                <div style="display:flex; gap:5px; margin-bottom:10px; overflow-x:auto; padding-bottom:2px;" id="adminOtpFilterTabs">
                     <button type="button" class="admin-otp-filter-tab active" data-filter="all" onclick="setAdminOtpFilter('all', this)">الكل (<span id="countOtpAll">0</span>)</button>
                     <button type="button" class="admin-otp-filter-tab" data-filter="active" onclick="setAdminOtpFilter('active', this)">نشطة (<span id="countOtpActive">0</span>)</button>
                     <button type="button" class="admin-otp-filter-tab" data-filter="pending" onclick="setAdminOtpFilter('pending', this)">في الانتظار (<span id="countOtpPending">0</span>)</button>
@@ -33074,69 +33071,65 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 if (minutesAgo === 0) timeText = 'الآن';
                 else if (minutesAgo === 1) timeText = 'منذ دقيقة';
                 else if (minutesAgo === 2) timeText = 'منذ دقيقتين';
-                else if (minutesAgo <= 10) timeText = `منذ ${minutesAgo} دقائق`;
-                else timeText = `منذ ${minutesAgo} دقيقة`;
+                else if (minutesAgo <= 10) timeText = `منذ ${minutesAgo} د`;
+                else timeText = `منذ ${minutesAgo} د`;
 
                 let statusBadgeHtml = '';
                 if (item.is_verified === 1) {
-                    statusBadgeHtml = `<span style="background:rgba(22,163,74,0.12); color:#16a34a; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> تم التحقق بنجاح</span>`;
+                    statusBadgeHtml = `<span style="background:rgba(22,163,74,0.12); color:#16a34a; padding:1px 7px; border-radius:8px; font-size:0.7rem; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-check-circle"></i> مؤكد</span>`;
                 } else if (item.is_expired) {
-                    statusBadgeHtml = `<span style="background:rgba(107,114,128,0.12); color:#6b7280; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-clock"></i> منتهي الصلاحية</span>`;
+                    statusBadgeHtml = `<span style="background:rgba(107,114,128,0.12); color:#6b7280; padding:1px 7px; border-radius:8px; font-size:0.7rem; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-clock"></i> منتهي</span>`;
                 } else if (item.is_sent === 1) {
-                    statusBadgeHtml = `<span style="background:rgba(37,211,102,0.12); color:#15803d; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fab fa-whatsapp"></i> أُرسل للبوت</span>`;
+                    statusBadgeHtml = `<span style="background:rgba(37,211,102,0.12); color:#15803d; padding:1px 7px; border-radius:8px; font-size:0.7rem; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fab fa-whatsapp"></i> أُرسل</span>`;
                 } else {
-                    statusBadgeHtml = `<span style="background:rgba(234,179,8,0.15); color:#b45309; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-hourglass-half"></i> في الانتظار</span>`;
+                    statusBadgeHtml = `<span style="background:rgba(234,179,8,0.15); color:#b45309; padding:1px 7px; border-radius:8px; font-size:0.7rem; font-weight:800; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-hourglass-half"></i> انتظار</span>`;
                 }
 
                 const ownerBadge = item.owner_name ? `
-                    <span style="background:rgba(79,70,229,0.08); color:var(--brand); padding:2px 8px; border-radius:8px; font-size:0.76rem; font-weight:700;">
-                        ${item.owner_type === 'خادم' ? '✝️' : '👤'} ${item.owner_name} (${item.owner_type || 'مستخدم'})
+                    <span style="background:rgba(79,70,229,0.08); color:var(--brand); padding:1px 6px; border-radius:6px; font-size:0.72rem; font-weight:700; white-space:nowrap;">
+                        ${item.owner_type === 'خادم' ? '✝️' : '👤'} ${item.owner_name}
                     </span>` : '';
 
                 return `
-                    <div style="background:var(--surface); border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:14px 16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                <span style="font-weight:800; font-size:0.95rem; color:var(--text-1); font-family:monospace; letter-spacing:0.5px; direction:ltr; text-align:left;">
+                    <div style="background:var(--surface); border:1px solid var(--border-solid); border-radius:8px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                        <!-- Left: Phone, Name, Status, Time -->
+                        <div style="display:flex; flex-direction:column; gap:2px; min-width:160px;">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <span style="font-weight:800; font-size:0.88rem; color:var(--text-1); font-family:monospace; direction:ltr; text-align:left;">
                                     ${item.phone}
                                 </span>
                                 ${ownerBadge}
-                                ${statusBadgeHtml}
                             </div>
-                            <span style="font-size:0.74rem; color:var(--text-3);" title="${item.created_at || ''}">
-                                <i class="fas fa-clock" style="margin-left:3px;"></i> ${timeText}
-                            </span>
-                        </div>
-
-                        <!-- Big OTP display block -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border-radius:var(--r-sm); padding:10px 14px; border:1px solid var(--border-solid); flex-wrap:wrap; gap:10px;">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <span style="font-size:0.8rem; color:var(--text-3); font-weight:700;">كود التحقق:</span>
-                                <span style="font-family:monospace; font-size:1.45rem; font-weight:900; letter-spacing:4px; color:#15803d; direction:ltr; user-select:all;">
-                                    ${item.otp_code}
+                            <div style="display:flex; align-items:center; gap:6px; font-size:0.7rem;">
+                                ${statusBadgeHtml}
+                                <span style="color:var(--text-3);" title="${item.created_at || ''}">
+                                    <i class="fas fa-clock" style="margin-left:2px;"></i> ${timeText}
                                 </span>
                             </div>
-                            <div style="display:flex; gap:6px;">
-                                <button type="button" class="btn btn-outline" onclick="copyAdminOtpCode('${item.otp_code}', this)" style="padding:6px 12px; font-size:0.8rem; display:flex; align-items:center; gap:5px; border-radius:var(--r-sm);">
-                                    <i class="fas fa-copy"></i>
-                                    <span>نسخ الكود</span>
-                                </button>
-                                <button type="button" class="btn btn-outline" onclick="copyAdminOtpFullMessage('${item.id}', this)" style="padding:6px 10px; font-size:0.8rem; display:flex; align-items:center; gap:5px; border-radius:var(--r-sm);" title="نسخ رسالة الواتساب الجاهزة">
-                                    <i class="fas fa-comment-dots"></i>
-                                    <span>نسخ الرسالة</span>
-                                </button>
-                            </div>
                         </div>
 
-                        <!-- Actions Strip -->
-                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; padding-top:4px;">
-                            <a href="${item.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn" style="background:#25d366; color:#fff; text-decoration:none; padding:7px 14px; font-size:0.84rem; font-weight:800; border-radius:var(--r-sm); display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(37,211,102,0.2);">
-                                <i class="fab fa-whatsapp" style="font-size:1rem;"></i>
-                                <span>إرسال يدوي عبر WhatsApp</span>
+                        <!-- Center: Compact OTP badge with copy button -->
+                        <div style="display:flex; align-items:center; gap:5px; background:rgba(37,211,102,0.08); padding:3px 8px; border-radius:6px; border:1px solid rgba(37,211,102,0.25);">
+                            <span style="font-family:monospace; font-size:1.15rem; font-weight:900; letter-spacing:2px; color:#15803d; direction:ltr; user-select:all;">
+                                ${item.otp_code}
+                            </span>
+                            <button type="button" onclick="copyAdminOtpCode('${item.otp_code}', this)" title="نسخ الكود" style="background:none; border:none; color:#15803d; cursor:pointer; padding:2px 4px; font-size:0.78rem; border-radius:4px; display:inline-flex; align-items:center;">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <!-- Right: Action Buttons in a clean compact row -->
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <a href="${item.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn" style="background:#25d366; color:#fff; text-decoration:none; padding:4px 9px; font-size:0.75rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:4px;" title="إرسال عبر WhatsApp">
+                                <i class="fab fa-whatsapp" style="font-size:0.85rem;"></i>
+                                <span>واتساب</span>
                             </a>
-                            <button type="button" class="btn btn-outline" id="botResendBtn_${item.id}" onclick="resendAdminOtpViaBot(${item.id})" style="padding:7px 12px; font-size:0.84rem; color:#0284c7; border-color:rgba(2,132,199,0.3); display:inline-flex; align-items:center; gap:6px; border-radius:var(--r-sm);">
-                                <i class="fas fa-robot"></i>
-                                <span>إعادة إرسال بالبوت</span>
+                            <button type="button" class="btn btn-outline" id="botResendBtn_${item.id}" onclick="resendAdminOtpViaBot(${item.id})" style="padding:4px 8px; font-size:0.75rem; color:#0284c7; border-color:rgba(2,132,199,0.3); border-radius:6px; display:inline-flex; align-items:center; gap:4px;" title="إعادة إرسال بالبوت">
+                                <i class="fas fa-robot" style="font-size:0.8rem;"></i>
+                                <span>بوت</span>
+                            </button>
+                            <button type="button" class="btn btn-outline" onclick="copyAdminOtpFullMessage('${item.id}', this)" style="padding:4px 7px; font-size:0.75rem; border-radius:6px; color:var(--text-3);" title="نسخ رسالة الواتساب بالكامل">
+                                <i class="fas fa-comment-dots"></i>
                             </button>
                         </div>
                     </div>
@@ -33300,12 +33293,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
     <!-- Standalone CSS styling and HTML Structure -->
     <style>
         .admin-otp-filter-tab {
-            padding: 6px 14px;
+            padding: 3px 10px;
             border-radius: var(--r-full, 9999px);
-            border: 1.5px solid var(--border-solid);
+            border: 1px solid var(--border-solid);
             background: var(--surface-2);
             color: var(--text-2);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
