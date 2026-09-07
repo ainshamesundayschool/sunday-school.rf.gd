@@ -4806,6 +4806,12 @@ try {
 
             break;
 
+        case 'checkWhatsAppVerificationStatus':
+
+            checkWhatsAppVerificationStatus();
+
+            break;
+
         case 'getStudentProfile':
 
             getStudentProfile();
@@ -19750,11 +19756,16 @@ function sendCustomWhatsAppOTP() {
         // Notify WhatsApp verification service of pending OTP via webhook
         notifyWhatsAppOTPPending($newOtpId);
         
+        $churchWaPhone = '201037011355';
+        $waMessage = "تأكيد حسابي في مدارس الأحد: " . $requestToken;
+        $waLink = "https://api.whatsapp.com/send?phone=" . $churchWaPhone . "&text=" . urlencode($waMessage);
+
         sendJSON([
             'success' => true,
-            'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب.',
+            'message' => 'تم إنشاء رابط التأكيد عبر واتساب بنجاح.',
             'request_token' => $requestToken,
-            'wa_phone' => '201037011355'
+            'wa_phone' => $churchWaPhone,
+            'wa_link' => $waLink
         ]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
@@ -20543,8 +20554,12 @@ function normalizeEgyptianPhone($phone) {
 
 function verifyAndGetOTPToken() {
     try {
-        $token = sanitize($_POST['token'] ?? '');
-        $senderPhone = sanitize($_POST['phone'] ?? '');
+        $rawToken = $_POST['token'] ?? $_GET['token'] ?? '';
+        $token = sanitize($rawToken);
+        if (preg_match('/REQ-[A-Z0-9]+/i', $rawToken, $m)) {
+            $token = strtoupper($m[0]);
+        }
+        $senderPhone = sanitize($_POST['phone'] ?? $_GET['phone'] ?? '');
         $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
 
         if (empty($token)) {
@@ -20553,9 +20568,8 @@ function verifyAndGetOTPToken() {
 
         $conn = getDBConnection();
         $stmt = $conn->prepare("
-            SELECT otp_code, phone FROM phone_verifications 
+            SELECT id, otp_code, phone FROM phone_verifications 
             WHERE request_token = ? 
-              AND is_verified = 0 
               AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
             ORDER BY id DESC LIMIT 1
         ");
@@ -20583,7 +20597,12 @@ function verifyAndGetOTPToken() {
                 }
             }
 
-            sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
+            // Immediately mark verification as verified in the database
+            $updateVerified = $conn->prepare("UPDATE phone_verifications SET is_verified = 1 WHERE id = ?");
+            $updateVerified->bind_param("i", $row['id']);
+            $updateVerified->execute();
+
+            sendJSON(['success' => true, 'otp_code' => $row['otp_code'], 'verified' => true]);
         } else {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
         }
@@ -20636,6 +20655,58 @@ function verifyCustomWhatsAppOTP() {
         }
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في التحقق: ' . $e->getMessage()]);
+    }
+}
+
+function checkWhatsAppVerificationStatus() {
+    try {
+        $rawToken = $_POST['token'] ?? $_GET['token'] ?? '';
+        $token = sanitize($rawToken);
+        if (preg_match('/REQ-[A-Z0-9]+/i', $rawToken, $m)) {
+            $token = strtoupper($m[0]);
+        }
+        $phone = sanitize($_POST['phone'] ?? $_GET['phone'] ?? '');
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+
+        if (empty($token) && empty($cleanPhone)) {
+            sendJSON(['success' => false, 'verified' => false, 'message' => 'الرمز أو رقم الهاتف مطلوب']);
+        }
+
+        $conn = getDBConnection();
+        if (!empty($token)) {
+            $stmt = $conn->prepare("
+                SELECT id, is_verified, phone 
+                FROM phone_verifications 
+                WHERE request_token = ? 
+                  AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmt->bind_param("s", $token);
+        } else {
+            $stmt = $conn->prepare("
+                SELECT id, is_verified, phone 
+                FROM phone_verifications 
+                WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+                  AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
+        }
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($row = $res->fetch_assoc()) {
+            $isVerified = intval($row['is_verified']) === 1;
+            sendJSON([
+                'success' => true,
+                'verified' => $isVerified,
+                'message' => $isVerified ? 'تم تأكيد رقم الهاتف بنجاح' : 'في انتظار إرسال الرسالة من تطبيق واتساب'
+            ]);
+        } else {
+            sendJSON(['success' => false, 'verified' => false, 'message' => 'طلب التحقق غير موجود']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'verified' => false, 'message' => $e->getMessage()]);
     }
 }
 
