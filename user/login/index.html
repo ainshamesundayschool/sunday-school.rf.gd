@@ -586,8 +586,8 @@
                         </button>
                     </div>
                     <a href="#" class="forgot-password" id="forgotPasswordLink" style="display: none;" onclick="event.preventDefault(); showPasswordRecovery();">
-                        <i class="fas fa-key"></i>
-                        نسيت كلمة المرور؟ (إعادة التعيين عبر كود SMS)
+                        <i class="fab fa-whatsapp" style="color:#25D366;"></i>
+                        نسيت كلمة المرور؟ (إعادة التعيين عبر WhatsApp)
                     </a>
                 </div>
 
@@ -599,8 +599,8 @@
 
                 <div style="text-align:center; margin-top:14px;">
                     <a href="#" onclick="event.preventDefault(); showPasswordRecovery();" style="color:var(--primary); font-size:0.85rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fas fa-key" style="font-size:0.9rem;"></i>
-                        <span>إعادة تعيين كلمة المرور</span>
+                        <i class="fab fa-whatsapp" style="font-size:0.95rem; color:#25D366;"></i>
+                        <span>إعادة تعيين كلمة المرور عبر WhatsApp</span>
                     </a>
                 </div>
             </form>
@@ -1004,7 +1004,7 @@
                         elements.phoneLoginText.textContent = 'تسجيل الدخول بكلمة المرور';
                         elements.phonePasswordInput.focus();
                     } else {
-                        // User doesn't have password - verify phone first via SMS!
+                        // User doesn't have password - verify phone first via WhatsApp!
                         currentPhoneForSetup = cleanPhoneNumber(phone);
                         startPhoneVerification(phone, data.student_id, 'first_time');
                     }
