@@ -11848,7 +11848,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         <div class="modal modal-lg" style="max-width: 620px; max-height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
-                    <i class="fab fa-whatsapp" style="color:var(--brand);"></i>
+                    <i class="fab fa-whatsapp" style="color:#25d366; font-size:1.35rem;"></i>
                     <span>أكواد التحقق</span>
                     <span id="adminOtpChurchBadge" style="font-size:0.8rem; font-weight:normal; color:var(--text-3);"></span>
                 </h3>
@@ -33066,16 +33066,20 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 else if (minutesAgo <= 10) timeText = `منذ ${minutesAgo} دقائق`;
                 else timeText = `منذ ${minutesAgo} دقيقة`;
 
-                let statusText = '';
+                let statusHtml = '';
                 if (item.is_verified === 1) {
-                    statusText = '<i class="fas fa-check" style="margin-left:3px;"></i> تم التحقق';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:var(--success); font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:var(--success);"></span><i class="fas fa-check" style="font-size:0.65rem;"></i> تم التحقق</span>';
                 } else if (item.is_expired) {
-                    statusText = 'منتهي الصلاحية';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:var(--text-3);"><span style="width:6px; height:6px; border-radius:50%; background:var(--text-3);"></span>منتهي الصلاحية</span>';
                 } else if (item.is_sent === 1) {
-                    statusText = '<i class="fab fa-whatsapp" style="margin-left:3px;"></i> أُرسل للبوت';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:#25d366; font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:#25d366;"></span><i class="fab fa-whatsapp" style="font-size:0.75rem;"></i> أُرسل للبوت</span>';
                 } else {
-                    statusText = '<i class="fas fa-clock" style="margin-left:3px;"></i> في الانتظار';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:var(--warning); font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:var(--warning);"></span><i class="far fa-clock" style="font-size:0.65rem;"></i> في الانتظار</span>';
                 }
+
+                const codeBoxStyle = item.is_expired
+                    ? 'font-size:1.15rem; font-weight:800; letter-spacing:2.5px; color:var(--text-3); padding:4px 12px; background:var(--surface-3); border:1px solid var(--border-solid); border-radius:var(--r-md); direction:ltr;'
+                    : 'font-size:1.18rem; font-weight:800; letter-spacing:2.5px; color:var(--success); padding:4px 14px; background:var(--success-bg); border:1px solid rgba(16,185,129,0.3); border-radius:var(--r-md); direction:ltr; box-shadow:0 1px 3px rgba(16,185,129,0.08);';
 
                 return `
                     <div class="card" style="background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-xl); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; font-family:'Cairo',sans-serif; box-shadow:var(--shadow-sm); margin-bottom:0;">
@@ -33085,32 +33089,32 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                                 <span style="font-weight:700; font-size:0.88rem; color:var(--text-1); direction:ltr; text-align:left;">
                                     ${item.phone}
                                 </span>
-                                ${item.owner_name ? `<span style="font-size:0.75rem; color:var(--text-2); background:var(--surface-3); padding:2px 8px; border-radius:var(--r-full); border:1px solid var(--border-solid);">${item.owner_name}</span>` : ''}
+                                ${item.owner_name ? `<span style="font-size:0.75rem; font-weight:600; color:var(--brand); background:var(--brand-bg); padding:2px 8px; border-radius:var(--r-full); border:1px solid var(--border);">${item.owner_name}</span>` : ''}
                             </div>
                             <div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-3);">
-                                <span>${statusText}</span>
+                                <span>${statusHtml}</span>
                                 <span>•</span>
                                 <span>${timeText}</span>
                             </div>
                         </div>
 
-                        <!-- 6-digit OTP Code -->
-                        <div style="font-size:1.15rem; font-weight:800; letter-spacing:2.5px; color:var(--text-1); padding:4px 12px; background:var(--surface-3); border:1px solid var(--border-solid); border-radius:var(--r-md); direction:ltr;">
+                        <!-- 6-digit OTP Code (Focal Point) -->
+                        <div style="${codeBoxStyle}">
                             ${item.otp_code}
                         </div>
 
-                        <!-- Uniform Neutral Rounded Buttons -->
+                        <!-- Uniform Neutral Rounded Buttons with Subtle Focal Accents -->
                         <div style="display:flex; align-items:center; gap:6px;">
                             <button type="button" class="btn btn-ghost btn-xs" onclick="copyAdminOtpCode('${item.otp_code}', this)" title="نسخ الكود" style="border-radius:var(--r-full); padding:5px 12px;">
-                                <i class="far fa-copy"></i>
+                                <i class="far fa-copy" style="color:var(--text-2);"></i>
                                 <span>نسخ</span>
                             </button>
                             <a href="${item.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn btn-ghost btn-xs" title="إرسال عبر واتساب" style="border-radius:var(--r-full); padding:5px 12px;">
-                                <i class="fab fa-whatsapp"></i>
+                                <i class="fab fa-whatsapp" style="color:#25d366;"></i>
                                 <span>واتساب</span>
                             </a>
                             <button type="button" class="btn btn-ghost btn-xs" id="botResendBtn_${item.id}" onclick="resendAdminOtpViaBot(${item.id})" title="إعادة إرسال عبر البوت" style="border-radius:var(--r-full); padding:5px 12px;">
-                                <i class="fas fa-redo-alt"></i>
+                                <i class="fas fa-redo-alt" style="color:var(--brand);"></i>
                                 <span>إعادة إرسال</span>
                             </button>
                         </div>
@@ -33223,16 +33227,16 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                                     <div style="font-weight:700; font-size:0.82rem; color:var(--text-1);">
                                         تم توليد الكود لرقم: <span dir="ltr">${data.phone}</span>
                                     </div>
-                                    <div style="font-size:1.15rem; font-weight:800; letter-spacing:2px; color:var(--text-1); margin-top:2px;">
+                                    <div style="font-size:1.18rem; font-weight:800; letter-spacing:2.5px; color:var(--success); background:var(--success-bg); border:1px solid rgba(16,185,129,0.3); border-radius:var(--r-md); padding:3px 10px; display:inline-block; margin-top:4px; direction:ltr;">
                                         ${data.otp_code}
                                     </div>
                                 </div>
                                 <div style="display:flex; gap:6px;">
-                                    <button type="button" class="btn btn-ghost btn-xs" onclick="copyAdminOtpCode('${data.otp_code}', this)">
-                                        <i class="far fa-copy"></i> نسخ
+                                    <button type="button" class="btn btn-ghost btn-xs" onclick="copyAdminOtpCode('${data.otp_code}', this)" style="border-radius:var(--r-full); padding:5px 12px;">
+                                        <i class="far fa-copy" style="color:var(--text-2);"></i> نسخ
                                     </button>
-                                    <a href="${data.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn btn-ghost btn-xs">
-                                        <i class="fab fa-whatsapp"></i> واتساب
+                                    <a href="${data.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn btn-ghost btn-xs" style="border-radius:var(--r-full); padding:5px 12px;">
+                                        <i class="fab fa-whatsapp" style="color:#25d366;"></i> واتساب
                                     </a>
                                 </div>
                             </div>
