@@ -20248,8 +20248,9 @@ function adminCheckUserOTP() {
 
         $conn = getDBConnection();
 
-        // Ensure church_id column exists
+        // Ensure church_id column and uniform collation exist
         @$conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS church_id INT NULL DEFAULT NULL AFTER id;");
+        @$conn->query("ALTER TABLE phone_verifications CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
 
         // Determine church_id
         $churchId = intval($_SESSION['church_id'] ?? $_REQUEST['church_id'] ?? 0);
@@ -20301,24 +20302,24 @@ function adminCheckUserOTP() {
                         OR EXISTS (
                             SELECT 1 FROM uncles u 
                             WHERE u.church_id = ? 
-                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone, 8) OR u.phone = pv.phone) 
+                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) OR u.phone = pv.phone COLLATE utf8mb4_unicode_ci) 
                               AND (u.deleted IS NULL OR u.deleted = 0)
                         )
                         OR EXISTS (
                             SELECT 1 FROM students s 
                             WHERE s.church_id = ? 
-                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone, 8) 
-                                   OR s.phone = pv.phone 
-                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone, 8) 
-                                   OR s.emergency_phone = pv.phone 
+                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
+                                   OR s.phone = pv.phone COLLATE utf8mb4_unicode_ci 
+                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
+                                   OR s.emergency_phone = pv.phone COLLATE utf8mb4_unicode_ci 
                                    OR s.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%')
                                    OR s.custom_info LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
                         )
                         OR EXISTS (
                             SELECT 1 FROM pending_registrations pr 
                             WHERE pr.church_id = ? 
-                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone, 8) 
-                                   OR pr.phone = pv.phone 
+                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
+                                   OR pr.phone = pv.phone COLLATE utf8mb4_unicode_ci 
                                    OR pr.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
                         )
                     )
@@ -20343,24 +20344,24 @@ function adminCheckUserOTP() {
                         OR EXISTS (
                             SELECT 1 FROM uncles u 
                             WHERE u.church_id = ? 
-                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone, 8) OR u.phone = pv.phone) 
+                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) OR u.phone = pv.phone COLLATE utf8mb4_unicode_ci) 
                               AND (u.deleted IS NULL OR u.deleted = 0)
                         )
                         OR EXISTS (
                             SELECT 1 FROM students s 
                             WHERE s.church_id = ? 
-                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone, 8) 
-                                   OR s.phone = pv.phone 
-                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone, 8) 
-                                   OR s.emergency_phone = pv.phone 
+                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
+                                   OR s.phone = pv.phone COLLATE utf8mb4_unicode_ci 
+                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
+                                   OR s.emergency_phone = pv.phone COLLATE utf8mb4_unicode_ci 
                                    OR s.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%')
                                    OR s.custom_info LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
                         )
                         OR EXISTS (
                             SELECT 1 FROM pending_registrations pr 
                             WHERE pr.church_id = ? 
-                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone, 8) 
-                                   OR pr.phone = pv.phone 
+                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone COLLATE utf8mb4_unicode_ci, 8) 
+                                   OR pr.phone = pv.phone COLLATE utf8mb4_unicode_ci 
                                    OR pr.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
                         )
                     )
