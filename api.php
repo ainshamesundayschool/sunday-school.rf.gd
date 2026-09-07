@@ -19726,42 +19726,107 @@ function sendCustomWhatsAppOTP() {
         
         $conn = getDBConnection();
 
-        if (!$forRegistration) {
-            // Check student phone across primary phone, emergency phone, and parent phones
-            $studentStmt = $conn->prepare("
-                SELECT id, name FROM students 
-                WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
-                   OR RIGHT(emergency_phone, 10) = RIGHT(?, 10) OR emergency_phone = ?
-                   OR parent_phones LIKE CONCAT('%', ?) OR custom_info LIKE CONCAT('%', ?)) 
-                LIMIT 1
-            ");
-            $studentStmt->bind_param("ssssss", $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone);
-            $studentStmt->execute();
-            $studentRes = $studentStmt->get_result();
-            
-            if ($studentRes->num_rows === 0) {
-                // Also check uncles / servants
-                $uncleStmt = $conn->prepare("
-                    SELECT id, name FROM uncles 
-                    WHERE RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
-                    LIMIT 1
-                ");
-                $uncleFound = false;
-                if ($uncleStmt) {
-                    $uncleStmt->bind_param("ss", $cleanPhone, $cleanPhone);
-                    $uncleStmt->execute();
-                    $uncleRes = $uncleStmt->get_result();
-                    if ($uncleRes && $uncleRes->num_rows > 0) {
-                        $uncleFound = true;
-                    }
-                    $uncleStmt->close();
-                }
+        $ownerName = '';
+        $ownerChurchId = 0;
+        $ownerType = '';
+        $ownerId = null;
 
-                if (!$uncleFound) {
-                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+        if (!$forRegistration) {
+            $studentId = (int)($_POST['student_id'] ?? 0);
+            if ($studentId > 0) {
+                $stStmt = $conn->prepare("SELECT id, name, church_id FROM students WHERE id = ? LIMIT 1");
+                if ($stStmt) {
+                    $stStmt->bind_param("i", $studentId);
+                    $stStmt->execute();
+                    $stRes = $stStmt->get_result();
+                    if ($stRes && $stRes->num_rows > 0) {
+                        $sRow = $stRes->fetch_assoc();
+                        $ownerName = $sRow['name'] ?? '';
+                        $ownerChurchId = (int)($sRow['church_id'] ?? 0);
+                        $ownerType = 'student';
+                        $ownerId = (int)$sRow['id'];
+                    }
+                    $stStmt->close();
                 }
             }
-            $studentStmt->close();
+
+            if (empty($ownerName)) {
+                // Check student phone across primary phone, emergency phone, and parent phones
+                $studentStmt = $conn->prepare("
+                    SELECT id, name, church_id FROM students 
+                    WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
+                       OR RIGHT(emergency_phone, 10) = RIGHT(?, 10) OR emergency_phone = ?
+                       OR parent_phones LIKE CONCAT('%', ?) OR custom_info LIKE CONCAT('%', ?)) 
+                    LIMIT 1
+                ");
+                $studentStmt->bind_param("ssssss", $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone);
+                $studentStmt->execute();
+                $studentRes = $studentStmt->get_result();
+                
+                if ($studentRes && $studentRes->num_rows > 0) {
+                    $sRow = $studentRes->fetch_assoc();
+                    $ownerName = $sRow['name'] ?? '';
+                    $ownerChurchId = (int)($sRow['church_id'] ?? 0);
+                    $ownerType = 'student';
+                    $ownerId = (int)$sRow['id'];
+                } else {
+                    // Also check uncles / servants
+                    $uncleStmt = $conn->prepare("
+                        SELECT id, name, church_id FROM uncles 
+                        WHERE RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
+                        LIMIT 1
+                    ");
+                    $uncleFound = false;
+                    if ($uncleStmt) {
+                        $uncleStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+                        $uncleStmt->execute();
+                        $uncleRes = $uncleStmt->get_result();
+                        if ($uncleRes && $uncleRes->num_rows > 0) {
+                            $uncleFound = true;
+                            $uRow = $uncleRes->fetch_assoc();
+                            $ownerName = $uRow['name'] ?? '';
+                            $ownerChurchId = (int)($uRow['church_id'] ?? 0);
+                            $ownerType = 'uncle';
+                            $ownerId = (int)$uRow['id'];
+                        }
+                        $uncleStmt->close();
+                    }
+
+                    if (!$uncleFound) {
+                        sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+                    }
+                }
+                $studentStmt->close();
+            }
+        } else {
+            // Registration mode
+            if (!empty($_POST['church_id'])) {
+                $ownerChurchId = (int)$_POST['church_id'];
+            }
+            if (!empty($_POST['name'])) {
+                $ownerName = sanitize($_POST['name']);
+            }
+            if ($ownerChurchId === 0) {
+                $regStmt = $conn->prepare("SELECT church_id, name FROM registration_requests WHERE RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ? ORDER BY id DESC LIMIT 1");
+                if ($regStmt) {
+                    $regStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+                    $regStmt->execute();
+                    $regRes = $regStmt->get_result();
+                    if ($regRes && $regRes->num_rows > 0) {
+                        $rRow = $regRes->fetch_assoc();
+                        $ownerChurchId = (int)($rRow['church_id'] ?? 0);
+                        if (empty($ownerName)) $ownerName = $rRow['name'] ?? '';
+                    }
+                    $regStmt->close();
+                }
+            }
+        }
+
+        if ($ownerChurchId === 0 && !empty($_POST['church_id'])) {
+            $ownerChurchId = (int)$_POST['church_id'];
+        }
+        if ($ownerChurchId === 0 && !empty($_SESSION['church_id'])) {
+            $ownerChurchId = (int)$_SESSION['church_id'];
         }
         
         $tableCheck = $conn->query("SHOW TABLES LIKE 'phone_verifications'");
@@ -19769,6 +19834,7 @@ function sendCustomWhatsAppOTP() {
             $conn->query("
                 CREATE TABLE IF NOT EXISTS phone_verifications (
                     id INT AUTO_INCREMENT PRIMARY KEY,
+                    church_id INT NULL DEFAULT NULL,
                     phone VARCHAR(20) NOT NULL,
                     request_token VARCHAR(32) DEFAULT NULL,
                     otp_code VARCHAR(10) NOT NULL,
@@ -19782,6 +19848,7 @@ function sendCustomWhatsAppOTP() {
             if ($colCheck && $colCheck->num_rows === 0) {
                 $conn->query("ALTER TABLE phone_verifications ADD COLUMN is_sent TINYINT(1) DEFAULT 0;");
             }
+            @$conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS church_id INT NULL DEFAULT NULL AFTER id;");
         }
         
         // Step 1: Generate the OTP
@@ -19791,8 +19858,13 @@ function sendCustomWhatsAppOTP() {
         $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
         
         // Step 2: Store/enqueue a pending WhatsApp message (id, phone, otp_code, is_sent=0)
-        $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
-        $stmt->bind_param("sss", $normalizedPhone, $requestToken, $otp);
+        if ($ownerChurchId > 0) {
+            $stmt = $conn->prepare("INSERT INTO phone_verifications (church_id, phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, ?, 0, 0, NOW())");
+            $stmt->bind_param("isss", $ownerChurchId, $normalizedPhone, $requestToken, $otp);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+            $stmt->bind_param("sss", $normalizedPhone, $requestToken, $otp);
+        }
         $stmt->execute();
         $newOtpId = intval($conn->insert_id ?: $stmt->insert_id);
         $stmt->close();
@@ -19801,7 +19873,26 @@ function sendCustomWhatsAppOTP() {
             throw new Exception("فشل في حفظ رمز التحقق في قاعدة البيانات");
         }
 
-        error_log(sprintf("[WhatsAppQueue] Step 2 Success: Enqueued pending OTP id=%d, phone=%s, is_sent=0", $newOtpId, $normalizedPhone));
+        // Notify uncles of this church about the WhatsApp OTP code request
+        if ($ownerChurchId > 0) {
+            $notifTitle = "طلب كود واتساب: " . $otp;
+            $notifBody = "طلب رمز تحقق للرقم: " . $normalizedPhone;
+            if (!empty($ownerName)) {
+                $notifBody .= " (" . $ownerName . ")";
+            }
+            if (function_exists('pushNotification')) {
+                pushNotification($conn, $ownerChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newOtpId);
+            }
+            if (function_exists('_sendWebPushToUncles')) {
+                _sendWebPushToUncles($conn, $ownerChurchId, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
+                    'otp_code' => $otp,
+                    'phone' => $normalizedPhone,
+                    'owner_name' => $ownerName
+                ]);
+            }
+        }
+
+        error_log(sprintf("[WhatsAppQueue] Step 2 Success: Enqueued pending OTP id=%d, church_id=%d, phone=%s, is_sent=0", $newOtpId, $ownerChurchId, $normalizedPhone));
         
         // Step 3: Confirm the item is available in the pending queue
         $confirmedItem = verifyPendingOTPInQueue($newOtpId);
@@ -19824,7 +19915,9 @@ function sendCustomWhatsAppOTP() {
                 'action' => 'enqueueMirrorOTP',
                 'phone' => $normalizedPhone,
                 'otp_code' => $otp,
-                'request_token' => $requestToken
+                'request_token' => $requestToken,
+                'church_id' => $ownerChurchId,
+                'owner_name' => $ownerName
             ];
             curl_setopt_array($mCh, [
                 CURLOPT_POST => true,
@@ -19875,6 +19968,8 @@ function enqueueMirrorOTP() {
         $phone = sanitize($_POST['phone'] ?? '');
         $code = sanitize($_POST['otp_code'] ?? '');
         $token = sanitize($_POST['request_token'] ?? '');
+        $mirrorChurchId = (int)($_POST['church_id'] ?? 0);
+        $mirrorOwnerName = sanitize($_POST['owner_name'] ?? '');
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
         $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
 
@@ -19883,11 +19978,36 @@ function enqueueMirrorOTP() {
         }
 
         $conn = getDBConnection();
-        $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
-        $stmt->bind_param("sss", $normalizedPhone, $token, $code);
+        @$conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS church_id INT NULL DEFAULT NULL AFTER id;");
+        if ($mirrorChurchId > 0) {
+            $stmt = $conn->prepare("INSERT INTO phone_verifications (church_id, phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, ?, 0, 0, NOW())");
+            $stmt->bind_param("isss", $mirrorChurchId, $normalizedPhone, $token, $code);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+            $stmt->bind_param("sss", $normalizedPhone, $token, $code);
+        }
         $stmt->execute();
         $newId = intval($conn->insert_id ?: $stmt->insert_id);
         $stmt->close();
+
+        // Notify uncles of this church on production
+        if ($mirrorChurchId > 0) {
+            $notifTitle = "طلب كود واتساب: " . $code;
+            $notifBody = "طلب رمز تحقق للرقم: " . $normalizedPhone;
+            if (!empty($mirrorOwnerName)) {
+                $notifBody .= " (" . $mirrorOwnerName . ")";
+            }
+            if (function_exists('pushNotification')) {
+                pushNotification($conn, $mirrorChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newId);
+            }
+            if (function_exists('_sendWebPushToUncles')) {
+                _sendWebPushToUncles($conn, $mirrorChurchId, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
+                    'otp_code' => $code,
+                    'phone' => $normalizedPhone,
+                    'owner_name' => $mirrorOwnerName
+                ]);
+            }
+        }
 
         // Immediately notify bot to wake up and poll
         $wakeResult = notifyWhatsAppOTPPending($newId);
@@ -46914,8 +47034,47 @@ function sendPushNotificationAction()
 
 
 
-// Helper: send web push to all devices subscribed for kids
+// Helper: send web push to all devices subscribed for uncles of a church
+function _sendWebPushToUncles($conn, $churchId, $title, $body, $url = '/uncle/dashboard/?open_otp=1', $extra = [])
+{
+    try {
+        $vapid = defined('VAPID_PRIVATE_KEY') ? VAPID_PRIVATE_KEY : (getenv('VAPID_PRIVATE_KEY') ?: '');
+        $vapidPub = defined('VAPID_PUBLIC_KEY') ? VAPID_PUBLIC_KEY : (getenv('VAPID_PUBLIC_KEY') ?: '');
+        if (!$vapid || !$vapidPub) return;
 
+        $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
+        if (!$tbl) return;
+
+        $stmt = $conn->prepare("SELECT endpoint, p256dh, auth, uncle_id FROM push_subscriptions WHERE church_id = ? AND uncle_id IS NOT NULL LIMIT 50");
+        $stmt->bind_param('i', $churchId);
+        $stmt->execute();
+        $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        if (!$subs) return;
+
+        $payload = json_encode(array_merge([
+            'title' => $title,
+            'body' => $body,
+            'url' => $url,
+            'redirect_url' => $url,
+            'type' => 'whatsapp_otp',
+            'notifType' => 'whatsapp_otp',
+            'icon' => '/logo.png',
+            'badge' => '/badge.png'
+        ], $extra));
+
+        if (function_exists('_pushToEndpoint')) {
+            foreach ($subs as $sub) {
+                _pushToEndpoint($sub['endpoint'], $sub['p256dh'], $sub['auth'], $payload, $vapid, $vapidPub);
+            }
+        }
+    } catch (Exception $e) {
+        error_log("_sendWebPushToUncles error: " . $e->getMessage());
+    }
+}
+
+// Helper: send web push to all devices subscribed for kids
 function _sendWebPushToKids($conn, $churchId, $title, $body, $extra = [])
 
 {

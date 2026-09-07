@@ -29250,7 +29250,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     document.getElementById('pendingRegistrationsSection')?.scrollIntoView({ behavior: 'smooth' });
                 }, 1000);
             }
-            if (urlParams.get('tab') === 'otp' || window.location.hash === '#otp') {
+            if (urlParams.get('tab') === 'otp' || urlParams.get('open_otp') === '1' || window.location.hash === '#otp') {
                 setTimeout(() => showAdminOTPModal(), 500);
             }
             checkTaskUrlParamsOnLoad();
@@ -33068,30 +33068,30 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
                 let statusHtml = '';
                 if (item.is_verified === 1) {
-                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:var(--success); font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:var(--success);"></span><i class="fas fa-check" style="font-size:0.65rem;"></i> تم التحقق</span>';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:5px; color:#16a34a; font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:#16a34a; display:inline-block;"></span>تم التحقق</span>';
                 } else if (item.is_expired) {
-                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:var(--text-3);"><span style="width:6px; height:6px; border-radius:50%; background:var(--text-3);"></span>منتهي الصلاحية</span>';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:5px; color:var(--text-3);"><span style="width:6px; height:6px; border-radius:50%; background:#94a3b8; display:inline-block;"></span>منتهي</span>';
                 } else if (item.is_sent === 1) {
-                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:#25d366; font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:#25d366;"></span><i class="fab fa-whatsapp" style="font-size:0.75rem;"></i> أُرسل للبوت</span>';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:5px; color:#0284c7; font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:#0284c7; display:inline-block;"></span>أُرسل للبوت</span>';
                 } else {
-                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:4px; color:var(--warning); font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:var(--warning);"></span><i class="far fa-clock" style="font-size:0.65rem;"></i> في الانتظار</span>';
+                    statusHtml = '<span style="display:inline-flex; align-items:center; gap:5px; color:#d97706; font-weight:600;"><span style="width:6px; height:6px; border-radius:50%; background:#d97706; display:inline-block;"></span>في الانتظار</span>';
                 }
 
                 const codeBoxStyle = item.is_expired
                     ? 'font-size:1.15rem; font-weight:800; letter-spacing:2.5px; color:var(--text-3); padding:4px 12px; background:var(--surface-3); border:1px solid var(--border-solid); border-radius:var(--r-md); direction:ltr;'
-                    : 'font-size:1.18rem; font-weight:800; letter-spacing:2.5px; color:var(--success); padding:4px 14px; background:var(--success-bg); border:1px solid rgba(16,185,129,0.3); border-radius:var(--r-md); direction:ltr; box-shadow:0 1px 3px rgba(16,185,129,0.08);';
+                    : 'font-size:1.18rem; font-weight:800; letter-spacing:2.5px; color:#15803d; padding:4px 14px; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25); border-radius:var(--r-md); direction:ltr;';
 
                 return `
                     <div class="card" style="background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-xl); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; font-family:'Cairo',sans-serif; box-shadow:var(--shadow-sm); margin-bottom:0;">
                         <!-- User & Phone Details -->
-                        <div style="display:flex; flex-direction:column; gap:3px; min-width:160px;">
+                        <div style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                <span style="font-weight:700; font-size:0.88rem; color:var(--text-1); direction:ltr; text-align:left;">
+                                <span style="font-weight:700; font-size:0.9rem; color:var(--text-1); direction:ltr; text-align:left;">
                                     ${item.phone}
                                 </span>
-                                ${item.owner_name ? `<span style="font-size:0.75rem; font-weight:600; color:var(--brand); background:var(--brand-bg); padding:2px 8px; border-radius:var(--r-full); border:1px solid var(--border);">${item.owner_name}</span>` : ''}
+                                ${item.owner_name ? `<span style="font-size:0.75rem; font-weight:600; color:var(--brand); background:var(--brand-bg, rgba(79,70,229,0.08)); padding:2px 8px; border-radius:var(--r-full); border:1px solid rgba(79,70,229,0.2);">${item.owner_name}</span>` : ''}
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-3);">
+                            <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--text-3);">
                                 <span>${statusHtml}</span>
                                 <span>•</span>
                                 <span>${timeText}</span>
