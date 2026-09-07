@@ -30,6 +30,7 @@
     <!-- Firebase SDK for Phone OTP Verification -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="/js/firebase_phone_auth.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -558,7 +559,7 @@
                     </div>
                     <a href="#" class="forgot-password" id="forgotPasswordLink" style="display: none;" onclick="event.preventDefault(); showPasswordRecovery();">
                         <i class="fas fa-key"></i>
-                        نسيت كلمة المرور؟ (إعادة التعيين عبر الواتساب)
+                        نسيت كلمة المرور؟ (إعادة التعيين عبر كود SMS)
                     </a>
                 </div>
 
@@ -623,6 +624,58 @@
         <div class="password-setup-container" id="passwordSetupContainer">
             <!-- Will be populated dynamically -->
         </div>
+
+        <!-- Phone OTP Verification Container -->
+        <div class="password-setup-container" id="otpVerificationContainer">
+            <div style="text-align:center; margin-bottom:16px;">
+                <div style="width:56px; height:56px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:inline-flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:12px;">
+                    <i class="fas fa-sms"></i>
+                </div>
+                <h3 style="color:var(--dark); font-size:1.15rem; font-weight:800; margin-bottom:6px;">التحقق من رقم الهاتف</h3>
+                <p style="color:var(--secondary); font-size:0.85rem; line-height:1.5;">
+                    تم إرسال كود التحقق في رسالة SMS إلى رقمك:
+                    <br>
+                    <span id="otpPhoneDisplay" dir="ltr" style="font-weight:700; color:var(--primary); font-size:1rem;"></span>
+                </p>
+            </div>
+
+            <form id="otpVerificationForm" onsubmit="event.preventDefault(); submitPhoneOTP();">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label for="otpCodeInput" class="form-label" style="text-align:center; display:block;">أدخل الكود المكون من 6 أرقام</label>
+                    <div class="input-container">
+                        <i class="fas fa-shield-alt input-icon"></i>
+                        <input type="text"
+                               id="otpCodeInput"
+                               class="form-input"
+                               required
+                               maxlength="6"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               style="text-align:center; font-size:1.35rem; font-weight:800; letter-spacing:8px;"
+                               placeholder="------"
+                               autocomplete="one-time-code">
+                    </div>
+                </div>
+
+                <div class="error-message" id="otpErrorMessage" style="display:none; margin-bottom:14px;"></div>
+
+                <button type="submit" class="login-btn" id="verifyOtpBtn" style="margin-bottom:12px;">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="verifyOtpText">تأكيد ومتابعة</span>
+                </button>
+
+                <div style="text-align:center; display:flex; flex-direction:column; gap:8px;">
+                    <button type="button" id="resendOtpBtn" onclick="resendPhoneOTP()" style="background:none; border:none; color:var(--primary); font-size:0.85rem; font-weight:700; cursor:pointer;" disabled>
+                        إعادة إرسال الكود (<span id="otpCountdown">60</span> ثانية)
+                    </button>
+                    <button type="button" onclick="cancelOTPVerification()" style="background:none; border:none; color:var(--secondary); font-size:0.82rem; cursor:pointer; text-decoration:underline;">
+                        تغيير رقم الهاتف أو العودة
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="recaptcha-container"></div>
 
         <!-- Loading State -->
         <div class="loading" id="loading">
@@ -923,9 +976,9 @@
                         elements.phoneLoginText.textContent = 'تسجيل الدخول بكلمة المرور';
                         elements.phonePasswordInput.focus();
                     } else {
-                        // User doesn't have password - jump directly to Password Setup
+                        // User doesn't have password - verify phone first via SMS!
                         currentPhoneForSetup = cleanPhoneNumber(phone);
-                        showPasswordSetup(phone, data.student_id, 'first_time');
+                        startPhoneVerification(phone, data.student_id, 'first_time');
                     }
                 } else {
                     // If check fails, try normal phone login
@@ -1087,7 +1140,7 @@
             
             const isReset = mode === 'reset_password';
             const title = isReset ? 'إعادة تعيين كلمة المرور' : 'تعيين كلمة المرور الجديدة';
-            const subtitle = isReset ? 'تم التحقق من هويتك بنجاح عبر الواتساب. يمكنك الآن إدخال كلمة المرور الجديدة.' : 'تم تأكيد رقم الهاتف بنجاح عبر الواتساب. يرجى تعيين كلمة مرور جديدة للحساب.';
+            const subtitle = isReset ? 'تم التحقق من رقم الهاتف بنجاح عبر كود SMS. يمكنك الآن إدخال كلمة المرور الجديدة.' : 'تم تأكيد رقم الهاتف بنجاح عبر كود SMS. يرجى تعيين كلمة مرور جديدة للحساب.';
             
             container.innerHTML = `
                 <h3 style="color: var(--dark); font-size: 1.15rem; margin-bottom: 14px; text-align: center; font-weight: 800;">
@@ -1234,6 +1287,143 @@
             });
         }
 
+        // ===== FIREBASE PHONE OTP VERIFICATION =====
+        let pendingVerification = null;
+        let otpCountdownInterval = null;
+
+        function startPhoneVerification(phone, studentId, mode = 'first_time') {
+            pendingVerification = { phone, studentId, mode };
+            clearErrors();
+            showLoading('جاري إرسال كود التحقق SMS...');
+
+            FirebasePhoneAuth.sendVerificationCode(phone, 'recaptcha-container')
+                .then(res => {
+                    hideLoading();
+                    elements.phoneLoginForm.classList.remove('active');
+                    elements.usernameLoginForm.classList.remove('active');
+                    elements.passwordSetupContainer.classList.remove('active');
+                    const otpContainer = document.getElementById('otpVerificationContainer');
+                    if (otpContainer) otpContainer.classList.add('active');
+
+                    const displayEl = document.getElementById('otpPhoneDisplay');
+                    if (displayEl) displayEl.textContent = res.phone;
+
+                    const otpInput = document.getElementById('otpCodeInput');
+                    if (otpInput) {
+                        otpInput.value = '';
+                        setTimeout(() => otpInput.focus(), 150);
+                    }
+
+                    startOtpCountdown(60);
+                })
+                .catch(err => {
+                    hideLoading();
+                    showPhoneError(err.message || 'فشل إرسال كود التحقق');
+                });
+        }
+
+        function startOtpCountdown(seconds = 60) {
+            if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+            let remaining = seconds;
+            const resendBtn = document.getElementById('resendOtpBtn');
+
+            const updateDisplay = () => {
+                if (!resendBtn) return;
+                if (remaining > 0) {
+                    resendBtn.innerHTML = `إعادة إرسال الكود (<span id="otpCountdown">${remaining}</span> ثانية)`;
+                    resendBtn.disabled = true;
+                    resendBtn.style.opacity = '0.6';
+                    resendBtn.style.cursor = 'not-allowed';
+                } else {
+                    resendBtn.innerHTML = `<i class="fas fa-redo-alt" style="margin-left:4px;"></i> إعادة إرسال الكود SMS`;
+                    resendBtn.disabled = false;
+                    resendBtn.style.opacity = '1';
+                    resendBtn.style.cursor = 'pointer';
+                    clearInterval(otpCountdownInterval);
+                }
+            };
+
+            updateDisplay();
+            otpCountdownInterval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+            }, 1000);
+        }
+
+        async function submitPhoneOTP() {
+            const codeInput = document.getElementById('otpCodeInput');
+            const code = (codeInput ? codeInput.value : '').trim();
+            const errEl = document.getElementById('otpErrorMessage');
+            const verifyBtn = document.getElementById('verifyOtpBtn');
+            const verifyText = document.getElementById('verifyOtpText');
+
+            if (errEl) errEl.style.display = 'none';
+
+            if (!code || code.length !== 6) {
+                if (errEl) {
+                    errEl.textContent = 'يرجى إدخال كود التحقق المكون من 6 أرقام';
+                    errEl.style.display = 'block';
+                }
+                if (codeInput) codeInput.focus();
+                return;
+            }
+
+            if (verifyBtn) verifyBtn.disabled = true;
+            if (verifyText) verifyText.textContent = 'جاري التحقق...';
+
+            try {
+                const res = await FirebasePhoneAuth.verifyCode(code);
+                if (verifyBtn) verifyBtn.disabled = false;
+                if (verifyText) verifyText.textContent = 'تأكيد ومتابعة';
+
+                if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+                const otpContainer = document.getElementById('otpVerificationContainer');
+                if (otpContainer) otpContainer.classList.remove('active');
+
+                if (pendingVerification) {
+                    const { phone, studentId, mode } = pendingVerification;
+                    showPasswordSetup(phone, studentId, mode);
+                }
+            } catch (err) {
+                if (verifyBtn) verifyBtn.disabled = false;
+                if (verifyText) verifyText.textContent = 'تأكيد ومتابعة';
+                if (errEl) {
+                    errEl.textContent = err.message || 'كود التحقق غير صحيح';
+                    errEl.style.display = 'block';
+                }
+                if (codeInput) codeInput.focus();
+            }
+        }
+
+        function resendPhoneOTP() {
+            if (!pendingVerification || !pendingVerification.phone) return;
+            const errEl = document.getElementById('otpErrorMessage');
+            if (errEl) errEl.style.display = 'none';
+            showLoading('جاري إعادة إرسال كود التحقق...');
+
+            FirebasePhoneAuth.sendVerificationCode(pendingVerification.phone, 'recaptcha-container')
+                .then(() => {
+                    hideLoading();
+                    startOtpCountdown(60);
+                    showSuccess('تم إرسال كود جديد عبر SMS بنجاح');
+                })
+                .catch(err => {
+                    hideLoading();
+                    if (errEl) {
+                        errEl.textContent = err.message || 'فشل إعادة الإرسال';
+                        errEl.style.display = 'block';
+                    }
+                });
+        }
+
+        function cancelOTPVerification() {
+            if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+            const otpContainer = document.getElementById('otpVerificationContainer');
+            if (otpContainer) otpContainer.classList.remove('active');
+            elements.phoneLoginForm.classList.add('active');
+            clearErrors();
+        }
+
         // ===== PASSWORD RECOVERY =====
         function showPasswordRecovery() {
             const phone = elements.phoneInput.value.trim();
@@ -1262,7 +1452,7 @@
                 }
                 hideLoading();
                 if (data.success && data.student_id) {
-                    showPasswordSetup(phone, data.student_id, 'reset_password');
+                    startPhoneVerification(phone, data.student_id, 'reset_password');
                 } else {
                     showPhoneError(data.message || 'رقم الهاتف غير مسجل في النظام');
                 }
