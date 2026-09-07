@@ -7954,8 +7954,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (t.time_limit) startExamCountdown(t);
     }
 
+    function seededShuffle(arr, seedStr) {
+      let hash = 0;
+      for (let i = 0; i < seedStr.length; i++) {
+        hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+        hash |= 0;
+      }
+      let copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        hash = ((hash * 9301 + 49297) % 233280);
+        let j = Math.floor((Math.abs(hash) / 233280) * (i + 1));
+        let temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
+      }
+      return copy;
+    }
+
     function renderExamQuestions(t) {
-      const qs = t.questions || [];
+      let qs = t.questions || [];
+      if (parseInt(t.shuffle || 0) === 1 && qs.length > 1) {
+        if (!t._shuffledQuestions) {
+          t._shuffledQuestions = seededShuffle(qs, `${student.id}_task_${t.id}_qs`);
+        }
+        qs = t._shuffledQuestions;
+        t.questions = qs;
+      }
       document.getElementById('examQList').innerHTML = qs.map((q, i) => {
         const qtype = q.question_type || 'mcq';
         const imgHtml = q.image_url
@@ -8019,7 +8043,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
 
         // ── MCQ (default) ─────────────────────────────────────────
-        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        const rawOpts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        let optsWithIndices = rawOpts.map((o, j) => ({ text: o, origIdx: j }));
+        if (parseInt(t.shuffle_answers || 0) === 1 && optsWithIndices.length > 1) {
+          optsWithIndices = seededShuffle(optsWithIndices, `${student.id}_task_${t.id}_q_${q.id}_opts`);
+        }
         const savedVal = getSaved(q.id, i);
         const sel = savedVal !== undefined ? savedVal : null;
         const deg = parseInt(q.degree) || 0;
@@ -8031,7 +8059,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         ${sel !== null ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 7px;font-size:.62rem;font-weight:700;flex-shrink:0;"><i class="fas fa-check"></i></span>` : ''}
         <span class="qdeg">${deg} درجة</span>
       </div>
-      <div class="qopts">${opts.map((o, j) => `<div class="qopt${sel === j ? ' selected' : ''}" onclick="pickOpt(${q.id},${j},this)"><div class="oradio"></div><div class="olet">${LETTERS[j]}</div>${esc(o)}</div>`).join('')}</div>
+      <div class="qopts">${optsWithIndices.map((item, displayIdx) => {
+        const isSelected = sel !== null && parseInt(sel) === item.origIdx;
+        return `<div class="qopt${isSelected ? ' selected' : ''}" onclick="pickOpt(${q.id},${item.origIdx},this)"><div class="oradio"></div><div class="olet">${LETTERS[displayIdx]}</div>${esc(item.text)}</div>`;
+      }).join('')}</div>
     </div>`;
       }).join('');
       updExamProgress(t);
@@ -9195,13 +9226,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           ${openScoreHtml}
         </div>`;
           } else {
-            const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-            if (qType === 'tf') { opts[0] = 'صحيح'; opts[1] = 'خطأ'; }
+            const rawOpts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+            if (qType === 'tf') { rawOpts[0] = 'صحيح'; rawOpts[1] = 'خطأ'; }
+            let optsWithIndices = rawOpts.map((o, j) => ({ text: o, origIdx: j }));
+            if (qType === 'mcq' && parseInt(t.shuffle_answers || 0) === 1 && optsWithIndices.length > 1) {
+              optsWithIndices = seededShuffle(optsWithIndices, `${student.id}_task_${t.id}_q_${q.id}_opts`);
+            }
 
             html += `<div style="display:flex;flex-direction:column;gap:8px;">`;
-            opts.forEach((o, j) => {
-              const isCorr = j === correctIdx;
-              const isSel = given !== undefined && parseInt(given) === j;
+            optsWithIndices.forEach((item, displayIdx) => {
+              const isCorr = item.origIdx === correctIdx;
+              const isSel = given !== undefined && parseInt(given) === item.origIdx;
 
               let borderColor = 'var(--bdr)';
               let bgColor = 'var(--surf)';
@@ -9220,8 +9255,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               }
 
               html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-sm);border:2px solid ${borderColor};background:${bgColor};color:${textColor};font-size:.88rem;${isSel ? 'font-weight:700;' : ''}">
-            <span style="width:20px;font-weight:800;opacity:.5;">${LETTERS[j]}</span>
-            <span>${esc(o)}</span>
+            <span style="width:20px;font-weight:800;opacity:.5;">${LETTERS[displayIdx]}</span>
+            <span>${esc(item.text)}</span>
             ${icon}
           </div>`;
             });

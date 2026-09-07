@@ -13183,6 +13183,17 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
                         class="tgl-s"></span></label>
                   </div>
 
+                  <div class="sopt-row" onclick="document.getElementById('fShuffleAnswers').click()">
+                    <div class="sopt-ico" style="background:rgba(124,58,237,0.12);color:#7c3aed;"><i
+                        class="fas fa-random"></i></div>
+                    <div class="sopt-txt">
+                      <div class="sopt-lbl">خلط ترتيب الإجابات (الخيارات)</div>
+                      <div class="sopt-desc">ترتيب عشوائي للخيارات في أسئلة الاختيار من متعدد</div>
+                    </div>
+                    <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShuffleAnswers"><span
+                        class="tgl-s"></span></label>
+                  </div>
+
                   <div class="sopt-row" style="margin-bottom:0;" onclick="document.getElementById('fReview').click()">
                     <div class="sopt-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-eye"></i></div>
                     <div class="sopt-txt">
@@ -15256,7 +15267,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         const t = tasks.find(x => x.id == taskId);
         if (t) fillForm(t);
         document.getElementById('createTitle').textContent = 'تعديل التاسك';
-        initTiers();
         hideDraftSaveBadge();
       } else {
         document.getElementById('createTitle').textContent = 'إنشاء تاسك جديد';
@@ -15328,279 +15338,169 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
     function resetForm() {
 
-
-
       ['fTitle', 'fDesc'].forEach(id => document.getElementById(id).value = '');
       window.selectedClassifications = [];
+      window._editingSpecificIds = [];
       renderActiveTags();
       populateClassificationSelector();
 
-
-
       document.getElementById('fAssign').value = 'all';
-
-
 
       document.getElementById('specRow').style.display = 'none';
 
-
-
       document.getElementById('fTimerOn').checked = false;
-
-
 
       document.getElementById('timerRow').style.display = 'none';
 
-
-
       document.getElementById('fNoDeadline').checked = false;
-
-
 
       document.getElementById('fEndDateMode').checked = false;
 
-
-
       document.getElementById('fShowRes').checked = true;
-
-
 
       document.getElementById('fShowAns').checked = true;
 
-
-
       document.getElementById('fShuffle').checked = false;
 
-
+      if (document.getElementById('fShuffleAnswers')) document.getElementById('fShuffleAnswers').checked = false;
 
       document.getElementById('fReview').checked = true;
 
-
-
       document.getElementById('qList').innerHTML = '';
-
-
 
       document.getElementById('ctierList').innerHTML = '';
 
-
-
       setDefaultDates();
-
-
 
       toggleEndDateMode(false);
 
-
-
       toggleNoDeadline(false);
-
-
 
       const allChk = document.getElementById('class_all');
 
-
-
       if (allChk) {
-
-
 
         if (CFG.activeClass === 'كل الفصول') {
 
-
-
           allChk.checked = true;
 
-
-
         } else {
-
-
 
           allChk.checked = !CFG.activeClass;
 
-
-
         }
-
-
 
       }
 
-
-
       document.querySelectorAll('.class-checkbox').forEach(cb => {
-
-
 
         if (CFG.activeClass && cb.value === CFG.activeClass) {
 
-
-
           cb.checked = true;
-
-
 
         } else {
 
-
-
           cb.checked = false;
-
-
 
         }
 
-
-
       });
-
-
 
     }
 
-
-
     function fillForm(t) {
-
-
 
       document.getElementById('fTitle').value = t.title || '';
       window.selectedClassifications = t.group_name ? t.group_name.split(',').map(x => x.trim()).filter(Boolean) : [];
       renderActiveTags();
       populateClassificationSelector();
 
-
-
       document.getElementById('fDesc').value = t.description || '';
-
-
 
       document.getElementById('fStart').value = toLocalDT(t.start_date);
 
-
-
       document.getElementById('fEnd').value = toLocalDT(t.end_date);
-
-
+      if (document.getElementById('fEndDateOnly')) {
+        document.getElementById('fEndDateOnly').value = toLocalDateOnly(t.end_date);
+      }
 
       document.getElementById('fNoDeadline').checked = !!parseInt(t.no_deadline || 0);
 
-
-
       document.getElementById('fAssign').value = t.assign_to || 'all';
-
-
 
       document.getElementById('fShowRes').checked = !!parseInt(t.show_result);
 
-
-
       document.getElementById('fShowAns').checked = !!parseInt(t.show_answers || 0);
-
-
 
       document.getElementById('fShuffle').checked = !!parseInt(t.shuffle);
 
-
+      if (document.getElementById('fShuffleAnswers')) {
+        document.getElementById('fShuffleAnswers').checked = !!parseInt(t.shuffle_answers || 0);
+      }
 
       document.getElementById('fReview').checked = !!parseInt(t.allow_review);
-
-
 
       document.getElementById('fEndDateMode').checked = isEndDateOnly(t.end_date);
       toggleEndDateMode(false);
       toggleNoDeadline(false);
       if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 
+      let classIds = (t.class_ids || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (!classIds.length && t.class_id) {
+        classIds = [String(t.class_id)];
+      }
 
-
-      const classIds = (t.class_ids || '').split(',').map(s => s.trim()).filter(Boolean);
-
-
-
+      const isAllClasses = classIds.includes('0') || (classIds.length === 0 && (!t.class_id || parseInt(t.class_id) === 0));
       const allChk = document.getElementById('class_all');
-
-
-
-      if (allChk) allChk.checked = (classIds.includes('0') || classIds.length === 0);
-
-
-
-
-
-
+      if (allChk) allChk.checked = isAllClasses;
 
       document.querySelectorAll('.class-checkbox').forEach(cb => {
-
-
-
-        cb.checked = classIds.includes(cb.dataset.id);
-
-
-
+        cb.checked = !isAllClasses && (classIds.includes(String(cb.dataset.id)) || classIds.includes(String(cb.value)));
       });
-
-
 
       if (parseInt(t.time_limit)) {
 
-
-
         document.getElementById('fTimerOn').checked = true;
-
-
 
         document.getElementById('timerRow').style.display = '';
 
-
-
         document.getElementById('fTimerMin').value = t.time_limit;
-
-
 
         document.getElementById('fTimerBeh').value = t.timer_behavior || 'submit';
 
+      } else {
 
+        document.getElementById('fTimerOn').checked = false;
+
+        document.getElementById('timerRow').style.display = 'none';
+
+        document.getElementById('fTimerMin').value = '';
+
+        document.getElementById('fTimerBeh').value = t.timer_behavior || 'submit';
 
       }
 
-
-
+      window._editingSpecificIds = (t.assign_to === 'specific' && t.specific_ids)
+        ? (typeof t.specific_ids === 'string' ? JSON.parse(t.specific_ids || '[]') : t.specific_ids)
+        : [];
       if (t.assign_to === 'specific') onAssignChange();
-
-
 
       document.getElementById('qList').innerHTML = '';
 
-
-
       (t.questions || []).forEach(q => addQ(q));
-
-
 
       document.getElementById('ctierList').innerHTML = '';
 
-
-
-      const mx = t.coupon_matrix ? JSON.parse(t.coupon_matrix) : null;
-
-
+      const mx = t.coupon_matrix ? (typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix) : t.coupon_matrix) : null;
 
       if (mx && mx.length) {
         const milestones = convertTiersToMilestones(mx);
         milestones.forEach(m => addMilestone(m.pct, m.coupons));
+      } else {
+        initTiers();
       }
 
-
-
-      else initTiers();
-
-
-
       updDeg();
-
-
 
     }
 
@@ -16837,279 +16737,169 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
     function resetForm() {
 
-
-
       ['fTitle', 'fDesc'].forEach(id => document.getElementById(id).value = '');
       window.selectedClassifications = [];
+      window._editingSpecificIds = [];
       renderActiveTags();
       populateClassificationSelector();
 
-
-
       document.getElementById('fAssign').value = 'all';
-
-
 
       document.getElementById('specRow').style.display = 'none';
 
-
-
       document.getElementById('fTimerOn').checked = false;
-
-
 
       document.getElementById('timerRow').style.display = 'none';
 
-
-
       document.getElementById('fNoDeadline').checked = false;
-
-
 
       document.getElementById('fEndDateMode').checked = false;
 
-
-
       document.getElementById('fShowRes').checked = true;
-
-
 
       document.getElementById('fShowAns').checked = true;
 
-
-
       document.getElementById('fShuffle').checked = false;
 
-
+      if (document.getElementById('fShuffleAnswers')) document.getElementById('fShuffleAnswers').checked = false;
 
       document.getElementById('fReview').checked = true;
 
-
-
       document.getElementById('qList').innerHTML = '';
-
-
 
       document.getElementById('ctierList').innerHTML = '';
 
-
-
       setDefaultDates();
-
-
 
       toggleEndDateMode(false);
 
-
-
       toggleNoDeadline(false);
-
-
 
       const allChk = document.getElementById('class_all');
 
-
-
       if (allChk) {
-
-
 
         if (CFG.activeClass === 'كل الفصول') {
 
-
-
           allChk.checked = true;
 
-
-
         } else {
-
-
 
           allChk.checked = !CFG.activeClass;
 
-
-
         }
-
-
 
       }
 
-
-
       document.querySelectorAll('.class-checkbox').forEach(cb => {
-
-
 
         if (CFG.activeClass && cb.value === CFG.activeClass) {
 
-
-
           cb.checked = true;
-
-
 
         } else {
 
-
-
           cb.checked = false;
-
-
 
         }
 
-
-
       });
-
-
 
     }
 
-
-
     function fillForm(t) {
-
-
 
       document.getElementById('fTitle').value = t.title || '';
       window.selectedClassifications = t.group_name ? t.group_name.split(',').map(x => x.trim()).filter(Boolean) : [];
       renderActiveTags();
       populateClassificationSelector();
 
-
-
       document.getElementById('fDesc').value = t.description || '';
-
-
 
       document.getElementById('fStart').value = toLocalDT(t.start_date);
 
-
-
       document.getElementById('fEnd').value = toLocalDT(t.end_date);
-
-
+      if (document.getElementById('fEndDateOnly')) {
+        document.getElementById('fEndDateOnly').value = toLocalDateOnly(t.end_date);
+      }
 
       document.getElementById('fNoDeadline').checked = !!parseInt(t.no_deadline || 0);
 
-
-
       document.getElementById('fAssign').value = t.assign_to || 'all';
-
-
 
       document.getElementById('fShowRes').checked = !!parseInt(t.show_result);
 
-
-
       document.getElementById('fShowAns').checked = !!parseInt(t.show_answers || 0);
-
-
 
       document.getElementById('fShuffle').checked = !!parseInt(t.shuffle);
 
-
+      if (document.getElementById('fShuffleAnswers')) {
+        document.getElementById('fShuffleAnswers').checked = !!parseInt(t.shuffle_answers || 0);
+      }
 
       document.getElementById('fReview').checked = !!parseInt(t.allow_review);
-
-
 
       document.getElementById('fEndDateMode').checked = isEndDateOnly(t.end_date);
       toggleEndDateMode(false);
       toggleNoDeadline(false);
       if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 
+      let classIds = (t.class_ids || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (!classIds.length && t.class_id) {
+        classIds = [String(t.class_id)];
+      }
 
-
-      const classIds = (t.class_ids || '').split(',').map(s => s.trim()).filter(Boolean);
-
-
-
+      const isAllClasses = classIds.includes('0') || (classIds.length === 0 && (!t.class_id || parseInt(t.class_id) === 0));
       const allChk = document.getElementById('class_all');
-
-
-
-      if (allChk) allChk.checked = (classIds.includes('0') || classIds.length === 0);
-
-
-
-
-
-
+      if (allChk) allChk.checked = isAllClasses;
 
       document.querySelectorAll('.class-checkbox').forEach(cb => {
-
-
-
-        cb.checked = classIds.includes(cb.dataset.id);
-
-
-
+        cb.checked = !isAllClasses && (classIds.includes(String(cb.dataset.id)) || classIds.includes(String(cb.value)));
       });
-
-
 
       if (parseInt(t.time_limit)) {
 
-
-
         document.getElementById('fTimerOn').checked = true;
-
-
 
         document.getElementById('timerRow').style.display = '';
 
-
-
         document.getElementById('fTimerMin').value = t.time_limit;
-
-
 
         document.getElementById('fTimerBeh').value = t.timer_behavior || 'submit';
 
+      } else {
 
+        document.getElementById('fTimerOn').checked = false;
+
+        document.getElementById('timerRow').style.display = 'none';
+
+        document.getElementById('fTimerMin').value = '';
+
+        document.getElementById('fTimerBeh').value = t.timer_behavior || 'submit';
 
       }
 
-
-
+      window._editingSpecificIds = (t.assign_to === 'specific' && t.specific_ids)
+        ? (typeof t.specific_ids === 'string' ? JSON.parse(t.specific_ids || '[]') : t.specific_ids)
+        : [];
       if (t.assign_to === 'specific') onAssignChange();
-
-
 
       document.getElementById('qList').innerHTML = '';
 
-
-
       (t.questions || []).forEach(q => addQ(q));
-
-
 
       document.getElementById('ctierList').innerHTML = '';
 
-
-
-      const mx = t.coupon_matrix ? JSON.parse(t.coupon_matrix) : null;
-
-
+      const mx = t.coupon_matrix ? (typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix) : t.coupon_matrix) : null;
 
       if (mx && mx.length) {
         const milestones = convertTiersToMilestones(mx);
         milestones.forEach(m => addMilestone(m.pct, m.coupons));
+      } else {
+        initTiers();
       }
 
-
-
-      else initTiers();
-
-
-
       updDeg();
-
-
 
     }
 
@@ -18575,12 +18365,12 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
       if (!st.length) { c.innerHTML = '<span style="color:var(--t3);">لا يوجد أطفال</span>'; return; }
 
-
-
+      const preSelected = Array.isArray(window._editingSpecificIds) ? window._editingSpecificIds.map(Number) : [];
       c.innerHTML = st.map(s => {
         const avatar = getStudentAvatarHtml(s.photo, s.name, '24px');
+        const isChk = preSelected.includes(Number(s.id)) ? 'checked' : '';
         return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.78rem;color:var(--t1);padding:4px 0;">
-      <input type="checkbox" name="spec_ids" value="${s.id}" style="accent-color:var(--brand);">${avatar}<span style="font-weight:600;">${esc(s.name)}</span></label>`;
+      <input type="checkbox" name="spec_ids" value="${s.id}" ${isChk} style="accent-color:var(--brand);">${avatar}<span style="font-weight:600;">${esc(s.name)}</span></label>`;
       }).join('');
 
 
@@ -18792,7 +18582,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         shuffle: document.getElementById('fShuffle').checked ? 1 : 0,
 
-
+        shuffle_answers: (document.getElementById('fShuffleAnswers') && document.getElementById('fShuffleAnswers').checked) ? 1 : 0,
 
         allow_review: document.getElementById('fReview').checked ? 1 : 0,
 
@@ -18876,7 +18666,15 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
     function saveDraft() { if (!document.getElementById('fTitle').value.trim()) { showToast('أدخل العنوان أولاً', 'err'); return; } saveTask('draft'); }
 
-    function publishTask() { if (!document.querySelectorAll('.ctier').length) { showToast('أضف مستوى كوبون', 'err'); return; } saveTask('published'); }
+    function publishTask() {
+      if (!document.querySelectorAll('.ctier').length) { showToast('أضف مستوى كوبون', 'err'); return; }
+      let targetStatus = 'published';
+      if (editId) {
+        const cur = tasks.find(x => x.id == editId);
+        if (cur && cur.status) targetStatus = cur.status;
+      }
+      saveTask(targetStatus);
+    }
 
     // ─── LocalStorage Auto-Save Draft System ───────────────────────
     const TASK_DRAFT_KEY = '_task_exam_draft_v1';
@@ -18968,6 +18766,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         if (p.show_result !== undefined) document.getElementById('fShowRes').checked = !!p.show_result;
         if (p.show_answers !== undefined) document.getElementById('fShowAns').checked = !!p.show_answers;
         if (p.shuffle !== undefined) document.getElementById('fShuffle').checked = !!p.shuffle;
+        if (p.shuffle_answers !== undefined && document.getElementById('fShuffleAnswers')) {
+          document.getElementById('fShuffleAnswers').checked = !!p.shuffle_answers;
+        }
         if (p.allow_review !== undefined) document.getElementById('fReview').checked = !!p.allow_review;
 
         document.getElementById('qList').innerHTML = '';
@@ -19312,7 +19113,8 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-calendar-check" style="color:var(--brand);"></i> البدء: ${fmtDate(t.start_date)}</span>
           <span style="display:inline-flex; align-items:center; gap:4px;"><i class="far fa-clock" style="color:var(--brand);"></i> النهاية: ${parseInt(t.no_deadline || 0) ? 'بدون موعد' : fmtDate(t.end_date)}</span>
           ${t.time_limit ? `<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-stopwatch" style="color:var(--brand);"></i> ${t.time_limit} دقيقة</span>` : ''}
-          ${parseInt(t.shuffle) ? `<span style="display:inline-flex; align-items:center; gap:4px; color:var(--warn);"><i class="fas fa-random"></i> ترتيب عشوائي</span>` : ''}
+          ${parseInt(t.shuffle) ? `<span style="display:inline-flex; align-items:center; gap:4px; color:var(--warn);"><i class="fas fa-random"></i> ترتيب عشوائي للأسئلة</span>` : ''}
+          ${parseInt(t.shuffle_answers || 0) ? `<span style="display:inline-flex; align-items:center; gap:4px; color:#8b5cf6;"><i class="fas fa-random"></i> خلط الإجابات</span>` : ''}
           ${si.key === 'draft' ? `<span style="background:var(--warn-bg); color:var(--warn); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.25);">Draft</span>` : ''}
         </div>
 

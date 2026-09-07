@@ -42578,6 +42578,8 @@ function getTasks()
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS shuffle_answers TINYINT(1) NOT NULL DEFAULT 0");
+
         $taskCols = [];
 
         $colRes = $conn->query("SHOW COLUMNS FROM tasks");
@@ -42594,6 +42596,8 @@ function getTasks()
 
         $hasGroupIcon = in_array('group_icon', $taskCols);
 
+        $hasShuffleAnswers = in_array('shuffle_answers', $taskCols);
+
 
 
         $sql = "
@@ -42608,7 +42612,7 @@ function getTasks()
 
                 t.status, t.assign_to, t.specific_ids,
 
-                t.shuffle, t.show_result, t.show_answers, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ($hasClassIds ? ", t.class_ids" : "") . ($hasGroupName ? ", t.group_name" : "") . ($hasGroupIcon ? ", t.group_icon" : "") . ",
+                t.shuffle, " . ($hasShuffleAnswers ? "t.shuffle_answers, " : "") . "t.show_result, t.show_answers, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ($hasClassIds ? ", t.class_ids" : "") . ($hasGroupName ? ", t.group_name" : "") . ($hasGroupIcon ? ", t.group_icon" : "") . ",
 
                 t.created_at,
 
@@ -42842,9 +42846,15 @@ function getTaskDetail()
 
         $task = $stmt->get_result()->fetch_assoc();
 
-        if ($task)
+        if ($task) {
 
             $task['no_deadline'] = isset($task['no_deadline']) ? (int) $task['no_deadline'] : 0;
+
+            $task['shuffle'] = isset($task['shuffle']) ? (int) $task['shuffle'] : 0;
+
+            $task['shuffle_answers'] = isset($task['shuffle_answers']) ? (int) $task['shuffle_answers'] : 0;
+
+        }
 
         if (!$task) {
 
@@ -42958,6 +42968,8 @@ function createTask()
 
         $shuffle = (int) ($_POST['shuffle'] ?? 0);
 
+        $shuffleAnswers = (int) ($_POST['shuffle_answers'] ?? 0);
+
         $showResult = (int) ($_POST['show_result'] ?? 1);
 
         $showAnswers = (int) ($_POST['show_answers'] ?? 0);
@@ -43032,6 +43044,8 @@ function createTask()
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS shuffle_answers TINYINT(1) NOT NULL DEFAULT 0");
+
         $conn->begin_transaction();
 
 
@@ -43048,17 +43062,17 @@ function createTask()
 
                  status, assign_to, specific_ids,
 
-                 shuffle, show_result, show_answers, allow_review,
+                 shuffle, shuffle_answers, show_result, show_answers, allow_review,
 
                  group_name, group_icon, created_at)
 
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
 
         ");
 
         $stmt->bind_param(
 
-            'iiisssssiisiissssiiiiss',
+            'iiisssssiisiissssiiiiiiss',
 
             $churchId,
 
@@ -43095,6 +43109,8 @@ function createTask()
             $specificIds,
 
             $shuffle,
+
+            $shuffleAnswers,
 
             $showResult,
 
@@ -43573,6 +43589,8 @@ function updateTask()
 
         $shuffle = (int) ($_POST['shuffle'] ?? 0);
 
+        $shuffleAnswers = (int) ($_POST['shuffle_answers'] ?? 0);
+
         $showResult = (int) ($_POST['show_result'] ?? 1);
 
         $showAnswers = (int) ($_POST['show_answers'] ?? 0);
@@ -43621,6 +43639,8 @@ function updateTask()
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS shuffle_answers TINYINT(1) NOT NULL DEFAULT 0");
+
         $conn->begin_transaction();
 
 
@@ -43637,7 +43657,7 @@ function updateTask()
 
                 status=?, assign_to=?, specific_ids=?,
 
-                shuffle=?, show_result=?, show_answers=?, allow_review=?,
+                shuffle=?, shuffle_answers=?, show_result=?, show_answers=?, allow_review=?,
 
                 group_name=?, group_icon=?,
 
@@ -43649,7 +43669,7 @@ function updateTask()
 
         $stmt->bind_param(
 
-            'isssssiisiissssiiiissii',
+            'isssssiisiissssiiiiiissii',
 
             $classId,
 
@@ -43682,6 +43702,8 @@ function updateTask()
             $specificIds,
 
             $shuffle,
+
+            $shuffleAnswers,
 
             $showResult,
 
@@ -44350,6 +44372,8 @@ function getStudentTasks()
 
         $hasShuffle = in_array('shuffle', $allCols);
 
+        $hasShuffleAnswers = in_array('shuffle_answers', $allCols);
+
         $hasShow = in_array('show_result', $allCols);
 
         $hasShowAnswers = in_array('show_answers', $allCols);
@@ -44393,6 +44417,10 @@ function getStudentTasks()
         if ($hasShuffle)
 
             $sel .= ", t.shuffle";
+
+        if ($hasShuffleAnswers)
+
+            $sel .= ", t.shuffle_answers";
 
         if ($hasShow)
 
@@ -44591,6 +44619,8 @@ function getStudentTasks()
             $t['timer_behavior'] = $t['timer_behavior'] ?? 'submit';
 
             $t['shuffle'] = isset($t['shuffle']) ? (int) $t['shuffle'] : 0;
+
+            $t['shuffle_answers'] = isset($t['shuffle_answers']) ? (int) $t['shuffle_answers'] : 0;
 
             $t['show_result'] = isset($t['show_result']) ? (int) $t['show_result'] : 1;
 
