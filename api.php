@@ -1,9 +1,5 @@
 <?php
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
 
 
 // Catch all output and errors
@@ -18122,131 +18118,81 @@ function bulkSaveImportedUncles()
 // ===== GENERATE EXCEL TEMPLATE =====
 
 function generateExcelTemplate()
-
 {
-
     try {
+        if (file_exists('vendor/autoload.php')) {
+            require_once 'vendor/autoload.php'; // If using PhpSpreadsheet
+        }
 
-        require_once 'vendor/autoload.php'; // If using PhpSpreadsheet
+        $spreadsheetClass = 'PhpOffice\\PhpSpreadsheet\\Spreadsheet';
+        $writerClass = 'PhpOffice\\PhpSpreadsheet\\Writer\\Xlsx';
+        $fillClass = 'PhpOffice\\PhpSpreadsheet\\Style\\Fill';
 
-        if (!class_exists(Spreadsheet::class)) {
-            sendJSON(['success' => false, 'message' => 'مكتبة PhpSpreadsheet غير مثبتة']);
+        if (!class_exists($spreadsheetClass) || !class_exists($writerClass)) {
+            generateKidsTemplate();
             return;
         }
 
-        $spreadsheet = new Spreadsheet();
-
+        $spreadsheet = new $spreadsheetClass();
 
         // Define all classes
-
         $classes = ['حضانة', 'أولى', 'تانية', 'تالتة', 'رابعة', 'خامسة', 'سادسة'];
 
-
-
         foreach ($classes as $index => $class) {
-
             if ($index > 0) {
-
                 $spreadsheet->createSheet();
-
             }
 
-
-
             $sheet = $spreadsheet->setActiveSheetIndex($index);
-
             $sheet->setTitle($class);
 
-
-
             // Set headers
-
             $sheet->setCellValue('A1', 'الاسم');
-
             $sheet->setCellValue('B1', 'العنوان');
-
             $sheet->setCellValue('C1', 'الهاتف');
-
             $sheet->setCellValue('D1', 'تاريخ الميلاد (DD/MM/YYYY)');
 
-
-
             // Style headers
-
             $sheet->getStyle('A1:D1')->getFont()->setBold(true);
 
+            $fillSolid = defined("$fillClass::FILL_SOLID") ? constant("$fillClass::FILL_SOLID") : 'solid';
             $sheet->getStyle('A1:D1')->getFill()
-
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-
+                ->setFillType($fillSolid)
                 ->getStartColor()->setARGB('FF4F46E5');
 
             $sheet->getStyle('A1:D1')->getFont()->getColor()->setARGB('FFFFFFFF');
 
-
-
             // Set column widths
-
             $sheet->getColumnDimension('A')->setWidth(30);
-
             $sheet->getColumnDimension('B')->setWidth(40);
-
             $sheet->getColumnDimension('C')->setWidth(20);
-
             $sheet->getColumnDimension('D')->setWidth(25);
 
-
-
             // Add instructions
-
             $sheet->setCellValue('F1', 'تعليمات:');
-
             $sheet->setCellValue('F2', '1. املأ البيانات في الأعمدة A-D فقط');
-
             $sheet->setCellValue('F3', '2. تاريخ الميلاد: استخدم صيغة DD/MM/YYYY');
-
             $sheet->setCellValue('F4', '3. رقم الهاتف: ابدأ بـ 01XXXXXXXXX');
-
             $sheet->setCellValue('F5', '4. لا تغير تنسيق الأعمدة');
-
         }
 
-
-
         // Set first sheet as active
-
         $spreadsheet->setActiveSheetIndex(0);
 
-
-
         // Create Excel file
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-
-
+        $writer = new $writerClass($spreadsheet);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-
         header('Content-Disposition: attachment;filename="kids_template_' . date('Y-m-d') . '.xlsx"');
-
         header('Cache-Control: max-age=0');
 
-
-
         $writer->save('php://output');
-
         exit;
 
-
-
-    } catch (Exception $e) {
-
+    } catch (Throwable $e) {
         // Fallback to CSV if Excel not available
-
         generateKidsTemplate();
-
     }
-
 }
 
 
@@ -19884,7 +19830,7 @@ function notifyWhatsAppOTPPending($otpId) {
                 CURLOPT_SSL_VERIFYHOST => false
             ]);
             curl_exec($ch);
-            curl_close($ch);
+            $ch = null;
         } catch (Throwable $t) {
             // Non-blocking catch
         }
@@ -41702,7 +41648,7 @@ function getTasks()
 
                 LEFT JOIN students s ON s.id = ts.student_id
 
-                WHERE ts.task_id IN ($inList)
+                WHERE ts.task_id IN ($inList) AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
 
                 ORDER BY ts.submitted_at DESC
 
@@ -43741,20 +43687,14 @@ function submitTaskAnswers()
 
 
 
-        // Duplicate submission check
-
-        $chk = $conn->prepare("SELECT id FROM task_submissions WHERE task_id=? AND student_id=?");
-
+        // Duplicate submission check (ignore deleted submissions)
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_deleted TINYINT(1) DEFAULT 0");
+        $chk = $conn->prepare("SELECT id FROM task_submissions WHERE task_id=? AND student_id=? AND (is_deleted IS NULL OR is_deleted = 0)");
         $chk->bind_param('ii', $taskId, $studentId);
-
         $chk->execute();
-
         if ($chk->get_result()->num_rows > 0) {
-
             sendJSON(['success' => false, 'message' => 'لقد أرسلت إجاباتك بالفعل']);
-
             return;
-
         }
 
 
@@ -43802,207 +43742,134 @@ function submitTaskAnswers()
 
 
         foreach ($questions as $q) {
-
             $qType = $q['question_type'] ?? 'mcq';
+            $deg = isset($q['degree']) ? (int) $q['degree'] : 1;
+
+            // Questions with 0 degree are non-marked (surveys, feedback, bonus) — neglected in score and do not require manual review
+            if ($deg <= 0) {
+                continue;
+            }
 
             if ($qType === 'open' || $q['correct_index'] === null) {
-
                 $hasOpenQuestions = true;
-
                 continue;
-
             }
-
-
 
             $given = $answers[$q['id']] ?? $answers[(string) $q['id']] ?? null;
-
             if ($given !== null && (int) $given === (int) $q['correct_index']) {
-
-                $score += (int) $q['degree'];
-
+                $score += $deg;
             }
-
         }
 
 
 
         // Tasks with open questions remain un-graded (is_graded = 0) and coupons are held (0) until reviewed by teacher.
-
         // MCQ/TF-only tasks are auto-graded immediately (is_graded = 1) with coupons awarded.
-
         $isGraded = $hasOpenQuestions ? 0 : 1;
-
         $coupons = 0;
-
-
+        $pct = $task['total_degree'] > 0 ? ($score / $task['total_degree'] * 100) : 0;
 
         if ($isGraded) {
-
-            $pct = $task['total_degree'] > 0 ? ($score / $task['total_degree'] * 100) : 0;
-
             $matrix = json_decode($task['coupon_matrix'] ?? '[]', true) ?: [];
-
             foreach ($matrix as $tier) {
-
                 if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
-
                     $coupons = (int) $tier['val'];
-
                     break;
-
                 }
-
             }
-
         }
-
-
 
         $conn->begin_transaction();
 
-
-
-        // Ensure is_graded column exists
-
+        // Ensure is_graded and is_deleted columns exist
         $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_graded TINYINT(1) NOT NULL DEFAULT 0");
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_deleted TINYINT(1) DEFAULT 0");
 
-
+        // If an old soft-deleted submission exists for this student and task, permanently remove it so the new one takes its place cleanly
+        $cleanStmt = $conn->prepare("DELETE FROM task_submissions WHERE task_id=? AND student_id=? AND is_deleted = 1");
+        $cleanStmt->bind_param('ii', $taskId, $studentId);
+        $cleanStmt->execute();
 
         // Insert submission
-
         $ins = $conn->prepare("
-
             INSERT INTO task_submissions
-
                 (task_id, student_id, church_id, answers, score, coupons_awarded, is_graded, submitted_at, time_taken_sec)
-
             VALUES (?,?,?,?,?,?,?,NOW(),?)
-
         ");
 
-
-
         $nullableTime = ($timeTaken !== null) ? (int) $timeTaken : null;
-
         $ins->bind_param('iiisiiii', $taskId, $studentId, $churchId, $answersJson, $score, $coupons, $isGraded, $nullableTime);
-
         $ins->execute();
-
-
+        $submissionId = (int) $conn->insert_id;
 
         // Award coupons — update task_coupons AND recalculate total coupons
-
         if ($coupons > 0) {
-
             $cur = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
-
             $cur->bind_param('i', $studentId);
-
             $cur->execute();
-
             $stu = $cur->get_result()->fetch_assoc();
 
-
-
             $newTask = (int) $stu['task_coupons'] + $coupons;
-
             $newTotal = $newTask + (int) $stu['attendance_coupons'] + (int) $stu['commitment_coupons'];
 
-
-
             $upd = $conn->prepare("UPDATE students SET task_coupons=?, coupons=? WHERE id=?");
-
             $upd->bind_param('iii', $newTask, $newTotal, $studentId);
-
             $upd->execute();
 
-
-
             // Log in coupon_logs
-
             $log = $conn->prepare("
-
                 INSERT INTO coupon_logs
-
                     (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
-
                 VALUES (?, NULL, ?, ?, ?, 'task', ?)
-
             ");
-
             $reason = "تاسك #{$taskId}: {$task['title']}";
-
             $log->bind_param('iiiis', $studentId, $stu['task_coupons'], $newTask, $coupons, $reason);
-
             $log->execute();
 
-
-
             // ► AUDIT
-
             auditCouponChange($studentId, $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
-
         }
-
-
 
         $conn->commit();
 
-
-
         // Push notification to church dashboard
-
         $stuRow = $conn->query("SELECT name FROM students WHERE id=$studentId LIMIT 1")->fetch_assoc();
-
         $stuName = $stuRow['name'] ?? 'طفل';
+        $notifBody = $hasOpenQuestions
+            ? "{$stuName} سلّم تاسك «{$task['title']}» (في انتظار التصحيح)"
+            : "{$stuName} سلّم تاسك «{$task['title']}» بدرجة {$score} من {$task['total_degree']}";
 
         pushNotification(
-
             $conn,
-
             $churchId,
-
             'task_submission',
-
             'تسليم تاسك جديد',
-
-            "{$stuName} سلّم تاسك «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
-
+            $notifBody,
             'task',
-
             $taskId
-
         );
 
         _sendWebPushToChurch(
             $conn,
             $churchId,
             'تسليم تاسك جديد 📝',
-            "{$stuName} سلّم تاسك «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
+            $notifBody,
             ['notifType' => 'task_submission', 'url' => '/uncle/dashboard/']
         );
 
-
-
         $result = [
-
             'success' => true,
-
+            'submission_id' => $submissionId,
+            'is_graded' => (int) $isGraded,
             'score' => $score,
-
             'total_degree' => (int) $task['total_degree'],
-
             'percentage' => round($pct, 1),
-
             'coupons_awarded' => $coupons,
-
             'show_result' => (bool) (int) $task['show_result'],
-
             'show_answers' => (bool) (int) ($task['show_answers'] ?? 0),
-
-            'message' => "أحسنت! درجتك {$score} من {$task['total_degree']} — حصلت على {$coupons} كوبون"
-
+            'message' => $isGraded
+                ? "أحسنت! درجتك {$score} من {$task['total_degree']} — حصلت على {$coupons} كوبون"
+                : "تم تسليم إجاباتك بنجاح! التكليف في انتظار تصحيح ومراجعة الخادم"
         ];
 
 
@@ -44363,9 +44230,8 @@ function clearExamStart()
 
 
 
-        // Only delete if no submission exists — never erase a completed exam record
-
-        $chk = $conn->prepare("SELECT id FROM task_submissions WHERE task_id=? AND student_id=? LIMIT 1");
+        // Only delete if no active submission exists — never erase a completed exam record
+        $chk = $conn->prepare("SELECT id FROM task_submissions WHERE task_id=? AND student_id=? AND (is_deleted IS NULL OR is_deleted = 0) LIMIT 1");
 
         $chk->bind_param('ii', $taskId, $studentId);
 
@@ -44461,7 +44327,7 @@ function _insertTaskQuestions($conn, $taskId, array $questions)
 
         $correct = ($type === 'open') ? null : (int) ($q['correct_index'] ?? 0);
 
-        $degree = (int) ($q['degree'] ?? 1);
+        $degree = isset($q['degree']) ? max(0, (int) $q['degree']) : 1;
 
         $order = (int) ($q['sort_order'] ?? $i);
 
@@ -46848,7 +46714,7 @@ function gradeOpenAnswer()
             FROM task_submissions ts 
             JOIN tasks t ON t.id=ts.task_id 
             LEFT JOIN students s ON s.id=ts.student_id
-            WHERE ts.id=? AND ts.church_id=?
+            WHERE ts.id=? AND ts.church_id=? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
         ");
 
         $subStmt->bind_param('ii', $subId, $churchId);
@@ -47082,7 +46948,7 @@ function resetSubmissionGrade()
             FROM task_submissions ts 
             JOIN tasks t ON t.id=ts.task_id 
             LEFT JOIN students s ON s.id=ts.student_id
-            WHERE ts.id=? AND ts.church_id=?
+            WHERE ts.id=? AND ts.church_id=? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
         ");
         $subStmt->bind_param('ii', $subId, $churchId);
         $subStmt->execute();

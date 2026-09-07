@@ -2268,6 +2268,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       border-radius: var(--r-md);
       margin-bottom: 12px;
       overflow: hidden;
+      transition: border-color var(--fast), box-shadow var(--fast);
+    }
+
+    .qcard.qcard-unanswered {
+      border: 2px solid var(--err) !important;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18) !important;
+      animation: qcardPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes qcardPulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18); }
+      50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.35); }
     }
 
     .open-ans-textarea {
@@ -5742,11 +5754,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="mbody" style="text-align:center;padding:22px 18px 14px;">
         <div id="scModalMsg"
           style="font-size:.93rem;font-weight:700;color:var(--t1);line-height:1.6;margin-bottom:18px;"></div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-g" style="flex:1;" onclick="_closeSubmitConfirm()"><i class="fas fa-arrow-right"></i>
-            رجوع</button>
-          <button class="btn btn-p" style="flex:1;background:linear-gradient(135deg,#d97706,#b45309);"
-            onclick="_confirmSubmitExam()"><i class="fas fa-paper-plane"></i> تسليم</button>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn btn-p" style="width:100%;padding:12px 16px;font-size:.92rem;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="_reviewUnansweredQuestions()">
+            <i class="fas fa-pencil-alt"></i> إكمال الأسئلة المتبقية
+          </button>
+          <button class="btn btn-g" style="width:100%;padding:10px 16px;font-size:.84rem;color:var(--t3);display:flex;align-items:center;justify-content:center;gap:8px;"
+            onclick="_confirmSubmitExam()">
+            <i class="fas fa-paper-plane"></i> تسليم على أي حال بدون إكمالها
+          </button>
         </div>
       </div>
     </div>
@@ -7950,20 +7965,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         // ── Open / essay ──────────────────────────────────────────
         if (qtype === 'open') {
           const savedAns = taskAnswers[String(q.id)] || '';
+          const deg = parseInt(q.degree) || 0;
+          const isUngraded = deg === 0;
           return `<div class="qcard" id="qc_${q.id}">
         ${imgHtml}
         <div class="qhdr">
-          <div class="qnum" style="background:linear-gradient(135deg,#f59e0b,#d97706);">${i + 1}</div>
+          <div class="qnum" style="background:${isUngraded ? 'linear-gradient(135deg,#64748b,#475569)' : 'linear-gradient(135deg,#f59e0b,#d97706)'};">${i + 1}</div>
           <div class="qtext">${esc(q.question_text)}</div>
-          <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-size:.65rem;font-weight:700;flex-shrink:0;"><i class="fas fa-pen-nib"></i> مفتوح</span>
-          <span class="qdeg" style="background:#fef3c7;color:#d97706;">${q.degree} درجة</span>
+          <span style="background:${isUngraded ? '#f1f5f9;color:#475569' : '#fef3c7;color:#92400e'};border-radius:var(--r-full);padding:2px 8px;font-size:.65rem;font-weight:700;flex-shrink:0;"><i class="fas fa-${isUngraded ? 'comments' : 'pen-nib'}"></i> ${isUngraded ? 'استطلاعي / رأي' : 'مفتوح'}</span>
+          <span class="qdeg" style="background:${isUngraded ? '#f1f5f9;color:#64748b' : '#fef3c7;color:#d97706'};">${isUngraded ? 'بدون درجات' : `${deg} درجة`}</span>
         </div>
         <div class="qopts" style="padding:10px 12px;display:block;">
           <textarea class="open-ans-textarea" id="openans_${q.id}"
             placeholder="اكتب إجابتك هنا…"
             oninput="pickOpenAns(${q.id},this)">${esc(savedAns)}</textarea>
           <div style="font-size:.69rem;color:var(--t4);margin-top:5px;display:flex;align-items:center;gap:4px;">
-            <i class="fas fa-info-circle"></i> يُصحَّح من قِبَل الانكل أو الطنط — الدرجة النهائية ستظهر بعد التصحيح
+            <i class="fas fa-info-circle"></i> ${isUngraded ? 'سؤال استطلاعي / مشاركة رأي — بدون درجات وتظهر نتيجتك فوراً بعد التسليم' : 'يُصحَّح من قِبَل الانكل أو الطنط — الدرجة النهائية ستظهر بعد التصحيح'}
           </div>
         </div>
       </div>`;
@@ -7973,12 +7990,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (qtype === 'tf') {
           const saved = taskAnswers[String(q.id)];
           const trueOn = saved === 0; const falseOn = saved === 1;
+          const deg = parseInt(q.degree) || 0;
           return `<div class="qcard" id="qc_${q.id}">
         ${imgHtml}
         <div class="qhdr">
           <div class="qnum">${i + 1}</div>
           <div class="qtext">${esc(q.question_text)}</div>
-          <span class="qdeg">${q.degree} درجة</span>
+          <span class="qdeg">${deg === 0 ? 'بدون درجات' : `${deg} درجة`}</span>
         </div>
         <div class="qopts" style="display:flex;gap:10px;padding:10px 12px;">
           <button id="tfbtn_${q.id}_0" onclick="pickOpt(${q.id},0,null)"
@@ -7996,13 +8014,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         // ── MCQ (default) ─────────────────────────────────────────
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
         const sel = taskAnswers[String(q.id)] !== undefined ? taskAnswers[String(q.id)] : null;
+        const deg = parseInt(q.degree) || 0;
         return `<div class="qcard" id="qc_${q.id}">
       ${imgHtml}
       <div class="qhdr">
         <div class="qnum">${i + 1}</div>
         <div class="qtext">${esc(q.question_text)}</div>
         ${sel !== null ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 7px;font-size:.62rem;font-weight:700;flex-shrink:0;"><i class="fas fa-check"></i></span>` : ''}
-        <span class="qdeg">${q.degree} درجة</span>
+        <span class="qdeg">${deg === 0 ? 'بدون درجات' : `${deg} درجة`}</span>
       </div>
       <div class="qopts">${opts.map((o, j) => `<div class="qopt${sel === j ? ' selected' : ''}" onclick="pickOpt(${q.id},${j},this)"><div class="oradio"></div><div class="olet">${LETTERS[j]}</div>${esc(o)}</div>`).join('')}</div>
     </div>`;
@@ -8012,6 +8031,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     function pickOpt(qid, idx, el) {
       if (examDone) return;
+      document.getElementById(`qc_${qid}`)?.classList.remove('qcard-unanswered');
       taskAnswers[String(qid)] = idx;
       localStorage.setItem(`ta_${curTask.id}_${student.id}`, JSON.stringify(taskAnswers));
       // MCQ: toggle selected class
@@ -8038,6 +8058,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     function pickOpenAns(qid, textarea) {
       if (examDone) { textarea.value = taskAnswers[qid] || ''; return; }
+      if (textarea.value.trim()) {
+        document.getElementById(`qc_${qid}`)?.classList.remove('qcard-unanswered');
+      }
       taskAnswers[String(qid)] = textarea.value;
       localStorage.setItem(`ta_${curTask.id}_${student.id}`, JSON.stringify(taskAnswers));
       updExamProgress(curTask);
@@ -8110,7 +8133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
     function showExamResult(t, sub) {
       curTask = t; examDone = true;
-      const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open');
+      const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open' && (parseInt(q.degree) || 0) > 0);
       const isGraded = (parseInt(sub?.is_graded || 0) === 1) || !hasOpenQs;
       const pct = t.total_degree > 0 ? Math.round((sub?.score || 0) / t.total_degree * 100) : 0;
       document.getElementById('examResultCard').innerHTML = buildResultCard(sub?.score || 0, t.total_degree, pct, sub?.coupons_awarded || 0, hasOpenQs, t.id, !!parseInt(t.show_answers || 0), isGraded);
@@ -8333,7 +8356,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function _legacyShowExamResult(t, sub) {
       curTask = t; examDone = true;
       const pct = t.total_degree > 0 ? Math.round(sub.score / t.total_degree * 100) : 0;
-      const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open');
+      const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open' && (parseInt(q.degree) || 0) > 0);
       document.getElementById('examResultCard').innerHTML = buildResultCard(sub.score, t.total_degree, pct, sub.coupons_awarded, hasOpenQs, t.id, !!parseInt(t.show_answers || 0));
       examShowView('result');
       examScreenOpen();
@@ -8347,49 +8370,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function saveCloseExam() { examScreenClose(); }
     function closeExam() { examScreenClose(); }
 
+    let isSubmittingExam = false;
+    let _pendingUnansweredQs = [];
+
     async function submitExam() {
       if (isViewingOther()) {
         toast('غير مسموح في وضع المعاينة', 'err');
         return;
       }
-      if (!curTask || examDone) return;
+      if (!curTask || examDone || isSubmittingExam) return;
       const qs = curTask.questions || [];
-      // Count unanswered questions of all types
-      const unanswered = qs.filter(q => {
+      // Count unanswered questions of all types (excluding 0-degree survey/optional questions)
+      const unansweredQs = qs.filter(q => {
+        if ((parseInt(q.degree) || 0) <= 0) return false;
         const k = String(q.id);
         if (q.question_type === 'open') return !taskAnswers[k] || !String(taskAnswers[k]).trim();
         return taskAnswers[k] === undefined && taskAnswers[q.id] === undefined;
-      }).length;
-      if (unanswered > 0) {
-        _showSubmitConfirm(unanswered);
+      });
+      if (unansweredQs.length > 0) {
+        _showSubmitConfirm(unansweredQs);
         return;
       }
       await _doSubmitExam();
     }
 
-    function _showSubmitConfirm(unanswered) {
-      document.getElementById('scModalMsg').textContent = `لم تجب على ${unanswered} سؤال. هل تريد التسليم الآن؟`;
+    function _showSubmitConfirm(unansweredList) {
+      _pendingUnansweredQs = Array.isArray(unansweredList) ? unansweredList : [];
+      const count = _pendingUnansweredQs.length;
+      const msgEl = document.getElementById('scModalMsg');
+      if (msgEl) {
+        msgEl.innerHTML = `<div style="font-size:1.02rem;font-weight:800;color:var(--err);margin-bottom:6px;">
+          <i class="fas fa-exclamation-circle"></i> لم تُجب على ${count} سؤال!
+        </div>
+        <div style="font-size:.85rem;color:var(--t2);font-weight:500;line-height:1.5;">
+          يُفضَّل إكمال جميع الأسئلة قبل التسليم لتحصل على كامل درجاتك وكوبوناتك.
+        </div>`;
+      }
       document.getElementById('submitConfirmModal').classList.add('open');
       document.documentElement.classList.add('ov-open');
     }
+
     function _closeSubmitConfirm() {
       document.getElementById('submitConfirmModal').classList.remove('open');
       if (!document.querySelector('.overlay.open')) document.documentElement.classList.remove('ov-open');
     }
+
+    function _reviewUnansweredQuestions() {
+      _closeSubmitConfirm();
+      if (!_pendingUnansweredQs || !_pendingUnansweredQs.length) return;
+      _pendingUnansweredQs.forEach(q => {
+        const qc = document.getElementById(`qc_${q.id}`);
+        if (qc) qc.classList.add('qcard-unanswered');
+      });
+      const firstQ = _pendingUnansweredQs[0];
+      const firstEl = document.getElementById(`qc_${firstQ.id}`);
+      if (firstEl) {
+        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (firstQ.question_type === 'open') {
+          setTimeout(() => {
+            const ta = document.getElementById(`openans_${firstQ.id}`);
+            if (ta) ta.focus();
+          }, 350);
+        }
+      }
+      const qIndex = (curTask?.questions || []).findIndex(x => x.id === firstQ.id) + 1;
+      toast(`انتقلنا إلى سؤال ${qIndex} لإكماله`, 'warn');
+    }
+
     function _confirmSubmitExam() {
       _closeSubmitConfirm();
       _doSubmitExam();
     }
 
     async function _doSubmitExam() {
-      if (!curTask || examDone) return;
-      clearInterval(examTimerIv); examDone = true;
+      if (!curTask || examDone || isSubmittingExam) return;
+      isSubmittingExam = true;
+      const submitBtn = document.querySelector('.exam-footer .btn-p');
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التسليم…';
+      }
+      clearInterval(examTimerIv);
       const tt = examStartedAt ? Math.floor((Date.now() - examStartedAt.getTime()) / 1000) : null;
       try {
         const d = await api({ action: 'submitTaskAnswers', student_id: student.id, church_id: student.church_id, task_id: curTask.id, answers: JSON.stringify(taskAnswers), time_taken_sec: tt });
         localStorage.removeItem(`ta_${curTask.id}_${student.id}`);
         localStorage.removeItem(`examStart_${curTask.id}_${student.id}`);
         if (d.success) {
+          examDone = true;
           // Build a complete my_submission object so viewMyAnswers works immediately
           // without waiting for loadTasks() to re-fetch
           const mySubmission = {
@@ -8424,14 +8493,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           renderCouponHero(student);
           document.getElementById('couponHero').style.display = 'grid';
           if (d.show_result) {
-            const hasOpenQs = (curTask.questions || []).some(q => q.question_type === 'open');
-            const isGraded = (parseInt(d.is_graded || 0) === 1) || !hasOpenQs;
-            document.getElementById('examResultCard').innerHTML = buildResultCard(d.score, curTask.total_degree, d.percentage, d.coupons_awarded, hasOpenQs, curTask.id, !!d.show_answers, isGraded);
+            const hasOpenQs = (curTask.questions || []).some(q => q.question_type === 'open' && (parseInt(q.degree) || 0) > 0);
+            const isGraded = (parseInt(d.is_graded ?? 0) === 1) || !hasOpenQs;
+            document.getElementById('examResultCard').innerHTML = buildResultCard(d.score, curTask.total_degree, d.percentage ?? 0, d.coupons_awarded ?? 0, hasOpenQs, curTask.id, !!d.show_answers, isGraded);
             examShowView('result');
           } else { toast('تم التسليم ✓', 'ok'); examScreenClose(); }
           loadTasks();
-        } else { examDone = false; toast(d.message || 'فشل التسليم', 'err'); }
-      } catch (e) { examDone = false; toast('خطأ في الاتصال', 'err'); }
+        } else {
+          // If already submitted previously, don't trap student in the exam form
+          if (d.message && d.message.includes('بالفعل')) {
+            examDone = true;
+            toast(d.message, 'warn');
+            examScreenClose();
+            loadTasks();
+          } else {
+            examDone = false;
+            toast(d.message || 'فشل التسليم', 'err');
+          }
+        }
+      } catch (e) {
+        examDone = false;
+        toast('خطأ في الاتصال', 'err');
+      } finally {
+        isSubmittingExam = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnHtml;
+        }
+      }
     }
 
     // ── Trips ─────────────────────────────────────────────────────────
@@ -9062,10 +9151,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>`;
 
           if (qType === 'open') {
+            const deg = parseInt(q.degree) || 0;
             const openScore = openScores[qId] !== undefined ? openScores[qId] : (openScores[q.id] !== undefined ? openScores[q.id] : null);
             let openScoreHtml;
-            if (openScore !== null) {
-              const deg = q.degree || 1;
+            if (deg === 0) {
+              openScoreHtml = `<div style="margin-top:8px;font-size:.75rem;color:var(--t3);font-weight:700;"><i class="fas fa-info-circle"></i> سؤال استطلاعي / مشاركة رأي — بدون درجات</div>`;
+            } else if (openScore !== null) {
               const pct = Math.round((openScore / deg) * 100);
               let colorVar = 'var(--ok)';
               // Color bands: high -> green, mid -> orange, low -> yellow

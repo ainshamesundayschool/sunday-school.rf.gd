@@ -15829,123 +15829,47 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
       var qtype = data && data.question_type ? data.question_type : 'mcq';
-
-
-
-      var deg = data && data.degree ? data.degree : 25;
-
-
-
+      var deg = (data && data.degree !== undefined && data.degree !== null) ? parseInt(data.degree) : 25;
+      if (isNaN(deg) || deg < 0) deg = 0;
+      var isUngraded = (deg === 0);
       var qtxt = data && data.question_text ? data.question_text : '';
-
-
-
       var div = document.createElement('div');
-
-
-
       div.className = 'qcard'; div.dataset.qid = id; div.dataset.qtype = qtype;
-
-
-
       var n = document.querySelectorAll('.qcard').length + 1;
-
-
-
       div.innerHTML =
-
-
-
         '<div class="qhdr">' +
-
-
-
         '<div class="qnum" id="qn_' + id + '">' + n + '</div>' +
-
-
-
         '<input class="qi" type="text" placeholder="نص السؤال\u2026" value="' + esc(qtxt) + '">' +
-
         '<button type="button" class="q-bible-btn" onclick="openBibleVerseModalForQ(\'' + id + '\')" title="إضافة آية من الكتاب المقدس"><i class="fas fa-bible"></i> آية</button>' +
-
-
-
-        '<div class="qdeg"><span class="qdeg-l">الدرجة</span><input class="qdeg-i" type="number" min="1" max="100" value="' + deg + '" oninput="updDeg()"></div>' +
-
-
-
+        '<div class="qdeg"><span class="qdeg-l">الدرجة</span><input class="qdeg-i" type="number" min="0" max="100" value="' + deg + '" oninput="onQDegChange(\'' + id + '\', this)"></div>' +
         '<div class="qrm" onclick="rmQ(\'' + id + '\')"><i class="fas fa-trash"></i></div>' +
-
-
-
         '</div>' +
-
-
-
         '<div class="q-type-selector">' +
-
-
-
         '<button class="q-type-btn ' + (qtype === 'mcq' ? 'active' : '') + '" onclick="setQType(\'' + id + '\',\'mcq\',this)" title="اختيار من متعدد">' +
-
-
-
         '<i class="fas fa-list-ul"></i> متعدد</button>' +
-
-
-
         '<button class="q-type-btn ' + (qtype === 'tf' ? 'active-tf' : '') + '" onclick="setQType(\'' + id + '\',\'tf\',this)" title="صح أو خطأ">' +
-
-
-
         '<i class="fas fa-check-circle"></i> صح/خطأ</button>' +
-
-
-
         '<button class="q-type-btn ' + (qtype === 'open' ? 'active-open' : '') + '" onclick="setQType(\'' + id + '\',\'open\',this)" title="إجابة مفتوحة">' +
-
-
-
         '<i class="fas fa-pen-nib"></i> مفتوح</button>' +
-
-
-
         '</div>' +
-
-
-
         '<div class="qbody" id="qbody_' + id + '">' +
-
-
-
         '<div class="opts" id="opts_' + id + '"></div>' +
-
-
-
         '<button class="add-opt" id="addopt_' + id + '" onclick="addOpt(\'' + id + '\')"><i class="fas fa-plus"></i>إضافة خيار</button>' +
-
-
-
         '<div class="tf-opts" id="tfopts_' + id + '" style="display:none">' +
-
-
-
         '<button class="tf-btn tf-true" id="tftrue_' + id + '" onclick="setTF(\'' + id + '\',true)"><i class="fas fa-check-circle"></i> صحيح</button>' +
-
-
-
         '<button class="tf-btn tf-false" id="tffalse_' + id + '" onclick="setTF(\'' + id + '\',false)"><i class="fas fa-times-circle"></i> خطأ</button>' +
-
-
-
         '</div>' +
-
-
-
-        '<div class="open-q-note" id="opennote_' + id + '" style="display:none"><i class="fas fa-pen-nib"></i>الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم</div>' +
-
-
-
+        '<div class="open-q-note" id="opennote_' + id + '" style="' + (qtype === 'open' ? 'display:flex;' : 'display:none;') + (isUngraded ? 'background:rgba(16,185,129,0.1);border-color:#10b981;color:#065f46;' : '') + '">' +
+        (isUngraded
+          ? '<i class="fas fa-check-circle" style="color:#10b981;"></i> سؤال بدون درجات (استطلاع / رأي) — لا يتطلب تصحيحاً وتظهر نتيجة التكليف فورياً للطفل'
+          : '<i class="fas fa-pen-nib"></i> الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم') +
+        '</div>' +
+        '<div class="open-q-opts" id="openopts_' + id + '" style="margin-top:8px; display:' + (qtype === 'open' ? 'block' : 'none') + ';">' +
+        '<label style="display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--t2);cursor:pointer;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r-sm);padding:6px 12px;user-select:none;">' +
+        '<input type="checkbox" id="ungraded_' + id + '" onchange="toggleUngradedQ(\'' + id + '\', this.checked)" ' + (isUngraded ? 'checked' : '') + '> ' +
+        '<i class="fas fa-comment-dots" style="color:var(--brand);"></i> سؤال استطلاعي / بدون درجات (0 درجة — لا يتطلب تصحيحاً)' +
+        '</label>' +
+        '</div>' +
         '</div>' +
 
 
@@ -16199,125 +16123,43 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
       var note = document.getElementById('opennote_' + qid);
-
-
-
+      var openopts = document.getElementById('openopts_' + qid);
       if (opts) opts.style.display = '';
-
-
-
       if (addBtn) addBtn.style.display = '';
-
-
-
       if (tfopts) tfopts.style.display = 'none';
-
-
-
       if (note) note.style.display = 'none';
-
-
-
+      if (openopts) openopts.style.display = 'none';
       if (opts) { opts.innerHTML = ''; for (var i = 0; i < 4; i++)addOpt(qid, '', i === 0); }
-
-
-
     }
-
-
 
     function _showTFLayout(qid, data) {
-
-
-
       var opts = document.getElementById('opts_' + qid);
-
-
-
       var addBtn = document.getElementById('addopt_' + qid);
-
-
-
       var tfopts = document.getElementById('tfopts_' + qid);
-
-
-
       var note = document.getElementById('opennote_' + qid);
-
-
-
+      var openopts = document.getElementById('openopts_' + qid);
       if (opts) opts.innerHTML = '';
-
-
-
       if (addBtn) addBtn.style.display = 'none';
-
-
-
       if (tfopts) tfopts.style.display = 'flex';
-
-
-
       if (note) note.style.display = 'none';
-
-
-
+      if (openopts) openopts.style.display = 'none';
       if (data && data.correct_index != null) {
-
-
-
         var isTrue = parseInt(data.correct_index) === 0;
-
-
-
         setTF(qid, isTrue, true);
-
-
-
       }
-
-
-
     }
 
-
-
     function _showOpenQLayout(qid) {
-
-
-
       var opts = document.getElementById('opts_' + qid);
-
-
-
       var addBtn = document.getElementById('addopt_' + qid);
-
-
-
       var tfopts = document.getElementById('tfopts_' + qid);
-
-
-
       var note = document.getElementById('opennote_' + qid);
-
-
-
+      var openopts = document.getElementById('openopts_' + qid);
       if (opts) opts.innerHTML = '';
-
-
-
       if (addBtn) addBtn.style.display = 'none';
-
-
-
       if (tfopts) tfopts.style.display = 'none';
-
-
-
       if (note) note.style.display = 'flex';
-
-
-
+      if (openopts) openopts.style.display = 'block';
     }
 
 
@@ -17498,7 +17340,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-      var deg = data && data.degree ? data.degree : 25;
+      var deg = (data && data.degree !== undefined && data.degree !== null) ? parseInt(data.degree) : 25;
+      if (isNaN(deg) || deg < 0) deg = 0;
+      var isUngraded = (deg === 0);
 
 
 
@@ -17536,7 +17380,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        '<div class="qdeg"><span class="qdeg-l">الدرجة</span><input class="qdeg-i" type="number" min="1" max="100" value="' + deg + '" oninput="updDeg()"></div>' +
+        '<div class="qdeg"><span class="qdeg-l">الدرجة</span><input class="qdeg-i" type="number" min="0" max="100" value="' + deg + '" oninput="onQDegChange(\'' + id + '\', this)"></div>' +
 
 
 
@@ -17608,10 +17452,17 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        '<div class="open-q-note" id="opennote_' + id + '" style="display:none"><i class="fas fa-pen-nib"></i>الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم</div>' +
-
-
-
+        '<div class="open-q-note" id="opennote_' + id + '" style="' + (qtype === 'open' ? 'display:flex;' : 'display:none;') + (isUngraded ? 'background:rgba(16,185,129,0.1);border-color:#10b981;color:#065f46;' : '') + '">' +
+        (isUngraded
+          ? '<i class="fas fa-check-circle" style="color:#10b981;"></i> سؤال بدون درجات (استطلاع / رأي) — لا يتطلب تصحيحاً وتظهر نتيجة التكليف فورياً للطفل'
+          : '<i class="fas fa-pen-nib"></i> الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم') +
+        '</div>' +
+        '<div class="open-q-opts" id="openopts_' + id + '" style="margin-top:8px; display:' + (qtype === 'open' ? 'block' : 'none') + ';">' +
+        '<label style="display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--t2);cursor:pointer;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r-sm);padding:6px 12px;user-select:none;">' +
+        '<input type="checkbox" id="ungraded_' + id + '" onchange="toggleUngradedQ(\'' + id + '\', this.checked)" ' + (isUngraded ? 'checked' : '') + '> ' +
+        '<i class="fas fa-comment-dots" style="color:var(--brand);"></i> سؤال استطلاعي / بدون درجات (0 درجة — لا يتطلب تصحيحاً)' +
+        '</label>' +
+        '</div>' +
         '</div>' +
 
 
@@ -17865,125 +17716,43 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
       var note = document.getElementById('opennote_' + qid);
-
-
-
+      var openopts = document.getElementById('openopts_' + qid);
       if (opts) opts.style.display = '';
-
-
-
       if (addBtn) addBtn.style.display = '';
-
-
-
       if (tfopts) tfopts.style.display = 'none';
-
-
-
       if (note) note.style.display = 'none';
-
-
-
+      if (openopts) openopts.style.display = 'none';
       if (opts) { opts.innerHTML = ''; for (var i = 0; i < 4; i++)addOpt(qid, '', i === 0); }
-
-
-
     }
-
-
 
     function _showTFLayout(qid, data) {
-
-
-
       var opts = document.getElementById('opts_' + qid);
-
-
-
       var addBtn = document.getElementById('addopt_' + qid);
-
-
-
       var tfopts = document.getElementById('tfopts_' + qid);
-
-
-
       var note = document.getElementById('opennote_' + qid);
-
-
-
+      var openopts = document.getElementById('openopts_' + qid);
       if (opts) opts.innerHTML = '';
-
-
-
       if (addBtn) addBtn.style.display = 'none';
-
-
-
       if (tfopts) tfopts.style.display = 'flex';
-
-
-
       if (note) note.style.display = 'none';
-
-
-
+      if (openopts) openopts.style.display = 'none';
       if (data && data.correct_index != null) {
-
-
-
         var isTrue = parseInt(data.correct_index) === 0;
-
-
-
         setTF(qid, isTrue, true);
-
-
-
       }
-
-
-
     }
 
-
-
     function _showOpenQLayout(qid) {
-
-
-
       var opts = document.getElementById('opts_' + qid);
-
-
-
       var addBtn = document.getElementById('addopt_' + qid);
-
-
-
       var tfopts = document.getElementById('tfopts_' + qid);
-
-
-
       var note = document.getElementById('opennote_' + qid);
-
-
-
+      var openopts = document.getElementById('openopts_' + qid);
       if (opts) opts.innerHTML = '';
-
-
-
       if (addBtn) addBtn.style.display = 'none';
-
-
-
       if (tfopts) tfopts.style.display = 'none';
-
-
-
       if (note) note.style.display = 'flex';
-
-
-
+      if (openopts) openopts.style.display = 'block';
     }
 
 
@@ -18556,6 +18325,66 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
     function updDeg() { document.getElementById('degTotal').innerHTML = `${calcDeg()} <small style="font-size:.7rem;font-weight:500;">درجة</small>`; }
 
+    function toggleUngradedQ(qid, isUngraded) {
+      var card = document.querySelector('.qcard[data-qid="' + qid + '"]');
+      if (!card) return;
+      var degInput = card.querySelector('.qdeg-i');
+      var note = document.getElementById('opennote_' + qid);
+      if (isUngraded) {
+        if (degInput) {
+          var curVal = parseInt(degInput.value) || 0;
+          if (curVal > 0) degInput.dataset.prevDeg = curVal;
+          degInput.value = '0';
+        }
+        if (note) {
+          note.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981;"></i> سؤال بدون درجات (استطلاع / رأي) — لا يتطلب تصحيحاً وتظهر نتيجة التكليف فورياً للطفل';
+          note.style.background = 'rgba(16,185,129,0.1)';
+          note.style.borderColor = '#10b981';
+          note.style.color = '#065f46';
+        }
+      } else {
+        if (degInput) {
+          degInput.value = degInput.dataset.prevDeg || '25';
+        }
+        if (note) {
+          note.innerHTML = '<i class="fas fa-pen-nib"></i> الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم';
+          note.style.background = '';
+          note.style.borderColor = '';
+          note.style.color = '';
+        }
+      }
+      updDeg();
+    }
+
+    function onQDegChange(qid, input) {
+      var val = parseInt(input.value);
+      if (isNaN(val) || val < 0) { input.value = 0; val = 0; }
+      var card = document.querySelector('.qcard[data-qid="' + qid + '"]');
+      var qtype = card ? card.dataset.qtype : '';
+      var chk = document.getElementById('ungraded_' + qid);
+      var note = document.getElementById('opennote_' + qid);
+      if (qtype === 'open') {
+        if (val === 0) {
+          if (chk) chk.checked = true;
+          if (note) {
+            note.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981;"></i> سؤال بدون درجات (استطلاع / رأي) — لا يتطلب تصحيحاً وتظهر نتيجة التكليف فورياً للطفل';
+            note.style.background = 'rgba(16,185,129,0.1)';
+            note.style.borderColor = '#10b981';
+            note.style.color = '#065f46';
+          }
+        } else {
+          if (chk) chk.checked = false;
+          if (note) {
+            note.innerHTML = '<i class="fas fa-pen-nib"></i> الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم';
+            note.style.background = '';
+            note.style.borderColor = '';
+            note.style.color = '';
+          }
+        }
+      }
+      updDeg();
+    }
+
 
 
 
@@ -18786,7 +18615,8 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        const degree2 = parseInt((card.querySelector('.qdeg-i') || { value: 25 }).value) || 1;
+        const degInp2 = card.querySelector('.qdeg-i');
+        const degree2 = degInp2 && degInp2.value !== '' ? Math.max(0, parseInt(degInp2.value) || 0) : 0;
 
 
 
@@ -19201,7 +19031,8 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         if (questions.length > 0) {
           questions.forEach(q => {
-            addQ(q.question_type || 'mcq');
+            const qDeg = (q.degree !== undefined && q.degree !== null) ? parseInt(q.degree) : 25;
+            addQ({ question_type: q.question_type || 'mcq', degree: qDeg, question_text: q.question_text });
             const qcards = document.querySelectorAll('.qcard');
             const card = qcards[qcards.length - 1];
             if (!card) return;
@@ -19209,7 +19040,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
             const qiInp = card.querySelector('.qi');
             if (qiInp) qiInp.value = q.question_text || '';
             const qdegInp = card.querySelector('.qdeg-i');
-            if (qdegInp) qdegInp.value = q.degree || 25;
+            if (qdegInp) {
+              qdegInp.value = qDeg;
+              if (typeof onQDegChange === 'function') onQDegChange(card.dataset.qid, qdegInp);
+            }
 
             if (q.image_url) setQImg(card.dataset.qid, q.image_url);
 
@@ -19350,7 +19184,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open');
+        const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open' && (parseInt(q.degree) || 0) > 0);
 
 
 
@@ -20330,22 +20164,25 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         if (qtype === 'open') {
           const ans = answers[qId] !== undefined ? String(answers[qId]) : (answers[q.id] !== undefined ? String(answers[q.id]) : '');
+          const qdeg = parseInt(q.degree) || 0;
+          const isUngraded = qdeg === 0;
           const existingScore = openScores[q.id] !== undefined ? openScores[q.id] : (openScores[qId] !== undefined ? openScores[qId] : 0);
-          return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid #fde68a;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
+          return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid ${isUngraded ? 'var(--bdr)' : '#fde68a'};border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
         ${imgH}
-        <div class="grade-q-text" style="color:#b45309;margin-bottom:4px;">
-          <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:1px 8px;font-size:.66rem;font-weight:700;margin-left:5px;"><i class="fas fa-pen-nib"></i> مفتوح</span>
-          <strong>${qi + 1}.</strong> ${esc(q.question_text)} <span style="color:var(--t3);font-size:.72rem;">(${q.degree} درجة)</span>
+        <div class="grade-q-text" style="color:${isUngraded ? 'var(--t1)' : '#b45309'};margin-bottom:4px;">
+          <span style="background:${isUngraded ? 'var(--bg3);color:var(--t3)' : '#fef3c7;color:#92400e'};border-radius:var(--r-full);padding:1px 8px;font-size:.66rem;font-weight:700;margin-left:5px;"><i class="fas fa-${isUngraded ? 'comments' : 'pen-nib'}"></i> ${isUngraded ? 'استطلاعي / بدون درجات' : 'مفتوح'}</span>
+          <strong>${qi + 1}.</strong> ${esc(q.question_text)} <span style="color:var(--t3);font-size:.72rem;">(${isUngraded ? 'بدون درجات' : `${qdeg} درجة`})</span>
         </div>
-        <div class="grade-ans-text" style="background:var(--bg);border:1px solid #fde68a;">${ans ? esc(ans) : '<em style="color:var(--t3);">— لم يُجب —</em>'}</div>
+        <div class="grade-ans-text" style="background:var(--bg);border:1px solid ${isUngraded ? 'var(--bdr)' : '#fde68a'};">${ans ? esc(ans) : '<em style="color:var(--t3);">— لم يُجب —</em>'}</div>
+        ${!isUngraded ? `
         <div class="grade-score-row">
           <span style="font-size:.78rem;color:var(--t2);font-weight:600;">الدرجة:</span>
-          <input class="grade-score-inp" type="number" min="0" max="${q.degree}" value="${parseInt(existingScore) || 0}"
-            id="gs_${sub.id}_${q.id}" data-sub="${sub.id}" data-qid="${q.id}" data-max="${q.degree}"
+          <input class="grade-score-inp" type="number" min="0" max="${qdeg}" value="${parseInt(existingScore) || 0}"
+            id="gs_${sub.id}_${q.id}" data-sub="${sub.id}" data-qid="${q.id}" data-max="${qdeg}"
             oninput="clampGradeInput(this);updateSubScore(${sub.id})">
-          <span class="grade-max-lbl">/ ${q.degree}</span>
-        </div>
-        ${buildNoteHtml('اكتب ملاحظة أو الإجابة الصحيحة للطفل…')}
+          <span class="grade-max-lbl">/ ${qdeg}</span>
+        </div>` : ''}
+        ${buildNoteHtml('اكتب ملاحظة أو تعليق للطفل…')}
       </div>`;
         }
 
@@ -20364,12 +20201,13 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           const opts = ['صحيح', 'خطأ'];
           const tfNotePlaceholder = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
           const tfNoteDefault = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : '';
+          const qdeg = parseInt(q.degree) || 0;
 
           return `<div style="background:${isCorrect ? 'var(--ok-bg)' : isWrong ? 'var(--err-bg)' : 'var(--bg2)'};border:1.5px solid ${isCorrect ? '#6ee7b7' : isWrong ? '#fca5a5' : 'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
           <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi + 1}.</strong> ${esc(q.question_text)}</span>
           <span style="margin-right:auto;">${statusDot}</span>
-          <span style="font-size:.68rem;color:var(--t3);">${q.degree} درجة</span>
+          <span style="font-size:.68rem;color:var(--t3);">${qdeg === 0 ? 'بدون درجات' : `${qdeg} درجة`}</span>
         </div>
         ${imgH}
         <div style="display:flex;gap:8px;">
@@ -20392,12 +20230,13 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
         const mcqNotePlaceholder = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
         const mcqNoteDefault = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : '';
+        const qdeg = parseInt(q.degree) || 0;
 
         return `<div style="background:${isCorrect ? 'var(--ok-bg)' : isWrong ? 'var(--err-bg)' : 'var(--bg2)'};border:1.5px solid ${isCorrect ? '#6ee7b7' : isWrong ? '#fca5a5' : 'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi + 1}.</strong> ${esc(q.question_text)}</span>
         <span style="margin-right:auto;">${statusDot}</span>
-        <span style="font-size:.68rem;color:var(--t3);">${q.degree} درجة</span>
+        <span style="font-size:.68rem;color:var(--t3);">${qdeg === 0 ? 'بدون درجات' : `${qdeg} درجة`}</span>
       </div>
       ${imgH}
       ${opts.map((o, j) => {
@@ -20935,7 +20774,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const avatar = getStudentAvatarHtml(photo, sub.student_name, '40px');
 
       const isSubGraded = parseInt(sub.is_graded || 0) === 1;
-      const hasOpenQuestions = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open');
+      const hasOpenQuestions = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open' && (parseInt(q.degree) || 0) > 0);
 
       const scoreHeaderHtml = isSubGraded
         ? `<div style="text-align:center;flex-shrink:0;">
@@ -20964,6 +20803,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           const qType = q.question_type || 'mcq';
           const given = ans[q.id] !== undefined ? ans[q.id] : ans[String(q.id)];
           const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
+          const qdeg = parseInt(q.degree) || 0;
           const imgH = q.image_url ? `<div style="margin:0 0 10px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--bdr);"><img src="${esc(q.image_url)}" alt="" style="width:100%;max-height:200px;object-fit:contain;display:block;background:var(--bg2);"></div>` : '';
 
           html += `<div class="ans-question">`;
@@ -20971,7 +20811,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           html += `<div class="ans-qhead">
         <div class="ans-qnum">${i + 1}</div>
         <div class="ans-qtext">${esc(q.question_text)}</div>
-        <div style="flex-shrink:0;font-size:.7rem;color:var(--t3);font-weight:600;padding:2px 7px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r-full);">${q.degree} درجة</div>
+        <div style="flex-shrink:0;font-size:.7rem;color:var(--t3);font-weight:600;padding:2px 7px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r-full);">${qdeg === 0 ? 'بدون درجات' : `${qdeg} درجة`}</div>
       </div>`;
 
           if (qType === 'open') {
@@ -20981,7 +20821,14 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           <div class="ans-open-text" style="${!hasAns ? 'color:var(--t4);font-style:italic;' : ''}">${hasAns ? esc(given) : '— لم يُجب على هذا السؤال —'}</div>
         </div>`;
 
-            if (sub.is_graded == 1 || openScores[q.id] !== undefined || openScores[String(q.id)] !== undefined) {
+            if (qdeg === 0) {
+              html += `
+          <div style="margin-top: 10px; padding: 10px; border-radius: var(--r-md); background: var(--bg2); border: 1px solid var(--bdr);">
+            <div style="font-weight: 700; font-size: 0.82rem; color: var(--t3);">
+              <i class="fas fa-info-circle"></i> سؤال استطلاعي / رأي — بدون درجات (لا يتطلب تقييماً)
+            </div>
+          </div>`;
+            } else if (sub.is_graded == 1 || openScores[q.id] !== undefined || openScores[String(q.id)] !== undefined) {
               const openScoreVal = openScores[q.id] !== undefined ? openScores[q.id] : openScores[String(q.id)];
               const corrNoteVal = correctionNotes[q.id] !== undefined ? correctionNotes[q.id] : correctionNotes[String(q.id)];
               const scoreDisplay = openScoreVal !== undefined ? openScoreVal : 0;
@@ -20989,7 +20836,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           <div style="margin-top: 10px; padding: 10px; border-radius: var(--r-md); background: var(--bg2); border: 1px solid var(--bdr);">
             <div style="font-weight: 700; font-size: 0.85rem; color: var(--ok); margin-bottom: 5px;">
               <i class="fas fa-check-double"></i> درجة تصحيح السؤال: 
-              <span style="font-size: 1rem; color: var(--t1); font-weight: 900;">${scoreDisplay}</span> من <span>${q.degree}</span>
+              <span style="font-size: 1rem; color: var(--t1); font-weight: 900;">${scoreDisplay}</span> من <span>${qdeg}</span>
             </div>`;
               if (corrNoteVal && String(corrNoteVal).trim().length > 0) {
                 html += `
