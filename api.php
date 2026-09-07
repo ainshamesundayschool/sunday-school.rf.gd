@@ -19728,8 +19728,28 @@ function sendCustomWhatsAppOTP() {
             $studentRes = $studentStmt->get_result();
             
             if ($studentRes->num_rows === 0) {
-                sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+                // Also check uncles / servants
+                $uncleStmt = $conn->prepare("
+                    SELECT id, name FROM uncles 
+                    WHERE RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
+                    LIMIT 1
+                ");
+                $uncleFound = false;
+                if ($uncleStmt) {
+                    $uncleStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+                    $uncleStmt->execute();
+                    $uncleRes = $uncleStmt->get_result();
+                    if ($uncleRes && $uncleRes->num_rows > 0) {
+                        $uncleFound = true;
+                    }
+                    $uncleStmt->close();
+                }
+
+                if (!$uncleFound) {
+                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+                }
             }
+            $studentStmt->close();
         }
         
         $tableCheck = $conn->query("SHOW TABLES LIKE 'phone_verifications'");
@@ -19752,17 +19772,42 @@ function sendCustomWhatsAppOTP() {
             }
         }
         
+        // Step 1: Generate the OTP
         $otp = sprintf("%06d", mt_rand(100000, 999999));
         $bytes = random_bytes(4);
         $requestToken = 'REQ-' . strtoupper(bin2hex($bytes));
+        $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
         
-        $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent) VALUES (?, ?, ?, 0)");
-        $stmt->bind_param("sss", $cleanPhone, $requestToken, $otp);
+        // Step 2: Store/enqueue a pending WhatsApp message (id, phone, otp_code, is_sent=0)
+        $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+        $stmt->bind_param("sss", $normalizedPhone, $requestToken, $otp);
         $stmt->execute();
-        $newOtpId = $conn->insert_id ?: $stmt->insert_id;
+        $newOtpId = intval($conn->insert_id ?: $stmt->insert_id);
+        $stmt->close();
+
+        if ($newOtpId <= 0) {
+            throw new Exception("فشل في حفظ رمز التحقق في قاعدة البيانات");
+        }
+
+        error_log(sprintf("[WhatsAppQueue] Step 2 Success: Enqueued pending OTP id=%d, phone=%s, is_sent=0", $newOtpId, $normalizedPhone));
         
-        // Immediately send server-side wake signal to WhatsApp bot
+        // Step 3: Confirm the item is available in the pending queue
+        $confirmedItem = verifyPendingOTPInQueue($newOtpId);
+        if (!$confirmedItem) {
+            error_log(sprintf("[WhatsAppQueue] Step 3 Failed: OTP id=%d not found in pending queue", $newOtpId));
+            throw new Exception("تعذر تأكيد إضافة رمز التحقق إلى قائمة الانتظار");
+        }
+
+        error_log(sprintf("[WhatsAppQueue] Step 3 Confirmed: Pending OTP id=%d is available for bot polling (phone=%s)", $confirmedItem['id'], $confirmedItem['phone']));
+
+        // Step 4: Call the published bot API: POST BOT_API_URL/api/wake
+        error_log(sprintf("[WhatsAppQueue] Step 4: Calling published bot API POST /api/wake for queue item id=%d", $newOtpId));
         $wakeResult = notifyWhatsAppOTPPending($newOtpId);
+        error_log(sprintf("[WhatsAppQueue] Step 4 Result: Bot wake acknowledged=%s, http_code=%d, status=%s", 
+            !empty($wakeResult['success']) ? 'true' : 'false', 
+            $wakeResult['http_code'] ?? 0,
+            $wakeResult['status'] ?? 'unknown'
+        ));
         
         // Treat wake as acknowledgement only; keep OTP flow usable even if wake temporarily fails
         $userMessage = 'تم إرسال رمز التحقق إلى WhatsApp. يرجى التحقق من هاتفك.';
@@ -19773,10 +19818,44 @@ function sendCustomWhatsAppOTP() {
         sendJSON([
             'success' => true,
             'message' => $userMessage,
-            'request_token' => $requestToken
+            'request_token' => $requestToken,
+            'queue_id' => $newOtpId
         ]);
     } catch (Exception $e) {
+        error_log("[WhatsAppQueue] Error in sendCustomWhatsAppOTP: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Verify that a specific OTP record is confirmed present and accessible in the pending queue.
+ */
+function verifyPendingOTPInQueue(int $otpId): ?array {
+    try {
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("
+            SELECT id, phone, otp_code 
+            FROM phone_verifications 
+            WHERE id = ? 
+              AND is_verified = 0 
+              AND is_sent = 0
+              AND (created_at IS NULL OR ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30)
+            LIMIT 1
+        ");
+        if (!$stmt) return null;
+        $stmt->bind_param("i", $otpId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $item = $res ? $res->fetch_assoc() : null;
+        $stmt->close();
+        if ($item) {
+            $item['id'] = intval($item['id']);
+            $item['phone'] = normalizeEgyptianPhone($item['phone']);
+        }
+        return $item;
+    } catch (Throwable $t) {
+        error_log("[WhatsAppQueue] verifyPendingOTPInQueue exception: " . $t->getMessage());
+        return null;
     }
 }
 
