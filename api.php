@@ -20246,45 +20246,171 @@ function adminCheckUserOTP() {
             sendJSON(['success' => false, 'message' => 'غير مصرح لك بالوصول. يرجى تسجيل الدخول كمسؤول أو خادم.']);
         }
 
-        $phone = sanitize($_REQUEST['phone'] ?? $_REQUEST['q'] ?? '');
-        $limit = min(60, max(1, intval($_REQUEST['limit'] ?? 25)));
-
         $conn = getDBConnection();
+
+        // Ensure church_id column exists
+        @$conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS church_id INT NULL DEFAULT NULL AFTER id;");
+
+        // Determine church_id
+        $churchId = intval($_SESSION['church_id'] ?? $_REQUEST['church_id'] ?? 0);
+        if ($churchId <= 0 && !empty($_SESSION['uncle_id'])) {
+            $uStmt = $conn->prepare("SELECT church_id FROM uncles WHERE id = ? LIMIT 1");
+            if ($uStmt) {
+                $uStmt->bind_param("i", $_SESSION['uncle_id']);
+                $uStmt->execute();
+                $uRes = $uStmt->get_result();
+                if ($uRow = $uRes->fetch_assoc()) {
+                    $churchId = intval($uRow['church_id']);
+                    $_SESSION['church_id'] = $churchId;
+                }
+                $uStmt->close();
+            }
+        }
+
+        $churchName = '';
+        if ($churchId > 0) {
+            $cnStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
+            if ($cnStmt) {
+                $cnStmt->bind_param("i", $churchId);
+                $cnStmt->execute();
+                $cnRes = $cnStmt->get_result();
+                if ($cnRow = $cnRes->fetch_assoc()) {
+                    $churchName = $cnRow['church_name'];
+                }
+                $cnStmt->close();
+            }
+        }
+
+        $phone = sanitize($_REQUEST['phone'] ?? $_REQUEST['q'] ?? '');
+        $limit = min(60, max(1, intval($_REQUEST['limit'] ?? 30)));
         $records = [];
 
-        if (!empty($phone)) {
-            $cleanDigits = preg_replace('/[^\d]/', '', $phone);
-            $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
-            $normalized = normalizeEgyptianPhone($cleanDigits);
+        if ($churchId > 0) {
+            // Strict Church Scope: only numbers belonging to this church
+            if (!empty($phone)) {
+                $cleanDigits = preg_replace('/[^\d]/', '', $phone);
+                $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
+                $normalized = normalizeEgyptianPhone($cleanDigits);
 
-            $stmt = $conn->prepare("
-                SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
-                       TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
-                FROM phone_verifications
-                WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ? OR phone = ? OR request_token = ? OR otp_code = ?)
-                ORDER BY id DESC LIMIT ?
-            ");
-            $stmt->bind_param("ssssssi", $last8, $cleanDigits, $cleanDigits, $normalized, $phone, $phone, $limit);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            while ($row = $res->fetch_assoc()) {
-                $records[] = $row;
+                $sql = "
+                    SELECT pv.id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
+                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago
+                    FROM phone_verifications pv
+                    WHERE (
+                        pv.church_id = ?
+                        OR EXISTS (
+                            SELECT 1 FROM uncles u 
+                            WHERE u.church_id = ? 
+                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone, 8) OR u.phone = pv.phone) 
+                              AND (u.deleted IS NULL OR u.deleted = 0)
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM students s 
+                            WHERE s.church_id = ? 
+                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone, 8) 
+                                   OR s.phone = pv.phone 
+                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone, 8) 
+                                   OR s.emergency_phone = pv.phone 
+                                   OR s.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%')
+                                   OR s.custom_info LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM pending_registrations pr 
+                            WHERE pr.church_id = ? 
+                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone, 8) 
+                                   OR pr.phone = pv.phone 
+                                   OR pr.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
+                        )
+                    )
+                    AND (pv.phone LIKE CONCAT('%', ?) OR RIGHT(pv.phone, 8) = RIGHT(?, 8) OR pv.phone = ? OR pv.otp_code = ? OR pv.request_token = ?)
+                    ORDER BY pv.id DESC LIMIT ?
+                ";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("iiiisssssi", $churchId, $churchId, $churchId, $churchId, $last8, $cleanDigits, $normalized, $phone, $phone, $limit);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                while ($row = $res->fetch_assoc()) {
+                    $records[] = $row;
+                }
+                $stmt->close();
+            } else {
+                $sql = "
+                    SELECT pv.id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
+                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago
+                    FROM phone_verifications pv
+                    WHERE (
+                        pv.church_id = ?
+                        OR EXISTS (
+                            SELECT 1 FROM uncles u 
+                            WHERE u.church_id = ? 
+                              AND (RIGHT(u.phone, 8) = RIGHT(pv.phone, 8) OR u.phone = pv.phone) 
+                              AND (u.deleted IS NULL OR u.deleted = 0)
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM students s 
+                            WHERE s.church_id = ? 
+                              AND (RIGHT(s.phone, 8) = RIGHT(pv.phone, 8) 
+                                   OR s.phone = pv.phone 
+                                   OR RIGHT(s.emergency_phone, 8) = RIGHT(pv.phone, 8) 
+                                   OR s.emergency_phone = pv.phone 
+                                   OR s.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%')
+                                   OR s.custom_info LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM pending_registrations pr 
+                            WHERE pr.church_id = ? 
+                              AND (RIGHT(pr.phone, 8) = RIGHT(pv.phone, 8) 
+                                   OR pr.phone = pv.phone 
+                                   OR pr.parent_phones LIKE CONCAT('%', RIGHT(pv.phone, 8), '%'))
+                        )
+                    )
+                    ORDER BY pv.id DESC LIMIT ?
+                ";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("iiiii", $churchId, $churchId, $churchId, $churchId, $limit);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                while ($row = $res->fetch_assoc()) {
+                    $records[] = $row;
+                }
+                $stmt->close();
             }
-            $stmt->close();
         } else {
-            $stmt = $conn->prepare("
-                SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
-                       TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
-                FROM phone_verifications
-                ORDER BY id DESC LIMIT ?
-            ");
-            $stmt->bind_param("i", $limit);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            while ($row = $res->fetch_assoc()) {
-                $records[] = $row;
+            // Global / Unspecified Church (Developer fallback)
+            if (!empty($phone)) {
+                $cleanDigits = preg_replace('/[^\d]/', '', $phone);
+                $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
+                $normalized = normalizeEgyptianPhone($cleanDigits);
+
+                $stmt = $conn->prepare("
+                    SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
+                           TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
+                    FROM phone_verifications
+                    WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ? OR phone = ? OR request_token = ? OR otp_code = ?)
+                    ORDER BY id DESC LIMIT ?
+                ");
+                $stmt->bind_param("ssssssi", $last8, $cleanDigits, $cleanDigits, $normalized, $phone, $phone, $limit);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                while ($row = $res->fetch_assoc()) {
+                    $records[] = $row;
+                }
+                $stmt->close();
+            } else {
+                $stmt = $conn->prepare("
+                    SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
+                           TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
+                    FROM phone_verifications
+                    ORDER BY id DESC LIMIT ?
+                ");
+                $stmt->bind_param("i", $limit);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                while ($row = $res->fetch_assoc()) {
+                    $records[] = $row;
+                }
+                $stmt->close();
             }
-            $stmt->close();
         }
 
         foreach ($records as &$item) {
@@ -20297,36 +20423,88 @@ function adminCheckUserOTP() {
             $normPhone = normalizeEgyptianPhone($item['phone']);
             $item['normalized_phone'] = $normPhone;
 
-            // Try to look up person name from students or uncles
+            // Look up person name strictly within this church
             $ownerName = '';
             $ownerType = '';
             $sClean = preg_replace('/[^\d]/', '', $item['phone']);
             $sLast8 = (strlen($sClean) >= 8) ? substr($sClean, -8) : $sClean;
 
             if (!empty($sClean)) {
-                $stuStmt = $conn->prepare("SELECT name FROM students WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR emergency_phone LIKE CONCAT('%', ?) OR RIGHT(emergency_phone, 8) = RIGHT(?, 8) OR parent_phones LIKE CONCAT('%', ?)) LIMIT 1");
-                if ($stuStmt) {
-                    $stuStmt->bind_param("sssss", $sLast8, $sClean, $sLast8, $sClean, $sClean);
-                    $stuStmt->execute();
-                    $sRes = $stuStmt->get_result();
-                    if ($sRow = $sRes->fetch_assoc()) {
-                        $ownerName = $sRow['name'];
-                        $ownerType = 'طالب';
-                    }
-                    $stuStmt->close();
-                }
-
-                if (empty($ownerName)) {
-                    $uncStmt = $conn->prepare("SELECT name FROM uncles WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8)) LIMIT 1");
-                    if ($uncStmt) {
-                        $uncStmt->bind_param("ss", $sLast8, $sClean);
-                        $uncStmt->execute();
-                        $uRes = $uncStmt->get_result();
-                        if ($uRow = $uRes->fetch_assoc()) {
-                            $ownerName = $uRow['name'];
-                            $ownerType = 'خادم';
+                if ($churchId > 0) {
+                    $stuStmt = $conn->prepare("
+                        SELECT name FROM students 
+                        WHERE church_id = ? 
+                          AND (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) 
+                               OR emergency_phone LIKE CONCAT('%', ?) OR RIGHT(emergency_phone, 8) = RIGHT(?, 8) 
+                               OR parent_phones LIKE CONCAT('%', ?)) 
+                        LIMIT 1
+                    ");
+                    if ($stuStmt) {
+                        $stuStmt->bind_param("isssss", $churchId, $sLast8, $sClean, $sLast8, $sClean, $sClean);
+                        $stuStmt->execute();
+                        $sRes = $stuStmt->get_result();
+                        if ($sRow = $sRes->fetch_assoc()) {
+                            $ownerName = $sRow['name'];
+                            $ownerType = 'طالب';
                         }
-                        $uncStmt->close();
+                        $stuStmt->close();
+                    }
+
+                    if (empty($ownerName)) {
+                        $uncStmt = $conn->prepare("
+                            SELECT name FROM uncles 
+                            WHERE church_id = ? 
+                              AND (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8)) 
+                              AND (deleted IS NULL OR deleted = 0) 
+                            LIMIT 1
+                        ");
+                        if ($uncStmt) {
+                            $uncStmt->bind_param("iss", $churchId, $sLast8, $sClean);
+                            $uncStmt->execute();
+                            $uRes = $uncStmt->get_result();
+                            if ($uRow = $uRes->fetch_assoc()) {
+                                $ownerName = $uRow['name'];
+                                $ownerType = 'خادم';
+                            }
+                            $uncStmt->close();
+                        }
+                    }
+                } else {
+                    $stuStmt = $conn->prepare("
+                        SELECT name FROM students 
+                        WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) 
+                               OR emergency_phone LIKE CONCAT('%', ?) OR RIGHT(emergency_phone, 8) = RIGHT(?, 8) 
+                               OR parent_phones LIKE CONCAT('%', ?)) 
+                        LIMIT 1
+                    ");
+                    if ($stuStmt) {
+                        $stuStmt->bind_param("sssss", $sLast8, $sClean, $sLast8, $sClean, $sClean);
+                        $stuStmt->execute();
+                        $sRes = $stuStmt->get_result();
+                        if ($sRow = $sRes->fetch_assoc()) {
+                            $ownerName = $sRow['name'];
+                            $ownerType = 'طالب';
+                        }
+                        $stuStmt->close();
+                    }
+
+                    if (empty($ownerName)) {
+                        $uncStmt = $conn->prepare("
+                            SELECT name FROM uncles 
+                            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8)) 
+                              AND (deleted IS NULL OR deleted = 0) 
+                            LIMIT 1
+                        ");
+                        if ($uncStmt) {
+                            $uncStmt->bind_param("ss", $sLast8, $sClean);
+                            $uncStmt->execute();
+                            $uRes = $uncStmt->get_result();
+                            if ($uRow = $uRes->fetch_assoc()) {
+                                $ownerName = $uRow['name'];
+                                $ownerType = 'خادم';
+                            }
+                            $uncStmt->close();
+                        }
                     }
                 }
             }
@@ -20334,21 +20512,23 @@ function adminCheckUserOTP() {
             $item['owner_name'] = $ownerName;
             $item['owner_type'] = $ownerType;
 
+            // Pure text without emojis
             if ($item['is_verified'] === 1) {
                 $item['status_badge'] = 'verified';
-                $item['status_text'] = 'تم التحقق بنجاح ✅';
+                $item['status_text'] = 'تم التحقق بنجاح';
             } elseif ($item['is_expired']) {
                 $item['status_badge'] = 'expired';
-                $item['status_text'] = 'منتهي الصلاحية ⏱️';
+                $item['status_text'] = 'منتهي الصلاحية';
             } elseif ($item['is_sent'] === 1) {
                 $item['status_badge'] = 'sent';
-                $item['status_text'] = 'أُرسل عبر البوت 📲';
+                $item['status_text'] = 'أرسل للبوت';
             } else {
                 $item['status_badge'] = 'pending';
-                $item['status_text'] = 'في انتظار البوت ⏳';
+                $item['status_text'] = 'في انتظار البوت';
             }
 
-            $msgText = "🔐 كود التحقق الخاص بك في مدارس الأحد هو: *" . $item['otp_code'] . "*\n\n⏰ صالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            // Message without emojis
+            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $item['otp_code'] . "*\n\nصالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
             $item['manual_message'] = $msgText;
             $item['manual_whatsapp_url'] = "https://api.whatsapp.com/send?phone=" . $normPhone . "&text=" . rawurlencode($msgText);
         }
@@ -20357,6 +20537,8 @@ function adminCheckUserOTP() {
         sendJSON([
             'success' => true,
             'count' => count($records),
+            'church_id' => $churchId,
+            'church_name' => $churchName,
             'records' => $records
         ]);
     } catch (Exception $e) {
@@ -20377,6 +20559,22 @@ function adminResendUserOTP() {
         $id = intval($_REQUEST['id'] ?? 0);
         $phone = sanitize($_REQUEST['phone'] ?? '');
         $conn = getDBConnection();
+
+        // Determine church_id
+        $churchId = intval($_SESSION['church_id'] ?? $_REQUEST['church_id'] ?? 0);
+        if ($churchId <= 0 && !empty($_SESSION['uncle_id'])) {
+            $uStmt = $conn->prepare("SELECT church_id FROM uncles WHERE id = ? LIMIT 1");
+            if ($uStmt) {
+                $uStmt->bind_param("i", $_SESSION['uncle_id']);
+                $uStmt->execute();
+                $uRes = $uStmt->get_result();
+                if ($uRow = $uRes->fetch_assoc()) {
+                    $churchId = intval($uRow['church_id']);
+                    $_SESSION['church_id'] = $churchId;
+                }
+                $uStmt->close();
+            }
+        }
 
         if ($id > 0) {
             $stmt = $conn->prepare("SELECT id, phone, otp_code, request_token FROM phone_verifications WHERE id = ? LIMIT 1");
@@ -20427,9 +20625,9 @@ function adminResendUserOTP() {
             }
 
             // Wake the bot
-            $wakeResult = notifyWhatsAppOTPPending($id);
+            $wakeResult = notifyWhatsAppOTNGPendingSafe($id);
 
-            $msgText = "🔐 كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\n⏰ صالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\nصالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
 
             sendJSON([
                 'success' => true,
@@ -20451,8 +20649,15 @@ function adminResendUserOTP() {
             $otp = sprintf("%06d", mt_rand(100000, 999999));
             $requestToken = 'REQ-' . strtoupper(bin2hex(random_bytes(4)));
 
-            $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
-            $stmt->bind_param("sss", $normalizedPhone, $requestToken, $otp);
+            @$conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS church_id INT NULL DEFAULT NULL AFTER id;");
+
+            if ($churchId > 0) {
+                $stmt = $conn->prepare("INSERT INTO phone_verifications (church_id, phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, ?, 0, 0, NOW())");
+                $stmt->bind_param("isss", $churchId, $normalizedPhone, $requestToken, $otp);
+            } else {
+                $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+                $stmt->bind_param("sss", $normalizedPhone, $requestToken, $otp);
+            }
             $stmt->execute();
             $newId = intval($conn->insert_id ?: $stmt->insert_id);
             $stmt->close();
@@ -20481,12 +20686,12 @@ function adminResendUserOTP() {
                 curl_close($mCh);
             }
 
-            $wakeResult = notifyWhatsAppOTPPending($newId);
-            $msgText = "🔐 كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\n⏰ صالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            $wakeResult = notifyWhatsAppOTNGPendingSafe($newId);
+            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\nصالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
 
             sendJSON([
                 'success' => true,
-                'message' => 'تم توليد كود جديد وإضافته لقائمة الإرسال بنجاح',
+                'message' => 'تم توليد كود جديد وإضافته بنجاح',
                 'id' => $newId,
                 'phone' => $normalizedPhone,
                 'otp_code' => $otp,
@@ -20502,11 +20707,13 @@ function adminResendUserOTP() {
     }
 }
 
-/**
- * Admin Status Integration:
- * GET ${WHATSAPP_BOT_API_URL}/api/whatsapp/status
- * Protected by dashboard authentication token and admin role.
- */
+function notifyWhatsAppOTNGPendingSafe($id) {
+    if (function_exists('notifyWhatsAppOTPPending')) {
+        return notifyWhatsAppOTPPending($id);
+    }
+    return ['success' => false];
+}
+
 function getWhatsAppBotStatus() {
     if (!isAdminOrDevRole()) {
         sendJSON(['success' => false, 'message' => 'غير مصرح لك بالوصول']);
