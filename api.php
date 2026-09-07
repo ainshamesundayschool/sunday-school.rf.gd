@@ -20304,9 +20304,9 @@ function adminCheckUserOTP() {
             $sLast8 = (strlen($sClean) >= 8) ? substr($sClean, -8) : $sClean;
 
             if (!empty($sClean)) {
-                $stuStmt = $conn->prepare("SELECT name FROM students WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR parent_phone LIKE CONCAT('%', ?) OR RIGHT(parent_phone, 8) = RIGHT(?, 8)) LIMIT 1");
+                $stuStmt = $conn->prepare("SELECT name FROM students WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR emergency_phone LIKE CONCAT('%', ?) OR RIGHT(emergency_phone, 8) = RIGHT(?, 8) OR parent_phones LIKE CONCAT('%', ?)) LIMIT 1");
                 if ($stuStmt) {
-                    $stuStmt->bind_param("ssss", $sLast8, $sClean, $sLast8, $sClean);
+                    $stuStmt->bind_param("sssss", $sLast8, $sClean, $sLast8, $sClean, $sClean);
                     $stuStmt->execute();
                     $sRes = $stuStmt->get_result();
                     if ($sRow = $sRes->fetch_assoc()) {
