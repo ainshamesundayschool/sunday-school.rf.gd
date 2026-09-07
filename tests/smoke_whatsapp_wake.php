@@ -35,6 +35,13 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
+    if (isset($_GET['recent'])) {
+        $res = $conn->query("SELECT id, phone, is_sent, is_verified, created_at FROM phone_verifications ORDER BY id DESC LIMIT 10");
+        $rows = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+        echo json_encode(['recent_verifications' => $rows], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     // ── STEP 1: Generate OTP ──────────────────────────────────
     $testCode = sprintf("%06d", mt_rand(100000, 999999));
     $testPhone = '201000000000';
