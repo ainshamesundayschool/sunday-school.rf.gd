@@ -32900,6 +32900,36 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             startAutoRefresh();
         }
 
+        function getAdminOtpAuthParams() {
+            const params = new URLSearchParams();
+            const uncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id') || '';
+            const churchId = localStorage.getItem('churchId') || localStorage.getItem('church_id') || '';
+            const churchCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code') || '';
+            const username = localStorage.getItem('uncleUsername') || localStorage.getItem('username') || '';
+            const role = localStorage.getItem('uncleRole') || localStorage.getItem('role') || '';
+
+            if (uncleId) params.append('uncle_id', uncleId);
+            if (churchId) params.append('church_id', churchId);
+            if (churchCode) params.append('church_code', churchCode);
+            if (username) params.append('username', username);
+            if (role) params.append('role', role);
+            return params;
+        }
+
+        function appendAdminOtpAuthFormData(fd) {
+            const uncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id') || '';
+            const churchId = localStorage.getItem('churchId') || localStorage.getItem('church_id') || '';
+            const churchCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code') || '';
+            const username = localStorage.getItem('uncleUsername') || localStorage.getItem('username') || '';
+            const role = localStorage.getItem('uncleRole') || localStorage.getItem('role') || '';
+
+            if (uncleId && !fd.has('uncle_id')) fd.append('uncle_id', uncleId);
+            if (churchId && !fd.has('church_id')) fd.append('church_id', churchId);
+            if (churchCode && !fd.has('church_code')) fd.append('church_code', churchCode);
+            if (username && !fd.has('username')) fd.append('username', username);
+            if (role && !fd.has('role')) fd.append('role', role);
+        }
+
         async function loadAdminOTPs(forceRefresh = false) {
             const loading = document.getElementById('adminOtpLoading');
             const empty = document.getElementById('adminOtpEmpty');
@@ -32912,7 +32942,14 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
             try {
-                const res = await fetch('/api.php?action=adminCheckUserOTP&limit=50', {
+                const endpoint = (typeof API_URL !== 'undefined' ? API_URL : '/api.php');
+                const authParams = getAdminOtpAuthParams();
+                authParams.append('action', 'adminCheckUserOTP');
+                authParams.append('limit', '50');
+
+                const res = await fetch(`${endpoint}?${authParams.toString()}`, {
+                    method: 'GET',
+                    credentials: 'include',
                     cache: 'no-store'
                 });
                 const data = await res.json();
@@ -33144,13 +33181,16 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             }
 
             try {
+                const endpoint = (typeof API_URL !== 'undefined' ? API_URL : '/api.php');
                 const formData = new FormData();
                 formData.append('action', 'adminResendUserOTP');
                 formData.append('id', otpId);
+                appendAdminOtpAuthFormData(formData);
 
-                const res = await fetch('/api.php', {
+                const res = await fetch(endpoint, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'include'
                 });
                 const data = await res.json();
 
@@ -33201,13 +33241,16 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             }
 
             try {
+                const endpoint = (typeof API_URL !== 'undefined' ? API_URL : '/api.php');
                 const formData = new FormData();
                 formData.append('action', 'adminResendUserOTP');
                 formData.append('phone', phone);
+                appendAdminOtpAuthFormData(formData);
 
-                const res = await fetch('/api.php', {
+                const res = await fetch(endpoint, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'include'
                 });
                 const data = await res.json();
 
