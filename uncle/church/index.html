@@ -1409,6 +1409,64 @@
             border-radius: var(--radius-xs);
         }
 
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            border-radius: var(--radius-xs, 6px);
+        }
+
+        .btn-ghost {
+            background: var(--surface-2, #f1f5f9);
+            color: var(--text-2, #475569);
+            border: 1px solid var(--border-2, #e2e8f0);
+            box-shadow: none;
+        }
+
+        .btn-ghost:hover {
+            background: var(--primary-light, #eef2ff);
+            color: var(--primary, #4f46e5);
+            border-color: var(--primary, #4f46e5);
+        }
+
+        #adminOtpFilterTabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+
+        #adminOtpFilterTabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .admin-otp-tab {
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            border-radius: 9999px !important;
+            height: 28px !important;
+            padding: 0 12px !important;
+            font-size: 0.72rem !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-weight: 700 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer;
+            box-sizing: border-box;
+            line-height: normal !important;
+        }
+
+        .admin-otp-tab.active {
+            background: linear-gradient(135deg, var(--primary, #4f46e5), var(--primary-dark, #3730a3)) !important;
+            color: #fff !important;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25) !important;
+        }
+
         .btn-icon {
             width: 34px;
             height: 34px;
@@ -9764,11 +9822,11 @@
                 </div>
 
                 <!-- Segmented Tabs (Native Rounded Site Buttons) -->
-                <div style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto;" id="adminOtpFilterTabs">
-                    <button type="button" class="btn btn-xs admin-otp-tab active" data-filter="all" onclick="setAdminOtpFilter('all', this)" style="border-radius:var(--r-full); padding:5px 14px;">الكل (<span id="countOtpAll">0</span>)</button>
-                    <button type="button" class="btn btn-ghost btn-xs admin-otp-tab" data-filter="active" onclick="setAdminOtpFilter('active', this)" style="border-radius:var(--r-full); padding:5px 14px;">نشطة (<span id="countOtpActive">0</span>)</button>
-                    <button type="button" class="btn btn-ghost btn-xs admin-otp-tab" data-filter="pending" onclick="setAdminOtpFilter('pending', this)" style="border-radius:var(--r-full); padding:5px 14px;">في الانتظار (<span id="countOtpPending">0</span>)</button>
-                    <button type="button" class="btn btn-ghost btn-xs admin-otp-tab" data-filter="verified" onclick="setAdminOtpFilter('verified', this)" style="border-radius:var(--r-full); padding:5px 14px;">مؤكدة (<span id="countOtpVerified">0</span>)</button>
+                <div id="adminOtpFilterTabs" style="display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px;">
+                    <button type="button" class="btn btn-xs admin-otp-tab active" data-filter="all" onclick="setAdminOtpFilter('all', this)" style="white-space:nowrap; flex-shrink:0;">الكل (<span id="countOtpAll">0</span>)</button>
+                    <button type="button" class="btn btn-ghost btn-xs admin-otp-tab" data-filter="active" onclick="setAdminOtpFilter('active', this)" style="white-space:nowrap; flex-shrink:0;">نشطة (<span id="countOtpActive">0</span>)</button>
+                    <button type="button" class="btn btn-ghost btn-xs admin-otp-tab" data-filter="pending" onclick="setAdminOtpFilter('pending', this)" style="white-space:nowrap; flex-shrink:0;">في الانتظار (<span id="countOtpPending">0</span>)</button>
+                    <button type="button" class="btn btn-ghost btn-xs admin-otp-tab" data-filter="verified" onclick="setAdminOtpFilter('verified', this)" style="white-space:nowrap; flex-shrink:0;">مؤكدة (<span id="countOtpVerified">0</span>)</button>
                 </div>
 
                 <!-- Manual Generator Drawer -->
@@ -30731,12 +30789,12 @@
         function setAdminOtpFilter(filterType, btn) {
             currentAdminOtpFilter = filterType;
             document.querySelectorAll('#adminOtpFilterTabs .admin-otp-tab').forEach(b => {
-                b.classList.remove('btn', 'active');
+                b.classList.remove('active');
                 b.classList.add('btn-ghost');
             });
             if (btn) {
                 btn.classList.remove('btn-ghost');
-                btn.classList.add('btn', 'active');
+                btn.classList.add('active');
             }
             applyAdminOtpFilterAndSearch();
         }
