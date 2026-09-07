@@ -11834,6 +11834,111 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     <span class="tool-card-name">دليل مساعدة الخدمة</span>
                     <span class="tool-card-desc">اعرف تفاصيل كل ميزة في الخدمة.</span>
                 </button>
+                <button class="tool-card" onclick="hideAllToolsModal();showAdminOTPModal()">
+                    <span class="tool-card-icon" style="color:#25d366;"><i class="fab fa-whatsapp"></i></span>
+                    <span class="tool-card-name">أكواد التحقق (WhatsApp OTP)</span>
+                    <span class="tool-card-desc">فحص أكواد تحقق المستخدمين وإرسالها يدوياً أو عبر البوت.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp OTP Management Modal -->
+    <div class="modal-overlay" id="adminOTPModal" style="z-index: 1000030;">
+        <div class="modal modal-lg" style="max-width: 840px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding:14px 18px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:38px; height:38px; border-radius:50%; background:rgba(37,211,102,0.12); color:#25d366; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:var(--text-1); display:flex; align-items:center; gap:8px;">
+                            أكواد التحقق (WhatsApp OTP)
+                        </h3>
+                        <p style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-3);">
+                            فحص أكواد التحقق للمستخدمين وإرسالها يدوياً أو عبر البوت
+                        </p>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeAdminOTPModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="padding:16px; overflow-y:auto; flex:1; direction:rtl; text-align:right;">
+                <!-- Controls & Search -->
+                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px;">
+                    <div class="inline-search-box" style="flex:1; min-width:240px; margin:0; background:var(--surface-3);">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="adminOtpSearchInput" placeholder="ابحث برقم الهاتف، الاسم، أو الكود..." oninput="filterAdminOTPs(this.value)" autocomplete="off">
+                        <button id="clearAdminOtpSearchBtn" onclick="clearAdminOtpSearch()" style="display:none;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="btn btn-outline" onclick="loadAdminOTPs(true)" id="adminOtpRefreshBtn" title="تحديث القائمة" style="padding:8px 12px; font-size:0.84rem; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-sync-alt" id="adminOtpRefreshIcon"></i>
+                            <span>تحديث</span>
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="toggleNewOTPGenerator()" style="padding:8px 14px; font-size:0.84rem; display:flex; align-items:center; gap:6px; background:#16a34a; border-color:#16a34a; color:#fff;">
+                            <i class="fas fa-plus"></i>
+                            <span>كود يدوي جديد</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Generator Panel (collapsible) -->
+                <div id="adminOtpGenPanel" style="display:none; background:linear-gradient(135deg, rgba(37,211,102,0.06), rgba(22,163,74,0.02)); border:1.5px dashed rgba(37,211,102,0.4); border-radius:var(--r-md); padding:14px; margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.88rem; font-weight:800; color:#15803d; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-key"></i> إنشاء كود تحقق يدوي لأي رقم هاتف
+                        </span>
+                        <button type="button" onclick="toggleNewOTPGenerator(false)" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.1rem; line-height:1;">&times;</button>
+                    </div>
+                    <p style="margin:0 0 10px 0; font-size:0.78rem; color:var(--text-3);">
+                        إذا كان هناك مستخدم يواجه مشكلة في استلام الكود، يمكنك كتابة رقمه هنا لإنشاء كود فوري وإرساله له يدوياً عبر واتساب أو عبر البوت.
+                    </p>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <input type="tel" id="adminGenPhoneInput" placeholder="أدخل رقم الهاتف (مثال: 01012345678)" style="flex:1; min-width:220px; padding:9px 12px; border-radius:var(--r-sm); border:1.5px solid var(--border-solid); background:var(--surface); font-size:0.88rem;">
+                        <button type="button" class="btn btn-primary" id="adminGenSubmitBtn" onclick="submitAdminGenerateOTP()" style="padding:9px 18px; background:#15803d; border-color:#15803d; color:#fff; font-size:0.86rem; font-weight:700; display:flex; align-items:center; gap:6px;">
+                            <span>توليد الكود</span>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div id="adminGenResultBox" style="display:none; margin-top:12px; padding:12px 14px; background:var(--surface); border-radius:var(--r-sm); border:1px solid #bbf7d0;"></div>
+                </div>
+
+                <!-- Filters tabs: All, Active, Pending, Verified -->
+                <div style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;" id="adminOtpFilterTabs">
+                    <button type="button" class="admin-otp-filter-tab active" data-filter="all" onclick="setAdminOtpFilter('all', this)">الكل (<span id="countOtpAll">0</span>)</button>
+                    <button type="button" class="admin-otp-filter-tab" data-filter="active" onclick="setAdminOtpFilter('active', this)">نشطة (<span id="countOtpActive">0</span>)</button>
+                    <button type="button" class="admin-otp-filter-tab" data-filter="pending" onclick="setAdminOtpFilter('pending', this)">في الانتظار (<span id="countOtpPending">0</span>)</button>
+                    <button type="button" class="admin-otp-filter-tab" data-filter="verified" onclick="setAdminOtpFilter('verified', this)">مؤكدة (<span id="countOtpVerified">0</span>)</button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="adminOtpLoading" style="text-align:center; padding:32px 0; color:var(--text-3);">
+                    <i class="fas fa-spinner fa-spin" style="font-size:1.8rem; color:#25d366; margin-bottom:8px;"></i>
+                    <div>جاري تحميل بيانات أكواد التحقق...</div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="adminOtpEmpty" style="display:none; text-align:center; padding:36px 12px; color:var(--text-3);">
+                    <div style="width:52px; height:52px; border-radius:50%; background:rgba(37,211,102,0.1); color:#25d366; display:flex; align-items:center; justify-content:center; margin:0 auto 10px auto; font-size:1.5rem;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div style="font-weight:700; font-size:0.95rem; color:var(--text-1);">لا توجد طلبات تحقق مطابقة</div>
+                    <div style="font-size:0.8rem; margin-top:4px;">لم يتم العثور على أي أكواد في قاعدة البيانات تطابق خيارات التصفية الحالية.</div>
+                </div>
+
+                <!-- OTP Cards List -->
+                <div id="adminOtpList" style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="padding:10px 18px; border-top:1px solid var(--border-solid); display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-3);">
+                <span>
+                    <i class="fas fa-shield-alt" style="margin-left:4px; color:#25d366;"></i>
+                    الأكواد صالحة لمدة 15 دقيقة، ويمكن للأدمن فحصها وإرسالها يدوياً للمستخدم عند الحاجة.
+                </span>
+                <button type="button" class="btn btn-secondary" onclick="closeAdminOTPModal()" style="padding:6px 16px; font-size:0.82rem;">إغلاق</button>
             </div>
         </div>
     </div>
@@ -12356,6 +12461,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     <i class="fas fa-bell-slash"></i>
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
+                </button>
+
+                <!-- Admin / Servant WhatsApp OTP Verification Checker -->
+                <button class="topbar-btn" id="adminOtpTopbarBtn" onclick="showAdminOTPModal()" title="أكواد التحقق (WhatsApp OTP)"
+                    style="display:<?php echo $showSettings ? 'flex' : 'none'; ?>; color:#25d366; position:relative;">
+                    <i class="fab fa-whatsapp"></i>
                 </button>
 
                 <!-- Admin / Church settings -->
@@ -29159,6 +29270,9 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     document.getElementById('pendingRegistrationsSection')?.scrollIntoView({ behavior: 'smooth' });
                 }, 1000);
             }
+            if (urlParams.get('tab') === 'otp' || window.location.hash === '#otp') {
+                setTimeout(() => showAdminOTPModal(), 500);
+            }
             checkTaskUrlParamsOnLoad();
         });
 
@@ -32767,10 +32881,405 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             url.searchParams.delete('kid_id');
             window.history.replaceState({}, '', url.toString());
         }
+
+        // ── ADMIN WHATSAPP OTP VERIFICATION TOOL ──────────────────────────────
+        let allAdminOTPs = [];
+        let currentAdminOtpFilter = 'all';
+
+        function showAdminOTPModal() {
+            const modal = document.getElementById('adminOTPModal');
+            if (!modal) return;
+            modal.classList.add('active');
+            stopAutoRefresh();
+            loadAdminOTPs();
+        }
+
+        function closeAdminOTPModal() {
+            const modal = document.getElementById('adminOTPModal');
+            if (modal) modal.classList.remove('active');
+            startAutoRefresh();
+        }
+
+        async function loadAdminOTPs(forceRefresh = false) {
+            const loading = document.getElementById('adminOtpLoading');
+            const empty = document.getElementById('adminOtpEmpty');
+            const list = document.getElementById('adminOtpList');
+            const refreshIcon = document.getElementById('adminOtpRefreshIcon');
+
+            if (loading) loading.style.display = 'block';
+            if (empty) empty.style.display = 'none';
+            if (list) list.style.display = 'none';
+            if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+            try {
+                const res = await fetch('/api.php?action=adminCheckUserOTP&limit=50', {
+                    cache: 'no-store'
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    showToast(data.message || 'تعذر تحميل بيانات الأكواد', 'error');
+                    allAdminOTPs = [];
+                } else {
+                    allAdminOTPs = data.records || [];
+                    if (forceRefresh) {
+                        showToast('تم تحديث قائمة الأكواد', 'success');
+                    }
+                }
+            } catch (err) {
+                console.error('[AdminOTP] Fetch error:', err);
+                showToast('حدث خطأ في الاتصال بالسيرفر', 'error');
+                allAdminOTPs = [];
+            } finally {
+                if (loading) loading.style.display = 'none';
+                if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+                updateAdminOtpCounts();
+                applyAdminOtpFilterAndSearch();
+            }
+        }
+
+        function updateAdminOtpCounts() {
+            const countAll = allAdminOTPs.length;
+            const countActive = allAdminOTPs.filter(i => !i.is_expired && !i.is_verified).length;
+            const countPending = allAdminOTPs.filter(i => !i.is_verified && !i.is_sent).length;
+            const countVerified = allAdminOTPs.filter(i => i.is_verified === 1).length;
+
+            const cAllEl = document.getElementById('countOtpAll');
+            const cActEl = document.getElementById('countOtpActive');
+            const cPenEl = document.getElementById('countOtpPending');
+            const cVerEl = document.getElementById('countOtpVerified');
+
+            if (cAllEl) cAllEl.textContent = countAll;
+            if (cActEl) cActEl.textContent = countActive;
+            if (cPenEl) cPenEl.textContent = countPending;
+            if (cVerEl) cVerEl.textContent = countVerified;
+        }
+
+        function setAdminOtpFilter(filterType, btn) {
+            currentAdminOtpFilter = filterType;
+            document.querySelectorAll('#adminOtpFilterTabs .admin-otp-filter-tab').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applyAdminOtpFilterAndSearch();
+        }
+
+        function filterAdminOTPs(val) {
+            const clearBtn = document.getElementById('clearAdminOtpSearchBtn');
+            if (clearBtn) clearBtn.style.display = val ? 'block' : 'none';
+            applyAdminOtpFilterAndSearch();
+        }
+
+        function clearAdminOtpSearch() {
+            const input = document.getElementById('adminOtpSearchInput');
+            if (input) input.value = '';
+            const clearBtn = document.getElementById('clearAdminOtpSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+            applyAdminOtpFilterAndSearch();
+        }
+
+        function applyAdminOtpFilterAndSearch() {
+            const searchInput = document.getElementById('adminOtpSearchInput');
+            const query = (searchInput ? searchInput.value : '').trim();
+
+            let filtered = allAdminOTPs;
+
+            // Status filter
+            if (currentAdminOtpFilter === 'active') {
+                filtered = filtered.filter(i => !i.is_expired && !i.is_verified);
+            } else if (currentAdminOtpFilter === 'pending') {
+                filtered = filtered.filter(i => !i.is_verified && !i.is_sent);
+            } else if (currentAdminOtpFilter === 'verified') {
+                filtered = filtered.filter(i => i.is_verified === 1);
+            }
+
+            // Intelligent search using getMatchScore
+            if (query) {
+                filtered = filtered.map(item => {
+                    let score = 0;
+                    if (typeof getMatchScore === 'function') {
+                        score = getMatchScore({
+                            name: item.owner_name || '',
+                            phone: item.phone || '',
+                            username: item.otp_code || ''
+                        }, query);
+                    } else {
+                        const q = query.toLowerCase();
+                        if ((item.phone && item.phone.includes(q)) ||
+                            (item.otp_code && item.otp_code.includes(q)) ||
+                            (item.owner_name && item.owner_name.toLowerCase().includes(q))) {
+                            score = 100;
+                        }
+                    }
+                    return { ...item, _score: score };
+                }).filter(item => item._score > 0)
+                  .sort((a, b) => b._score - a._score);
+            }
+
+            renderAdminOtpList(filtered);
+        }
+
+        function renderAdminOtpList(records) {
+            const list = document.getElementById('adminOtpList');
+            const empty = document.getElementById('adminOtpEmpty');
+            if (!list) return;
+
+            if (!records || records.length === 0) {
+                list.style.display = 'none';
+                if (empty) empty.style.display = 'block';
+                return;
+            }
+
+            if (empty) empty.style.display = 'none';
+            list.style.display = 'flex';
+
+            list.innerHTML = records.map(item => {
+                const minutesAgo = item.minutes_ago || 0;
+                let timeText = '';
+                if (minutesAgo === 0) timeText = 'الآن';
+                else if (minutesAgo === 1) timeText = 'منذ دقيقة';
+                else if (minutesAgo === 2) timeText = 'منذ دقيقتين';
+                else if (minutesAgo <= 10) timeText = `منذ ${minutesAgo} دقائق`;
+                else timeText = `منذ ${minutesAgo} دقيقة`;
+
+                let statusBadgeHtml = '';
+                if (item.is_verified === 1) {
+                    statusBadgeHtml = `<span style="background:rgba(22,163,74,0.12); color:#16a34a; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> تم التحقق بنجاح</span>`;
+                } else if (item.is_expired) {
+                    statusBadgeHtml = `<span style="background:rgba(107,114,128,0.12); color:#6b7280; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-clock"></i> منتهي الصلاحية</span>`;
+                } else if (item.is_sent === 1) {
+                    statusBadgeHtml = `<span style="background:rgba(37,211,102,0.12); color:#15803d; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fab fa-whatsapp"></i> أُرسل للبوت</span>`;
+                } else {
+                    statusBadgeHtml = `<span style="background:rgba(234,179,8,0.15); color:#b45309; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-hourglass-half"></i> في الانتظار</span>`;
+                }
+
+                const ownerBadge = item.owner_name ? `
+                    <span style="background:rgba(79,70,229,0.08); color:var(--brand); padding:2px 8px; border-radius:8px; font-size:0.76rem; font-weight:700;">
+                        ${item.owner_type === 'خادم' ? '✝️' : '👤'} ${item.owner_name} (${item.owner_type || 'مستخدم'})
+                    </span>` : '';
+
+                return `
+                    <div style="background:var(--surface); border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:14px 16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <span style="font-weight:800; font-size:0.95rem; color:var(--text-1); font-family:monospace; letter-spacing:0.5px; direction:ltr; text-align:left;">
+                                    ${item.phone}
+                                </span>
+                                ${ownerBadge}
+                                ${statusBadgeHtml}
+                            </div>
+                            <span style="font-size:0.74rem; color:var(--text-3);" title="${item.created_at || ''}">
+                                <i class="fas fa-clock" style="margin-left:3px;"></i> ${timeText}
+                            </span>
+                        </div>
+
+                        <!-- Big OTP display block -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border-radius:var(--r-sm); padding:10px 14px; border:1px solid var(--border-solid); flex-wrap:wrap; gap:10px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <span style="font-size:0.8rem; color:var(--text-3); font-weight:700;">كود التحقق:</span>
+                                <span style="font-family:monospace; font-size:1.45rem; font-weight:900; letter-spacing:4px; color:#15803d; direction:ltr; user-select:all;">
+                                    ${item.otp_code}
+                                </span>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button type="button" class="btn btn-outline" onclick="copyAdminOtpCode('${item.otp_code}', this)" style="padding:6px 12px; font-size:0.8rem; display:flex; align-items:center; gap:5px; border-radius:var(--r-sm);">
+                                    <i class="fas fa-copy"></i>
+                                    <span>نسخ الكود</span>
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="copyAdminOtpFullMessage('${item.id}', this)" style="padding:6px 10px; font-size:0.8rem; display:flex; align-items:center; gap:5px; border-radius:var(--r-sm);" title="نسخ رسالة الواتساب الجاهزة">
+                                    <i class="fas fa-comment-dots"></i>
+                                    <span>نسخ الرسالة</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Actions Strip -->
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; padding-top:4px;">
+                            <a href="${item.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn" style="background:#25d366; color:#fff; text-decoration:none; padding:7px 14px; font-size:0.84rem; font-weight:800; border-radius:var(--r-sm); display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(37,211,102,0.2);">
+                                <i class="fab fa-whatsapp" style="font-size:1rem;"></i>
+                                <span>إرسال يدوي عبر WhatsApp</span>
+                            </a>
+                            <button type="button" class="btn btn-outline" id="botResendBtn_${item.id}" onclick="resendAdminOtpViaBot(${item.id})" style="padding:7px 12px; font-size:0.84rem; color:#0284c7; border-color:rgba(2,132,199,0.3); display:inline-flex; align-items:center; gap:6px; border-radius:var(--r-sm);">
+                                <i class="fas fa-robot"></i>
+                                <span>إعادة إرسال بالبوت</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function copyAdminOtpCode(code, btn) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast(`تم نسخ الكود: ${code}`, 'success');
+                if (btn) {
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check" style="color:#16a34a;"></i> <span>تم النسخ</span>';
+                    setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
+                }
+            }).catch(() => {
+                showToast('تعذر نسخ الكود، يرجى نسخه يدوياً', 'warning');
+            });
+        }
+
+        function copyAdminOtpFullMessage(id, btn) {
+            const item = allAdminOTPs.find(i => String(i.id) === String(id));
+            if (!item) return;
+            const text = item.manual_message || `🔐 كود التحقق الخاص بك في مدارس الأحد هو: *${item.otp_code}*\n\n⏰ صالح لمدة 10 دقائق.`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('تم نسخ رسالة WhatsApp بالكامل', 'success');
+                if (btn) {
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check" style="color:#16a34a;"></i> <span>تم</span>';
+                    setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
+                }
+            }).catch(() => {
+                showToast('تعذر نسخ الرسالة', 'warning');
+            });
+        }
+
+        async function resendAdminOtpViaBot(otpId) {
+            const btn = document.getElementById(`botResendBtn_${otpId}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جاري الإرسال...</span>';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'adminResendUserOTP');
+                formData.append('id', otpId);
+
+                const res = await fetch('/api.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('تمت إعادة إدراج الكود في قائمة البوت وتنبيهه بنجاح', 'success');
+                    loadAdminOTPs();
+                } else {
+                    showToast(data.message || 'فشلت إعادة الإرسال', 'error');
+                }
+            } catch (e) {
+                console.error('[AdminOTP] Resend error:', e);
+                showToast('حدث خطأ في الاتصال بالخادم', 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-robot"></i> <span>إعادة إرسال بالبوت</span>';
+                }
+            }
+        }
+
+        function toggleNewOTPGenerator(show) {
+            const panel = document.getElementById('adminOtpGenPanel');
+            if (!panel) return;
+            const isCurrentlyOpen = panel.style.display !== 'none';
+            const shouldOpen = show !== undefined ? show : !isCurrentlyOpen;
+            panel.style.display = shouldOpen ? 'block' : 'none';
+            if (shouldOpen) {
+                const input = document.getElementById('adminGenPhoneInput');
+                if (input) input.focus();
+            }
+        }
+
+        async function submitAdminGenerateOTP() {
+            const phoneInput = document.getElementById('adminGenPhoneInput');
+            const submitBtn = document.getElementById('adminGenSubmitBtn');
+            const resultBox = document.getElementById('adminGenResultBox');
+            const phone = (phoneInput ? phoneInput.value : '').trim();
+
+            if (!phone) {
+                showToast('يرجى كتابة رقم الهاتف أولاً', 'warning');
+                if (phoneInput) phoneInput.focus();
+                return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التوليد...';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'adminResendUserOTP');
+                formData.append('phone', phone);
+
+                const res = await fetch('/api.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(`تم إنشاء الكود: ${data.otp_code}`, 'success');
+                    if (resultBox) {
+                        resultBox.style.display = 'block';
+                        resultBox.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                <div>
+                                    <div style="font-weight:800; color:#15803d; font-size:0.9rem;">
+                                        <i class="fas fa-check-circle"></i> تم توليد الكود بنجاح لرقم: <span dir="ltr">${data.phone}</span>
+                                    </div>
+                                    <div style="font-family:monospace; font-size:1.35rem; font-weight:900; letter-spacing:3px; color:#15803d; margin-top:4px;">
+                                        ${data.otp_code}
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <button type="button" class="btn btn-outline" onclick="copyAdminOtpCode('${data.otp_code}', this)" style="padding:6px 12px; font-size:0.82rem;">
+                                        <i class="fas fa-copy"></i> نسخ الكود
+                                    </button>
+                                    <a href="${data.manual_whatsapp_url}" target="_blank" rel="noopener" class="btn" style="background:#25d366; color:#fff; text-decoration:none; padding:6px 14px; font-size:0.82rem; font-weight:800; border-radius:var(--r-sm); display:inline-flex; align-items:center; gap:5px;">
+                                        <i class="fab fa-whatsapp"></i> فتح واتساب وإرسال
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    if (phoneInput) phoneInput.value = '';
+                    loadAdminOTPs();
+                } else {
+                    showToast(data.message || 'فشل توليد الكود', 'error');
+                }
+            } catch (e) {
+                console.error('[AdminOTP] Generate error:', e);
+                showToast('حدث خطأ أثناء توليد الكود', 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>توليد الكود</span> <i class="fas fa-paper-plane"></i>';
+                }
+            }
+        }
+
     </script>
 
     <!-- Standalone CSS styling and HTML Structure -->
     <style>
+        .admin-otp-filter-tab {
+            padding: 6px 14px;
+            border-radius: var(--r-full, 9999px);
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .admin-otp-filter-tab:hover {
+            background: var(--surface-3);
+            color: var(--text-1);
+        }
+        .admin-otp-filter-tab.active {
+            background: #15803d !important;
+            color: #ffffff !important;
+            border-color: #15803d !important;
+            box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+        }
+
         .standalone-full-screen-container {
             position: fixed;
             inset: 0;

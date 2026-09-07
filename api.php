@@ -4812,6 +4812,14 @@ try {
 
             break;
 
+        case 'adminCheckUserOTP':
+            adminCheckUserOTP();
+            break;
+
+        case 'adminResendUserOTP':
+            adminResendUserOTP();
+            break;
+
         case 'verifyAndGetOTPToken':
 
             verifyAndGetOTPToken();
@@ -20132,6 +20140,291 @@ function markOTPSent() {
         sendJSON(['success' => true, 'id' => $id]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+/**
+ * Check if the current user has permission to manage OTP verifications.
+ * Allowed: admins, developers, church accounts, or logged-in servants in dashboard.
+ */
+function canAdminManageOTP(): bool {
+    if (isAdminOrDevRole()) return true;
+    if (!empty($_SESSION['uncle_id']) || !empty($_SESSION['church_id']) || !empty($_SESSION['uncle_logged_in']) || !empty($_SESSION['loggedIn'])) {
+        return true;
+    }
+    if (autoRestoreSessionFromRequest()) {
+        if (isAdminOrDevRole() || !empty($_SESSION['uncle_id']) || !empty($_SESSION['church_id']) || !empty($_SESSION['uncle_logged_in'])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Admin Check User OTP:
+ * Allows admins and servants to inspect user OTP verification records,
+ * view the active 6-digit code, status, timestamps, and get a direct
+ * one-click manual WhatsApp send URL.
+ */
+function adminCheckUserOTP() {
+    try {
+        if (!canAdminManageOTP()) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بالوصول. يرجى تسجيل الدخول كمسؤول أو خادم.']);
+        }
+
+        $phone = sanitize($_REQUEST['phone'] ?? $_REQUEST['q'] ?? '');
+        $limit = min(60, max(1, intval($_REQUEST['limit'] ?? 25)));
+
+        $conn = getDBConnection();
+        $records = [];
+
+        if (!empty($phone)) {
+            $cleanDigits = preg_replace('/[^\d]/', '', $phone);
+            $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
+            $normalized = normalizeEgyptianPhone($cleanDigits);
+
+            $stmt = $conn->prepare("
+                SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
+                       TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
+                FROM phone_verifications
+                WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ? OR phone = ? OR request_token = ? OR otp_code = ?)
+                ORDER BY id DESC LIMIT ?
+            ");
+            $stmt->bind_param("ssssssi", $last8, $cleanDigits, $cleanDigits, $normalized, $phone, $phone, $limit);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            while ($row = $res->fetch_assoc()) {
+                $records[] = $row;
+            }
+            $stmt->close();
+        } else {
+            $stmt = $conn->prepare("
+                SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
+                       TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
+                FROM phone_verifications
+                ORDER BY id DESC LIMIT ?
+            ");
+            $stmt->bind_param("i", $limit);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            while ($row = $res->fetch_assoc()) {
+                $records[] = $row;
+            }
+            $stmt->close();
+        }
+
+        foreach ($records as &$item) {
+            $item['id'] = intval($item['id']);
+            $item['is_verified'] = intval($item['is_verified'] ?? 0);
+            $item['is_sent'] = intval($item['is_sent'] ?? 0);
+            $item['minutes_ago'] = intval($item['minutes_ago'] ?? 0);
+            $item['is_expired'] = ($item['minutes_ago'] > 15);
+
+            $normPhone = normalizeEgyptianPhone($item['phone']);
+            $item['normalized_phone'] = $normPhone;
+
+            // Try to look up person name from students or uncles
+            $ownerName = '';
+            $ownerType = '';
+            $sClean = preg_replace('/[^\d]/', '', $item['phone']);
+            $sLast8 = (strlen($sClean) >= 8) ? substr($sClean, -8) : $sClean;
+
+            if (!empty($sClean)) {
+                $stuStmt = $conn->prepare("SELECT name FROM students WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR parent_phone LIKE CONCAT('%', ?) OR RIGHT(parent_phone, 8) = RIGHT(?, 8)) LIMIT 1");
+                if ($stuStmt) {
+                    $stuStmt->bind_param("ssss", $sLast8, $sClean, $sLast8, $sClean);
+                    $stuStmt->execute();
+                    $sRes = $stuStmt->get_result();
+                    if ($sRow = $sRes->fetch_assoc()) {
+                        $ownerName = $sRow['name'];
+                        $ownerType = 'طالب';
+                    }
+                    $stuStmt->close();
+                }
+
+                if (empty($ownerName)) {
+                    $uncStmt = $conn->prepare("SELECT name FROM uncles WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8)) LIMIT 1");
+                    if ($uncStmt) {
+                        $uncStmt->bind_param("ss", $sLast8, $sClean);
+                        $uncStmt->execute();
+                        $uRes = $uncStmt->get_result();
+                        if ($uRow = $uRes->fetch_assoc()) {
+                            $ownerName = $uRow['name'];
+                            $ownerType = 'خادم';
+                        }
+                        $uncStmt->close();
+                    }
+                }
+            }
+
+            $item['owner_name'] = $ownerName;
+            $item['owner_type'] = $ownerType;
+
+            if ($item['is_verified'] === 1) {
+                $item['status_badge'] = 'verified';
+                $item['status_text'] = 'تم التحقق بنجاح ✅';
+            } elseif ($item['is_expired']) {
+                $item['status_badge'] = 'expired';
+                $item['status_text'] = 'منتهي الصلاحية ⏱️';
+            } elseif ($item['is_sent'] === 1) {
+                $item['status_badge'] = 'sent';
+                $item['status_text'] = 'أُرسل عبر البوت 📲';
+            } else {
+                $item['status_badge'] = 'pending';
+                $item['status_text'] = 'في انتظار البوت ⏳';
+            }
+
+            $msgText = "🔐 كود التحقق الخاص بك في مدارس الأحد هو: *" . $item['otp_code'] . "*\n\n⏰ صالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            $item['manual_message'] = $msgText;
+            $item['manual_whatsapp_url'] = "https://api.whatsapp.com/send?phone=" . $normPhone . "&text=" . rawurlencode($msgText);
+        }
+        unset($item);
+
+        sendJSON([
+            'success' => true,
+            'count' => count($records),
+            'records' => $records
+        ]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Admin Resend User OTP or Generate fresh code:
+ * Resets is_sent=0 and wakes the WhatsApp bot, with testing-to-production mirroring.
+ */
+function adminResendUserOTP() {
+    try {
+        if (!canAdminManageOTP()) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بالوصول. يرجى تسجيل الدخول كمسؤول أو خادم.']);
+        }
+
+        $id = intval($_REQUEST['id'] ?? 0);
+        $phone = sanitize($_REQUEST['phone'] ?? '');
+        $conn = getDBConnection();
+
+        if ($id > 0) {
+            $stmt = $conn->prepare("SELECT id, phone, otp_code, request_token FROM phone_verifications WHERE id = ? LIMIT 1");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $row = $res->fetch_assoc();
+            $stmt->close();
+
+            if (!$row) {
+                sendJSON(['success' => false, 'message' => 'طلب التحقق غير موجود']);
+            }
+
+            $otp = $row['otp_code'];
+            $reqPhone = $row['phone'];
+            $token = $row['request_token'];
+            $normalizedPhone = normalizeEgyptianPhone($reqPhone);
+
+            // Reset is_sent = 0, created_at = NOW()
+            $uStmt = $conn->prepare("UPDATE phone_verifications SET is_sent = 0, is_verified = 0, created_at = NOW() WHERE id = ?");
+            $uStmt->bind_param("i", $id);
+            $uStmt->execute();
+            $uStmt->close();
+
+            // If on testing, mirror to production queue
+            $isTestingServer = (
+                strpos($_SERVER['HTTP_HOST'] ?? '', 'testing.') !== false ||
+                strpos(__DIR__, '/testing') !== false
+            );
+            if ($isTestingServer) {
+                $mCh = curl_init('https://sunday-school.online/api.php');
+                $mirrorFields = [
+                    'action' => 'enqueueMirrorOTP',
+                    'phone' => $normalizedPhone,
+                    'otp_code' => $otp,
+                    'request_token' => $token
+                ];
+                curl_setopt_array($mCh, [
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => http_build_query($mirrorFields),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 5,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false
+                ]);
+                curl_exec($mCh);
+                curl_close($mCh);
+            }
+
+            // Wake the bot
+            $wakeResult = notifyWhatsAppOTPPending($id);
+
+            $msgText = "🔐 كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\n⏰ صالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+
+            sendJSON([
+                'success' => true,
+                'message' => 'تمت إعادة إدراج الكود في قائمة الإرسال وتنبيه البوت',
+                'id' => $id,
+                'phone' => $normalizedPhone,
+                'otp_code' => $otp,
+                'wake' => $wakeResult['success'] ?? false,
+                'manual_whatsapp_url' => "https://api.whatsapp.com/send?phone=" . $normalizedPhone . "&text=" . rawurlencode($msgText),
+                'manual_message' => $msgText
+            ]);
+        } elseif (!empty($phone)) {
+            $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+            $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
+            if (empty($normalizedPhone)) {
+                sendJSON(['success' => false, 'message' => 'رقم الهاتف غير صالح']);
+            }
+
+            $otp = sprintf("%06d", mt_rand(100000, 999999));
+            $requestToken = 'REQ-' . strtoupper(bin2hex(random_bytes(4)));
+
+            $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+            $stmt->bind_param("sss", $normalizedPhone, $requestToken, $otp);
+            $stmt->execute();
+            $newId = intval($conn->insert_id ?: $stmt->insert_id);
+            $stmt->close();
+
+            $isTestingServer = (
+                strpos($_SERVER['HTTP_HOST'] ?? '', 'testing.') !== false ||
+                strpos(__DIR__, '/testing') !== false
+            );
+            if ($isTestingServer) {
+                $mCh = curl_init('https://sunday-school.online/api.php');
+                $mirrorFields = [
+                    'action' => 'enqueueMirrorOTP',
+                    'phone' => $normalizedPhone,
+                    'otp_code' => $otp,
+                    'request_token' => $requestToken
+                ];
+                curl_setopt_array($mCh, [
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => http_build_query($mirrorFields),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 5,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false
+                ]);
+                curl_exec($mCh);
+                curl_close($mCh);
+            }
+
+            $wakeResult = notifyWhatsAppOTPPending($newId);
+            $msgText = "🔐 كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\n⏰ صالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+
+            sendJSON([
+                'success' => true,
+                'message' => 'تم توليد كود جديد وإضافته لقائمة الإرسال بنجاح',
+                'id' => $newId,
+                'phone' => $normalizedPhone,
+                'otp_code' => $otp,
+                'wake' => $wakeResult['success'] ?? false,
+                'manual_whatsapp_url' => "https://api.whatsapp.com/send?phone=" . $normalizedPhone . "&text=" . rawurlencode($msgText),
+                'manual_message' => $msgText
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'يرجى تحديد المعرف أو رقم الهاتف']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
