@@ -20319,19 +20319,11 @@ function adminCheckUserOTP() {
             }
 
             // Pending registrations
-            $prQ = $conn->query("SELECT phone, parent_phones FROM pending_registrations WHERE church_id = {$churchId}");
+            $prQ = @$conn->query("SELECT phone FROM pending_registrations WHERE church_id = {$churchId} AND phone IS NOT NULL AND phone != ''");
             if ($prQ) {
                 while ($pr = $prQ->fetch_assoc()) {
                     $p = preg_replace('/[^\d]/', '', $pr['phone'] ?? '');
                     if (strlen($p) >= 8) $churchPhoneLast8[substr($p, -8)] = true;
-                    if (!empty($pr['parent_phones'])) {
-                        preg_match_all('/\d{8,}/', $pr['parent_phones'], $matches);
-                        if (!empty($matches[0])) {
-                            foreach ($matches[0] as $m) {
-                                $churchPhoneLast8[substr($m, -8)] = true;
-                            }
-                        }
-                    }
                 }
             }
 
