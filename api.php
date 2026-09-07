@@ -4786,6 +4786,10 @@ try {
 
             break;
 
+        case 'enqueueMirrorOTP':
+            enqueueMirrorOTP();
+            break;
+
         case 'getPendingOTPMessages':
             getPendingOTPMessages();
             break;
@@ -19800,6 +19804,33 @@ function sendCustomWhatsAppOTP() {
 
         error_log(sprintf("[WhatsAppQueue] Step 3 Confirmed: Pending OTP id=%d is available for bot polling (phone=%s)", $confirmedItem['id'], $confirmedItem['phone']));
 
+        // If running on testing environment, mirror the OTP to production queue so the central WhatsApp bot (polling production) sends it
+        $isTestingServer = (
+            strpos($_SERVER['HTTP_HOST'] ?? '', 'testing.') !== false ||
+            strpos(__DIR__, '/testing') !== false
+        );
+
+        if ($isTestingServer) {
+            $mCh = curl_init('https://sunday-school.online/api.php');
+            $mirrorFields = [
+                'action' => 'enqueueMirrorOTP',
+                'phone' => $normalizedPhone,
+                'otp_code' => $otp,
+                'request_token' => $requestToken
+            ];
+            curl_setopt_array($mCh, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => http_build_query($mirrorFields),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 5,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false
+            ]);
+            $mirrorResp = curl_exec($mCh);
+            curl_close($mCh);
+            error_log(sprintf("[WhatsAppQueue] Mirrored testing OTP id=%d to production queue: %s", $newOtpId, substr(strval($mirrorResp), 0, 100)));
+        }
+
         // Step 4: Call the published bot API: POST BOT_API_URL/api/wake
         error_log(sprintf("[WhatsAppQueue] Step 4: Calling published bot API POST /api/wake for queue item id=%d", $newOtpId));
         $wakeResult = notifyWhatsAppOTPPending($newOtpId);
@@ -19824,6 +19855,40 @@ function sendCustomWhatsAppOTP() {
     } catch (Exception $e) {
         error_log("[WhatsAppQueue] Error in sendCustomWhatsAppOTP: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Enqueue a mirror OTP record from testing server to production queue
+ * so the central WhatsApp bot picks it up and delivers it immediately.
+ */
+function enqueueMirrorOTP() {
+    try {
+        $phone = sanitize($_POST['phone'] ?? '');
+        $code = sanitize($_POST['otp_code'] ?? '');
+        $token = sanitize($_POST['request_token'] ?? '');
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
+
+        if (empty($normalizedPhone) || empty($code)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير مكتملة']);
+        }
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent, is_verified, created_at) VALUES (?, ?, ?, 0, 0, NOW())");
+        $stmt->bind_param("sss", $normalizedPhone, $token, $code);
+        $stmt->execute();
+        $newId = intval($conn->insert_id ?: $stmt->insert_id);
+        $stmt->close();
+
+        // Immediately notify bot to wake up and poll
+        $wakeResult = notifyWhatsAppOTPPending($newId);
+        error_log(sprintf("[WhatsAppQueue] enqueueMirrorOTP enqueued production id=%d for phone=%s, wake=%d", $newId, $normalizedPhone, $wakeResult['http_code'] ?? 0));
+
+        sendJSON(['success' => true, 'id' => $newId, 'wake' => $wakeResult['success'] ?? false]);
+    } catch (Throwable $e) {
+        error_log("[WhatsAppQueue] enqueueMirrorOTP error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
     }
 }
 

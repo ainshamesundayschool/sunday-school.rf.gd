@@ -719,8 +719,10 @@
 
     <script>
         // Global variables
-        const isTestingEnv = window.location.pathname.indexOf('/testing/') !== -1;
-        const API_URL = isTestingEnv ? '/testing/api.php' : '/api.php';
+        const isTestingSubdir = window.location.pathname.indexOf('/testing/') !== -1;
+        const isTestingDomain = window.location.hostname.indexOf('testing.') !== -1;
+        const isTestingEnv = isTestingSubdir || isTestingDomain;
+        const API_URL = isTestingSubdir ? '/testing/api.php' : '/api.php';
 
         let currentLoginType = 'phone';
         let phoneLoginHasPassword = false;
