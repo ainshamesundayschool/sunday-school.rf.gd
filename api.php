@@ -43072,7 +43072,7 @@ function createTask()
 
         $stmt->bind_param(
 
-            'iiisssssiisiissssiiiiiiss',
+            'iiisssssiisiissssiiiiiss',
 
             $churchId,
 
@@ -43669,7 +43669,7 @@ function updateTask()
 
         $stmt->bind_param(
 
-            'isssssiisiissssiiiiiissii',
+            'isssssiisiissssiiiiissii',
 
             $classId,
 
