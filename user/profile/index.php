@@ -7820,20 +7820,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const pills = [];
       if (s.class) pills.push({ bg: '#e0e7ff', c: '#4338ca', icon: 'fas fa-graduation-cap', lbl: 'الفصل', val: s.class });
       if (!isPublic) {
-        if (s.phone) pills.push({ bg: '#d1fae5', c: '#065f46', icon: 'fas fa-phone', lbl: 'التليفون', val: s.phone });
+        const displayedPhones = new Set();
+        const relLabels = {
+          'father': 'الأب', 'mother': 'الأم', 'brother': 'الأخ', 'sister': 'الأخت',
+          'grandfather': 'الجد', 'grandmother': 'الجدة', 'uncle': 'عم / خال',
+          'aunt': 'عمة / خالة', 'guardian': 'ولي أمر', 'self': 'شخصي', 'personal': 'شخصي', 'other': 'أخرى'
+        };
         if (s.parent_phones && s.parent_phones.length > 0) {
-          const relLabels = {
-            'father': 'أب', 'mother': 'أم', 'brother': 'أخ', 'sister': 'أخت',
-            'grandfather': 'جد', 'grandmother': 'جدة', 'uncle': 'عم / خال',
-            'aunt': 'عمة / خالة', 'guardian': 'ولي أمر', 'other': 'أخرى'
-          };
           s.parent_phones.forEach(p => {
+            if (!p.phone) return;
+            const cleanP = String(p.phone).replace(/\D/g, '');
+            displayedPhones.add(cleanP);
             const rel = (p.relation === 'other' && p.custom_relation) ? p.custom_relation : (relLabels[p.relation] || p.relation || 'ولي أمر');
             const nameStr = p.name ? ` (${p.name})` : '';
             pills.push({ bg: '#ecfdf5', c: '#047857', icon: 'fas fa-phone-alt', lbl: `هاتف ${rel}${nameStr}`, val: p.phone });
           });
-        } else if (s.emergency_phone) {
-          pills.push({ bg: '#ecfdf5', c: '#047857', icon: 'fas fa-phone-alt', lbl: 'هاتف الطوارئ', val: s.emergency_phone });
+        }
+        if (s.phone) {
+          const cleanMain = String(s.phone).replace(/\D/g, '');
+          if (!displayedPhones.has(cleanMain)) {
+            const rawLbl = (s.custom_info && (s.custom_info.phone_custom_label || s.custom_info.phone_label)) || 'father';
+            const ownerRel = relLabels[rawLbl] || rawLbl || 'الأب (ولي الأمر)';
+            const lblStr = ownerRel.startsWith('هاتف') ? ownerRel : `هاتف ${ownerRel}`;
+            pills.push({ bg: '#d1fae5', c: '#065f46', icon: 'fas fa-phone', lbl: lblStr, val: s.phone });
+            displayedPhones.add(cleanMain);
+          }
+        }
+        if (s.emergency_phone) {
+          const cleanEmerg = String(s.emergency_phone).replace(/\D/g, '');
+          if (!displayedPhones.has(cleanEmerg)) {
+            pills.push({ bg: '#ecfdf5', c: '#047857', icon: 'fas fa-phone-alt', lbl: 'هاتف طوارئ', val: s.emergency_phone });
+            displayedPhones.add(cleanEmerg);
+          }
         }
         if (s.address) pills.push({ bg: '#ffedd5', c: '#9a3412', icon: 'fas fa-map-marker-alt', lbl: 'العنوان', val: s.address });
         if (s.birthday) pills.push({ bg: '#fce7f3', c: '#9d174d', icon: 'fas fa-birthday-cake', lbl: 'عيد الميلاد', val: s.birthday });

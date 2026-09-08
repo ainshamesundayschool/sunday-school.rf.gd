@@ -7869,21 +7869,21 @@
                                         <label class="form-label" style="font-size:0.8rem;"><i class="fas fa-phone-alt" style="margin-left:4px;color:var(--primary);"></i>رقم الهاتف الأساسي</label>
                                         <div style="display:grid; grid-template-columns:1fr 1.3fr; gap:6px;">
                                             <select id="addKidPhoneType" class="form-select" style="font-size:0.8rem;height:34px;" onchange="handleMainPhoneTypeChange(this, 'addKidPhoneCustomType')">
-                                                <option value="personal">رقمه الشخصي</option>
-                                                <option value="father">هاتف الأب</option>
+                                                <option value="father" selected>هاتف الأب (ولي الأمر)</option>
                                                 <option value="mother">هاتف الأم</option>
+                                                <option value="guardian">هاتف ولي الأمر</option>
+                                                <option value="personal">رقمه الشخصي</option>
                                                 <option value="brother">هاتف الأخ</option>
                                                 <option value="sister">هاتف الأخت</option>
-                                                <option value="guardian">هاتف ولي الأمر</option>
                                                 <option value="other">أخرى (مخصص)</option>
                                             </select>
                                             <input type="tel" id="addKidPhone" class="form-input" placeholder="مثال: 01xxxxxxxxx" style="font-size:0.8rem;height:34px;" dir="ltr">
                                         </div>
-                                        <input type="text" id="addKidPhoneCustomType" class="form-input" placeholder="اكتب صلة صاحب الرقم الأساسي..." style="display:none; font-size:0.8rem; height:32px; margin-top:4px;">
+                                        <input type="text" id="addKidPhoneCustomType" class="form-input" placeholder="اكتب صلة صاحب الرقم..." style="display:none; font-size:0.8rem; height:32px; margin-top:4px;">
                                     </div>
                                     <div class="form-group" style="grid-column:1/-1;">
                                         <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:6px;">
-                                            <span><i class="fas fa-users" style="margin-left:4px;color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال الأخرى</span>
+                                            <span><i class="fas fa-phone-alt" style="margin-left:4px;color:var(--primary);"></i>أرقام هواتف إضافية</span>
                                         </label>
                                         
                                         <!-- Interactive Adder Box -->

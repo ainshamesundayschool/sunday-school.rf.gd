@@ -13832,12 +13832,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                         <div class="input-icon-wrap" style="flex:1; min-width:140px;">
                             <i class="fas fa-user-tag input-icon"></i>
                             <select id="editStudentPhoneType" class="form-input" onchange="handleMainPhoneTypeChange(this, 'editStudentPhoneCustomType')">
-                                <option value="personal">رقمه الشخصي</option>
-                                <option value="father">هاتف الأب</option>
+                                <option value="father" selected>هاتف الأب (ولي الأمر)</option>
                                 <option value="mother">هاتف الأم</option>
+                                <option value="guardian">هاتف ولي الأمر</option>
+                                <option value="personal">رقمه الشخصي</option>
                                 <option value="brother">هاتف الأخ</option>
                                 <option value="sister">هاتف الأخت</option>
-                                <option value="guardian">هاتف ولي الأمر</option>
                                 <option value="other">أخرى (مخصص)</option>
                             </select>
                         </div>
@@ -13845,12 +13845,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             <i class="fas fa-phone input-icon"></i>
                             <input type="tel" id="editStudentPhone" class="form-input" placeholder="01xxxxxxxxx" dir="ltr">
                         </div>
-                        <input type="text" id="editStudentPhoneCustomType" class="form-input" placeholder="اكتب صلة القرابة..." style="width:100%; margin-top:4px; display:none;">
+                        <input type="text" id="editStudentPhoneCustomType" class="form-input" placeholder="اكتب صلة صاحب الرقم..." style="width:100%; margin-top:4px; display:none;">
                     </div>
                 </div>
                 <div class="form-group" style="grid-column:1/-1;" id="editEmergencyPhoneGroup">
                     <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span><i class="fas fa-users" style="margin-left:6px; color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال الإضافية</span>
+                        <span><i class="fas fa-phone-alt" style="margin-left:6px; color:var(--primary);"></i>أرقام هواتف إضافية</span>
                     </label>
                     <!-- Quick Add Box for additional parent contacts -->
                     <div style="background:var(--surface-2, rgba(255,255,255,0.05)); border:1px dashed var(--primary); border-radius:10px; padding:12px; margin-bottom:10px;">
@@ -14130,12 +14130,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                         <div class="input-icon-wrap" style="flex:1; min-width:140px;">
                             <i class="fas fa-user-tag input-icon"></i>
                             <select id="studentPhoneType" class="form-input" onchange="handleMainPhoneTypeChange(this, 'studentPhoneCustomType')">
-                                <option value="personal">رقمه الشخصي</option>
-                                <option value="father">هاتف الأب</option>
+                                <option value="father" selected>هاتف الأب (ولي الأمر)</option>
                                 <option value="mother">هاتف الأم</option>
+                                <option value="guardian">هاتف ولي الأمر</option>
+                                <option value="personal">رقمه الشخصي</option>
                                 <option value="brother">هاتف الأخ</option>
                                 <option value="sister">هاتف الأخت</option>
-                                <option value="guardian">هاتف ولي الأمر</option>
                                 <option value="other">أخرى (مخصص)</option>
                             </select>
                         </div>
@@ -14143,12 +14143,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             <i class="fas fa-phone input-icon"></i>
                             <input type="tel" id="studentPhone" class="form-input" placeholder="01xxxxxxxxx" dir="ltr">
                         </div>
-                        <input type="text" id="studentPhoneCustomType" class="form-input" placeholder="اكتب صلة القرابة..." style="width:100%; margin-top:4px; display:none;">
+                        <input type="text" id="studentPhoneCustomType" class="form-input" placeholder="اكتب صلة صاحب الرقم..." style="width:100%; margin-top:4px; display:none;">
                     </div>
                 </div>
                 <div class="form-group" style="grid-column:1/-1;" id="studentEmergencyPhoneGroup">
                     <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span><i class="fas fa-users" style="margin-left:6px; color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال الإضافية</span>
+                        <span><i class="fas fa-phone-alt" style="margin-left:6px; color:var(--primary);"></i>أرقام هواتف إضافية</span>
                     </label>
                     <!-- Quick Add Box for additional parent contacts -->
                     <div style="background:var(--surface-2, rgba(255,255,255,0.05)); border:1px dashed var(--primary); border-radius:10px; padding:12px; margin-bottom:10px;">

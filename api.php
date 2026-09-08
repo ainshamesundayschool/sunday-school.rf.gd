@@ -8029,6 +8029,105 @@ function normalizeParentPhones($rawInput, string $fallbackEmergencyPhone = '', s
     return $valid;
 }
 
+function findStudentsByPhoneOrSiblings($conn, $phone, $includeSiblings = true): array
+{
+    $phoneStr = (string)$phone;
+    $cleanPhone = cleanPhoneNumber($phoneStr);
+    $rawDigits = preg_replace('/[^\d]/', '', $phoneStr);
+    if (empty($cleanPhone) && empty($rawDigits)) {
+        return [];
+    }
+
+    $lookupNum = !empty($cleanPhone) ? $cleanPhone : $rawDigits;
+    $last10 = (strlen($lookupNum) >= 10) ? substr($lookupNum, -10) : $lookupNum;
+    $last9 = (strlen($lookupNum) >= 9) ? substr($lookupNum, -9) : $lookupNum;
+    $withZero = (strlen($last10) === 10 && $last10[0] !== '0') ? ('0' . $last10) : $lookupNum;
+
+    $selectFields = "
+        s.id, s.name, s.address, s.phone, s.emergency_phone, s.parent_phones, s.birthday, s.email,
+        s.coupons, s.attendance_coupons, s.commitment_coupons, s.task_coupons,
+        s.image_url, s.church_id, s.class_id, s.custom_info, s.password_hash, s.gender, s.trip_points,
+        c.church_name,
+        COALESCE(c.church_type, 'kids') AS church_type,
+        COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
+    ";
+
+    $sql = "
+        SELECT {$selectFields}
+        FROM students s
+        LEFT JOIN churches c  ON s.church_id = c.id
+        LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
+        LEFT JOIN classes cl  ON cl.id = s.class_id
+        WHERE (
+            s.phone = ? OR RIGHT(s.phone, 10) = ? OR s.phone LIKE CONCAT('%', ?) OR s.phone = ?
+            OR s.emergency_phone = ? OR RIGHT(s.emergency_phone, 10) = ? OR s.emergency_phone LIKE CONCAT('%', ?) OR s.emergency_phone = ?
+            OR s.parent_phones LIKE CONCAT('%', ?, '%') OR s.parent_phones LIKE CONCAT('%', ?, '%') OR s.parent_phones LIKE CONCAT('%', ?, '%')
+            OR s.custom_info LIKE CONCAT('%', ?, '%') OR s.custom_info LIKE CONCAT('%', ?, '%') OR s.custom_info LIKE CONCAT('%', ?, '%')
+        )
+    ";
+
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        error_log("findStudentsByPhoneOrSiblings prepare failed: " . $conn->error);
+        return [];
+    }
+
+    $stmt->bind_param(
+        "ssssssssssssss",
+        $lookupNum, $last10, $last9, $withZero,
+        $lookupNum, $last10, $last9, $withZero,
+        $last10, $withZero, $last9,
+        $last10, $withZero, $last9
+    );
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    $students = [];
+    $studentIds = [];
+    while ($row = $res->fetch_assoc()) {
+        $row['class'] = $row['class'] ?? '---';
+        $students[$row['id']] = $row;
+        $studentIds[] = (int)$row['id'];
+    }
+
+    // Check sibling groups in student_sibling_group_members
+    if ($includeSiblings && !empty($studentIds)) {
+        $idList = implode(',', $studentIds);
+        $grpRes = @$conn->query("SELECT DISTINCT group_id FROM student_sibling_group_members WHERE student_id IN ({$idList})");
+        if ($grpRes && $grpRes->num_rows > 0) {
+            $groupIds = [];
+            while ($gr = $grpRes->fetch_assoc()) {
+                if (!empty($gr['group_id'])) {
+                    $groupIds[] = "'" . $conn->real_escape_string($gr['group_id']) . "'";
+                }
+            }
+            if (!empty($groupIds)) {
+                $grpIn = implode(',', $groupIds);
+                $sibSql = "
+                    SELECT {$selectFields}
+                    FROM student_sibling_group_members ssgm
+                    INNER JOIN students s ON s.id = ssgm.student_id
+                    LEFT JOIN churches c  ON s.church_id = c.id
+                    LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
+                    LEFT JOIN classes cl  ON cl.id = s.class_id
+                    WHERE ssgm.group_id IN ({$grpIn})
+                ";
+                $sibRes = @$conn->query($sibSql);
+                if ($sibRes) {
+                    while ($sRow = $sibRes->fetch_assoc()) {
+                        $sRow['class'] = $sRow['class'] ?? '---';
+                        if (!isset($students[$sRow['id']])) {
+                            $students[$sRow['id']] = $sRow;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return $students;
+}
+
 function linkTempIdToStudent()
 {
     global $conn;
@@ -11448,237 +11547,50 @@ function deleteAnnouncement()
 
 
 function getStudentByPhone()
-
 {
-
     try {
-
         $phone = sanitize($_POST['phone'] ?? $_GET['phone'] ?? '');
-
-
-
-        if (empty($phone)) {
-
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
-
-        }
-
-
-
-        // Clean the phone number - remove all non-numeric characters
-
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
 
-
-
-        // Log for debugging
+        if (empty($cleanPhone)) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب', 'data' => []]);
+            return;
+        }
 
         error_log("Searching for phone: $phone (cleaned: $cleanPhone)");
 
-
-
         $conn = getDBConnection();
-
-
-
-        $stmt = $conn->prepare("
-
-            SELECT 
-
-                s.id, s.name, s.address, s.phone, s.birthday,
-
-                s.coupons, s.attendance_coupons, s.commitment_coupons,
-
-                s.image_url, s.church_id, s.class_id,
-
-                c.church_name,
-
-                cl.arabic_name as class
-
-            FROM students s
-
-            LEFT JOIN churches c ON s.church_id = c.id
-
-            LEFT JOIN classes cl ON s.class_id = cl.id
-
-            WHERE s.phone = ? 
-
-               OR s.phone LIKE CONCAT('%', ?)
-
-               OR REPLACE(s.phone, '''', '') = ?
-
-               OR REPLACE(s.phone, '''', '') LIKE CONCAT('%', ?)
-
-               OR REPLACE(REPLACE(s.phone, '''', ''), ' ', '') = ?
-
-               OR REPLACE(REPLACE(s.phone, '''', ''), ' ', '') LIKE CONCAT('%', ?)
-
-        ");
-
-
-
-        $stmt->bind_param(
-
-            "ssssss",
-
-            $cleanPhone,
-
-            $cleanPhone,
-
-            $cleanPhone,
-
-            $cleanPhone,
-
-            $cleanPhone,
-
-            $cleanPhone
-
-        );
-
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-
-
+        $candidates = findStudentsByPhoneOrSiblings($conn, $phone, true);
 
         $students = [];
-
-        while ($row = $result->fetch_assoc()) {
-
-            // تنسيق تاريخ الميلاد
-
-            $row['birthday'] = formatDateFromDB($row['birthday']);
-
-
-
+        foreach ($candidates as $row) {
+            $row['birthday'] = formatDateFromDB($row['birthday'] ?? '');
+            unset($row['password_hash']);
             $students[] = $row;
-
         }
-
-
 
         error_log("Found " . count($students) . " students for phone: $cleanPhone");
 
-
-
         if (count($students) > 0) {
-
+            $vals = array_values($students);
             sendJSON([
-
                 'success' => true,
-
-                'data' => $students,
-
+                'data' => $vals,
+                'users' => $vals,
+                'user' => $vals[0],
                 'message' => 'تم العثور على ' . count($students) . ' طفل'
-
             ]);
-
         } else {
-
-            // Try one more time with just the last 9 digits
-
-            $last9Digits = substr($cleanPhone, -9);
-
-            if (strlen($last9Digits) >= 9) {
-
-                error_log("Trying with last 9 digits: $last9Digits");
-
-
-
-                $stmt2 = $conn->prepare("
-
-                    SELECT 
-
-                        s.id, s.name, s.address, s.phone, s.birthday,
-
-                        s.coupons, s.attendance_coupons, s.commitment_coupons,
-
-                        s.image_url, s.church_id, s.class_id,
-
-                        c.church_name,
-
-                        cl.arabic_name as class
-
-                    FROM students s
-
-                    LEFT JOIN churches c ON s.church_id = c.id
-
-                    LEFT JOIN classes cl ON s.class_id = cl.id
-
-                    WHERE s.phone LIKE CONCAT('%', ?)
-
-                       OR REPLACE(s.phone, '''', '') LIKE CONCAT('%', ?)
-
-                ");
-
-
-
-                $stmt2->bind_param("ss", $last9Digits, $last9Digits);
-
-                $stmt2->execute();
-
-                $result2 = $stmt2->get_result();
-
-
-
-                $students2 = [];
-
-                while ($row = $result2->fetch_assoc()) {
-
-                    $row['birthday'] = formatDateFromDB($row['birthday']);
-
-
-
-                    $students2[] = $row;
-
-                }
-
-
-
-                if (count($students2) > 0) {
-
-                    sendJSON([
-
-                        'success' => true,
-
-                        'data' => $students2,
-
-                        'message' => 'تم العثور على ' . count($students2) . ' طفل'
-
-                    ]);
-
-                    return;
-
-                }
-
-            }
-
-
-
             sendJSON([
-
                 'success' => false,
-
                 'message' => 'لم يتم العثور على طفل بهذا الرقم',
-
                 'data' => []
-
             ]);
-
         }
-
-
-
     } catch (Exception $e) {
-
         error_log("getStudentByPhone error: " . $e->getMessage());
-
-        error_log("Stack trace: " . $e->getTraceAsString());
-
         sendJSON(['success' => false, 'message' => 'خطأ في البحث: ' . $e->getMessage()]);
-
     }
-
 }
 
 function getStudentAttendance()
@@ -21218,172 +21130,8 @@ function getKidsData()
 
 
 function handleKidLogin()
-
 {
-
-    try {
-
-        $usernameInput = sanitize($_POST['username'] ?? '');
-
-        $password = $_POST['password'] ?? '';
-
-
-
-        if (empty($usernameInput) || empty($password)) {
-
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف وكلمة المرور مطلوبان']);
-
-        }
-
-
-
-        $passwordHash = hash('sha256', $password);
-
-        $cleanInput = preg_replace('/[^\d]/', '', $usernameInput);
-
-
-
-        error_log("🔐 Login attempt with input: $cleanInput");
-
-
-
-        $conn = getDBConnection();
-
-
-
-        $stmt = $conn->prepare("
-
-            SELECT
-
-                s.id, s.name, s.address, s.phone, s.birthday, s.email,
-
-                s.coupons, s.attendance_coupons, s.commitment_coupons,
-
-                s.task_coupons, s.image_url, s.church_id, s.class_id,
-
-                s.custom_info, s.trip_points,
-
-                c.church_name,
-                COALESCE(c.church_type, 'kids') AS church_type,
-
-                COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
-            FROM students s
-
-            LEFT JOIN churches c  ON s.church_id = c.id
-
-            LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
-
-            LEFT JOIN classes cl  ON cl.id = s.class_id
-
-            WHERE (s.phone LIKE CONCAT('%', ?) OR s.phone = ?)
-
-            AND s.password_hash = ?
-
-        ");
-
-        $stmt->bind_param("sss", $cleanInput, $cleanInput, $passwordHash);
-
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-
-
-
-        $students = [];
-
-        $authenticatedIds = [];
-
-        while ($row = $result->fetch_assoc()) {
-
-            $row['class'] = $row['class'] ?? '---';
-
-            $students[] = $row;
-
-            $authenticatedIds[] = $row['id'];
-
-        }
-
-
-
-        // Also load siblings on same phone
-
-        if (!empty($authenticatedIds)) {
-
-            $idList = implode(',', array_map('intval', $authenticatedIds));
-
-            $sibStmt = $conn->prepare("
-
-                SELECT
-
-                    s.id, s.name, s.address, s.phone, s.birthday, s.email,
-
-                    s.coupons, s.attendance_coupons, s.commitment_coupons,
-
-                    s.task_coupons, s.image_url, s.church_id, s.class_id,
-
-                    s.custom_info,
-
-                    c.church_name,
-
-                    COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
-                FROM students s
-
-                LEFT JOIN churches c  ON s.church_id = c.id
-
-                LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
-
-                LEFT JOIN classes cl  ON cl.id = s.class_id
-
-                WHERE (s.phone LIKE CONCAT('%', ?) OR s.phone = ?)
-
-                AND s.id NOT IN ($idList)
-
-            ");
-
-            $sibStmt->bind_param("ss", $cleanInput, $cleanInput);
-
-            $sibStmt->execute();
-
-            $sibResult = $sibStmt->get_result();
-
-            while ($row = $sibResult->fetch_assoc()) {
-
-                $row['class'] = $row['class'] ?? '---';
-
-                $students[] = $row;
-
-            }
-
-        }
-
-
-
-        if (count($students) > 0) {
-
-            error_log("🔐 Login successful for: $cleanInput");
-
-            sendJSON(['success' => true, 'data' => $students, 'message' => 'تم تسجيل الدخول بنجاح']);
-
-        } else {
-
-            error_log("🔐 Login failed for: $cleanInput");
-
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف أو كلمة المرور غير صحيحة', 'data' => []]);
-
-        }
-
-
-
-    } catch (Exception $e) {
-
-        error_log("❌ handleKidLogin error: " . $e->getMessage());
-
-        sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الدخول']);
-
-    }
-
+    kidLogin();
 }
 
 function checkKidPasswordByPhone() {
@@ -21393,40 +21141,32 @@ function checkKidPasswordByPhone() {
 
         if (empty($cleanPhone)) {
             sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
+            return;
         }
 
         $conn = getDBConnection();
-        $checkStmt = $conn->prepare("
-            SELECT id, name, phone 
-            FROM students 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
-               OR RIGHT(emergency_phone, 10) = RIGHT(?, 10) OR emergency_phone = ?
-               OR parent_phones LIKE CONCAT('%', ?) OR custom_info LIKE CONCAT('%', ?))
-            LIMIT 1
-        ");
-        $checkStmt->bind_param("ssssss", $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone);
-        $checkStmt->execute();
-        $result = $checkStmt->get_result();
+        $candidates = findStudentsByPhoneOrSiblings($conn, $phone, true);
 
-        if ($student = $result->fetch_assoc()) {
-            $studentId = $student['id'];
-            $columnCheck = $conn->query("SHOW COLUMNS FROM students LIKE 'password_hash'");
+        if (!empty($candidates)) {
+            $hasPassword = false;
+            $primaryStudentId = null;
 
-            if ($columnCheck && $columnCheck->num_rows > 0) {
-                $passwordStmt = $conn->prepare("SELECT password_hash FROM students WHERE id = ?");
-                $passwordStmt->bind_param("i", $studentId);
-                $passwordStmt->execute();
-                $passwordResult = $passwordStmt->get_result();
-                $passwordData = $passwordResult->fetch_assoc();
-                $hasPassword = !empty($passwordData['password_hash']);
-            } else {
-                $hasPassword = false;
+            foreach ($candidates as $cand) {
+                if ($primaryStudentId === null) {
+                    $primaryStudentId = (int)$cand['id'];
+                }
+                if (!empty($cand['password_hash'])) {
+                    $hasPassword = true;
+                    $primaryStudentId = (int)$cand['id'];
+                    break;
+                }
             }
 
             sendJSON([
                 'success' => true,
                 'has_password' => $hasPassword,
-                'student_id' => $studentId,
+                'student_id' => $primaryStudentId,
+                'total_accounts' => count($candidates),
                 'message' => $hasPassword ? 'يوجد كلمة مرور مسجلة لهذا الرقم' : 'لا توجد كلمة مرور مسجلة'
             ]);
         } else {
@@ -21864,19 +21604,25 @@ function changeStudentPassword()
 
 
         $newHash = hash('sha256', $newPass);
-
         $upd = $conn->prepare("UPDATE students SET password_hash = ?, updated_at = NOW() WHERE id = ?");
-
         $upd->bind_param("si", $newHash, $studentId);
 
-
-
         if ($upd->execute()) {
-
+            // Also sync password for siblings/linked accounts sharing phone, emergency, or sibling group
+            $studentPhoneQuery = $conn->query("SELECT phone, emergency_phone FROM students WHERE id = {$studentId} LIMIT 1");
+            if ($studentPhoneQuery && $spRow = $studentPhoneQuery->fetch_assoc()) {
+                $pToLook = !empty($spRow['phone']) ? $spRow['phone'] : ($spRow['emergency_phone'] ?? '');
+                if (!empty($pToLook)) {
+                    $linked = findStudentsByPhoneOrSiblings($conn, $pToLook, true);
+                    foreach ($linked as $lSt) {
+                        if ((int)$lSt['id'] !== (int)$studentId) {
+                            @$conn->query("UPDATE students SET password_hash = '{$newHash}', updated_at = NOW() WHERE id = " . (int)$lSt['id']);
+                        }
+                    }
+                }
+            }
             sendJSON(['success' => true, 'message' => $isAdd ? 'تم إضافة كلمة المرور بنجاح' : 'تم تغيير كلمة المرور بنجاح']);
-
         } else {
-
             sendJSON(['success' => false, 'message' => 'فشل في الحفظ: ' . $conn->error]);
 
         }
@@ -21906,18 +21652,20 @@ function kidLoginByPhoneWithPassword() {
             return;
         }
 
-        $sha256Hash = hash('sha256', $password); // legacy
-        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
-
+        $sha256Hash = hash('sha256', $password);
         $conn = getDBConnection();
 
-        if ($studentId > 0) {
-            $stmt = $conn->prepare("
-                SELECT s.id, s.name, s.address, s.phone, s.birthday,
-                       s.coupons, s.attendance_coupons, s.commitment_coupons,
-                       s.task_coupons, s.image_url, s.church_id, s.class_id,
-                       s.password_hash, s.custom_info,
+        // 1. Fetch all candidate accounts linked to this phone (including parent_phones, emergency, and sibling groups)
+        $candidates = findStudentsByPhoneOrSiblings($conn, $phone, true);
+
+        // If a specific studentId was given and not yet in candidates, load it as well
+        if ($studentId > 0 && !isset($candidates[$studentId])) {
+            $stmtSingle = $conn->prepare("
+                SELECT s.id, s.name, s.address, s.phone, s.emergency_phone, s.parent_phones, s.birthday, s.email,
+                       s.coupons, s.attendance_coupons, s.commitment_coupons, s.task_coupons,
+                       s.image_url, s.church_id, s.class_id, s.custom_info, s.password_hash, s.gender, s.trip_points,
                        c.church_name,
+                       COALESCE(c.church_type, 'kids') AS church_type,
                        COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
                 FROM students s
                 LEFT JOIN churches c  ON s.church_id = c.id
@@ -21925,329 +21673,223 @@ function kidLoginByPhoneWithPassword() {
                 LEFT JOIN classes cl  ON cl.id = s.class_id
                 WHERE s.id = ?
             ");
-            $stmt->bind_param("i", $studentId);
-        } else {
-            $stmt = $conn->prepare("
-                SELECT s.id, s.name, s.address, s.phone, s.birthday,
-                       s.coupons, s.attendance_coupons, s.commitment_coupons,
-                       s.task_coupons, s.image_url, s.church_id, s.class_id,
-                       s.password_hash, s.custom_info,
-                       c.church_name,
-                       COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-                FROM students s
-                LEFT JOIN churches c  ON s.church_id = c.id
-                LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-                LEFT JOIN classes cl  ON cl.id = s.class_id
-                WHERE (RIGHT(s.phone, 10) = RIGHT(?, 10) OR s.phone = ?)
-            ");
-            $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $students = [];
-        while ($row = $result->fetch_assoc()) {
-            $storedHash = $row['password_hash'] ?? '';
-            $matched = !empty($storedHash) && (
-                password_verify($password, $storedHash) || $storedHash === $sha256Hash
-            );
-            if ($matched) {
-                $row['birthday'] = formatDateFromDB($row['birthday']);
-                $row['class'] = $row['class'] ?? '---';
-                unset($row['password_hash']);
-                $students[] = $row;
+            if ($stmtSingle) {
+                $stmtSingle->bind_param("i", $studentId);
+                $stmtSingle->execute();
+                $singleRes = $stmtSingle->get_result();
+                if ($row = $singleRes->fetch_assoc()) {
+                    $row['class'] = $row['class'] ?? '---';
+                    $candidates[$row['id']] = $row;
+                }
             }
         }
 
-        if (count($students) > 0) {
-            sendJSON(['success' => true, 'data' => $students, 'message' => 'تم تسجيل الدخول بنجاح']);
-        } else {
-            sendJSON(['success' => false, 'message' => 'كلمة المرور غير صحيحة', 'data' => []]);
+        if (empty($candidates)) {
+            sendJSON(['success' => false, 'message' => 'لم يتم العثور على حساب بهذا الرقم', 'data' => []]);
+            return;
         }
+
+        // 2. Check if password matches ANY candidate in the linked accounts
+        $authenticatedFamily = false;
+        foreach ($candidates as $cand) {
+            $storedHash = $cand['password_hash'] ?? '';
+            if (!empty($storedHash)) {
+                if ($storedHash === $sha256Hash || password_verify($password, $storedHash)) {
+                    $authenticatedFamily = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$authenticatedFamily) {
+            sendJSON(['success' => false, 'message' => 'كلمة المرور غير صحيحة', 'data' => []]);
+            return;
+        }
+
+        // 3. Family authenticated! Synchronize password_hash across all sibling accounts if missing/bcrypt
+        $students = [];
+        foreach ($candidates as $cand) {
+            $cId = (int)$cand['id'];
+            $storedHash = $cand['password_hash'] ?? '';
+            if (empty($storedHash) || password_verify($password, $storedHash)) {
+                @$conn->query("UPDATE students SET password_hash = '" . $conn->real_escape_string($sha256Hash) . "' WHERE id = {$cId}");
+            }
+            $cand['birthday'] = formatDateFromDB($cand['birthday'] ?? '');
+            $cand['class'] = $cand['class'] ?? '---';
+            $cand['has_password'] = true;
+            unset($cand['password_hash']);
+            $students[] = $cand;
+        }
+
+        $vals = array_values($students);
+        sendJSON([
+            'success' => true,
+            'data' => $vals,
+            'users' => $vals,
+            'user' => count($vals) === 1 ? $vals[0] : null,
+            'message' => count($vals) > 1
+                ? 'تم تسجيل الدخول بنجاح - ' . count($vals) . ' أطفال مرتبطين'
+                : 'تم تسجيل الدخول بنجاح'
+        ]);
     } catch (Throwable $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الدخول: ' . $e->getMessage()]);
     }
 }
 
 function kidLogin()
-
 {
-
     try {
-
         $usernameInput = sanitize($_POST['username'] ?? '');
-
         $password = $_POST['password'] ?? '';
 
-
-
         if (empty($usernameInput) || empty($password)) {
-
             sendJSON(['success' => false, 'message' => 'اسم المستخدم وكلمة المرور مطلوبان']);
-
             return;
-
         }
 
-
-
         $conn = getDBConnection();
-
-
-
-        // Detect if input looks like a phone number (digits only)
-
         $cleanInput = preg_replace('/[^\d]/', '', $usernameInput);
-
         $isPhoneLike = strlen($cleanInput) >= 7;
-
-        $sha256Hash = hash('sha256', $password); // legacy hash
-
-
+        $sha256Hash = hash('sha256', $password);
 
         error_log("🔐 [kidLogin] input: '$usernameInput' | isPhone: " . ($isPhoneLike ? 'yes' : 'no'));
 
-
-
-        // ── Build candidate list ─────────────────────────────────
-
-        // We search by phone OR by username stored in custom_info JSON
-
         $candidates = [];
 
-
-
-        // 1. Search by phone (digits)
-
+        // 1. Search by phone (checking primary phone, emergency phone, parent phones, and sibling groups)
         if ($isPhoneLike) {
-
-            $stmt = $conn->prepare("
-
-                SELECT s.id, s.name, s.address, s.phone, s.birthday, s.email,
-
-                       s.coupons, s.attendance_coupons, s.commitment_coupons,
-
-                       s.task_coupons, s.image_url, s.church_id, s.class_id,
-
-                       s.custom_info, s.password_hash,
-
-                       c.church_name,
-
-                       COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
-                FROM students s
-
-                LEFT JOIN churches c  ON s.church_id = c.id
-
-                LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-
-                LEFT JOIN classes cl  ON cl.id = s.class_id
-
-                WHERE (s.phone LIKE CONCAT('%', ?) OR s.phone = ?)
-
-            ");
-
-            $stmt->bind_param("ss", $cleanInput, $cleanInput);
-
-            $stmt->execute();
-
-            $res = $stmt->get_result();
-
-            while ($row = $res->fetch_assoc()) {
-
-                $row['class'] = $row['class'] ?? '---';
-
-                $candidates[$row['id']] = $row;
-
+            $phoneCandidates = findStudentsByPhoneOrSiblings($conn, $usernameInput, true);
+            foreach ($phoneCandidates as $id => $row) {
+                $candidates[$id] = $row;
             }
-
         }
-
-
 
         // 2. Search by username in custom_info JSON
-
-        // custom_info is {"username":"..."} stored as JSON text
-
         $usernameClean = trim($usernameInput);
-
         if (!empty($usernameClean)) {
-
             $stmt2 = $conn->prepare("
-
-                SELECT s.id, s.name, s.address, s.phone, s.birthday, s.email,
-
+                SELECT s.id, s.name, s.address, s.phone, s.emergency_phone, s.parent_phones, s.birthday, s.email,
                        s.coupons, s.attendance_coupons, s.commitment_coupons,
-
                        s.task_coupons, s.image_url, s.church_id, s.class_id,
-
-                       s.custom_info, s.password_hash,
-
+                       s.custom_info, s.password_hash, s.gender, s.trip_points,
                        c.church_name,
-
+                       COALESCE(c.church_type, 'kids') AS church_type,
                        COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
                 FROM students s
-
                 LEFT JOIN churches c  ON s.church_id = c.id
-
                 LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-
                 LEFT JOIN classes cl  ON cl.id = s.class_id
-
                 WHERE JSON_UNQUOTE(JSON_EXTRACT(s.custom_info, '$.username')) = ?
-
                    OR JSON_UNQUOTE(JSON_EXTRACT(s.custom_info, '$.username')) = ?
-
             ");
-
             $usernameCleanLower = strtolower($usernameClean);
-
             $stmt2->bind_param("ss", $usernameClean, $usernameCleanLower);
-
             $stmt2->execute();
-
             $res2 = $stmt2->get_result();
-
+            $userMatchedIds = [];
             while ($row = $res2->fetch_assoc()) {
-
                 $row['class'] = $row['class'] ?? '---';
-
                 if (!isset($candidates[$row['id']])) {
-
                     $candidates[$row['id']] = $row;
-
                 }
-
+                $userMatchedIds[] = (int)$row['id'];
             }
 
+            // Also check siblings for username login
+            if (!empty($userMatchedIds)) {
+                $uIdList = implode(',', $userMatchedIds);
+                $grpRes = @$conn->query("SELECT DISTINCT group_id FROM student_sibling_group_members WHERE student_id IN ({$uIdList})");
+                if ($grpRes && $grpRes->num_rows > 0) {
+                    $groupIds = [];
+                    while ($gr = $grpRes->fetch_assoc()) {
+                        if (!empty($gr['group_id'])) {
+                            $groupIds[] = "'" . $conn->real_escape_string($gr['group_id']) . "'";
+                        }
+                    }
+                    if (!empty($groupIds)) {
+                        $grpIn = implode(',', $groupIds);
+                        $sibRes = @$conn->query("
+                            SELECT s.id, s.name, s.address, s.phone, s.emergency_phone, s.parent_phones, s.birthday, s.email,
+                                   s.coupons, s.attendance_coupons, s.commitment_coupons,
+                                   s.task_coupons, s.image_url, s.church_id, s.class_id,
+                                   s.custom_info, s.password_hash, s.gender, s.trip_points,
+                                   c.church_name,
+                                   COALESCE(c.church_type, 'kids') AS church_type,
+                                   COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
+                            FROM student_sibling_group_members ssgm
+                            INNER JOIN students s ON s.id = ssgm.student_id
+                            LEFT JOIN churches c  ON s.church_id = c.id
+                            LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
+                            LEFT JOIN classes cl  ON cl.id = s.class_id
+                            WHERE ssgm.group_id IN ({$grpIn})
+                        ");
+                        if ($sibRes) {
+                            while ($sRow = $sibRes->fetch_assoc()) {
+                                $sRow['class'] = $sRow['class'] ?? '---';
+                                if (!isset($candidates[$sRow['id']])) {
+                                    $candidates[$sRow['id']] = $sRow;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-
-
 
         error_log("🔐 [kidLogin] candidates before auth: " . count($candidates));
 
-
-
-        // ── Verify password against each candidate ───────────────
-
-        $authenticated = [];
-
-        foreach ($candidates as $student) {
-
-            $storedHash = $student['password_hash'] ?? '';
-
-            $matched = false;
-
-            $needsHashUpgrade = false;
-
-
-
-            if (!empty($storedHash)) {
-
-                // Try SHA256 first (standard for all flows)
-
-                if ($storedHash === $sha256Hash) {
-
-                    $matched = true;
-
-                }
-
-                // Fallback: bcrypt (old registrations) — migrate to SHA256 on success
-
-                elseif (password_verify($password, $storedHash)) {
-
-                    $matched = true;
-
-                    $needsHashUpgrade = true;
-
-                }
-
-            }
-
-
-
-            if ($matched) {
-
-                // Migrate bcrypt → SHA256 so all hashes are consistent
-
-                if ($needsHashUpgrade) {
-
-                    $upd = $conn->prepare("UPDATE students SET password_hash = ? WHERE id = ?");
-
-                    if ($upd) {
-
-                        $studentId = $student['id'];
-
-                        $upd->bind_param("si", $sha256Hash, $studentId);
-
-                        $upd->execute();
-
-                    }
-
-                    error_log("🔄 [kidLogin] Migrated bcrypt→SHA256 for student ID " . $student['id']);
-
-                }
-
-                $student['has_password'] = !empty($storedHash); // tell the frontend
-                unset($student['password_hash']); // never expose hash
-
-                $authenticated[] = $student;
-
-            }
-
+        if (empty($candidates)) {
+            sendJSON(['success' => false, 'message' => 'اسم المستخدم أو رقم الهاتف أو كلمة المرور غير صحيحة', 'data' => []]);
+            return;
         }
 
+        // Check if ANY candidate has a matching password
+        $authenticatedFamily = false;
+        foreach ($candidates as $cand) {
+            $storedHash = $cand['password_hash'] ?? '';
+            if (!empty($storedHash)) {
+                if ($storedHash === $sha256Hash || password_verify($password, $storedHash)) {
+                    $authenticatedFamily = true;
+                    break;
+                }
+            }
+        }
 
+        if (!$authenticatedFamily) {
+            sendJSON(['success' => false, 'message' => 'كلمة المرور غير صحيحة', 'data' => []]);
+            return;
+        }
+
+        // Synchronize and format authenticated students
+        $authenticated = [];
+        foreach ($candidates as $student) {
+            $sId = (int)$student['id'];
+            $storedHash = $student['password_hash'] ?? '';
+            if (empty($storedHash) || password_verify($password, $storedHash)) {
+                @$conn->query("UPDATE students SET password_hash = '" . $conn->real_escape_string($sha256Hash) . "' WHERE id = {$sId}");
+            }
+            $student['birthday'] = formatDateFromDB($student['birthday'] ?? '');
+            $student['class'] = $student['class'] ?? '---';
+            $student['has_password'] = true;
+            unset($student['password_hash']);
+            $authenticated[] = $student;
+        }
 
         error_log("🔐 [kidLogin] authenticated: " . count($authenticated));
 
-
-
-        if (count($authenticated) > 0) {
-
-            $vals = array_values($authenticated);
-            sendJSON([
-
-                'success' => true,
-
-                'data' => $vals,
-                'users' => $vals,
-                'user' => count($vals) === 1 ? $vals[0] : null,
-
-                'message' => count($vals) > 1
-
-                    ? 'تم تسجيل الدخول بنجاح - ' . count($vals) . ' أطفال مرتبطين'
-
-                    : 'تم تسجيل الدخول بنجاح'
-
-            ]);
-
-        } else {
-
-            sendJSON([
-
-                'success' => false,
-
-                'message' => 'اسم المستخدم أو رقم الهاتف أو كلمة المرور غير صحيحة',
-
-                'data' => []
-
-            ]);
-
-        }
-
-
-
-    } catch (Exception $e) {
-
-        error_log("❌ [kidLogin] Error: " . $e->getMessage());
-
+        $vals = array_values($authenticated);
+        sendJSON([
+            'success' => true,
+            'data' => $vals,
+            'users' => $vals,
+            'user' => count($vals) === 1 ? $vals[0] : null,
+            'message' => count($vals) > 1
+                ? 'تم تسجيل الدخول بنجاح - ' . count($vals) . ' أطفال مرتبطين'
+                : 'تم تسجيل الدخول بنجاح'
+        ]);
+    } catch (Throwable $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الدخول: ' . $e->getMessage()]);
-
     }
-
 }
 
 function checkUsernameAvailable()
