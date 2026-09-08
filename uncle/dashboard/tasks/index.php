@@ -13243,8 +13243,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
-              <button type="button" class="add-q" onclick="addQ()" style="flex:1; min-width:140px; margin-bottom:0;"><i class="fas fa-plus-circle"></i>إضافة سؤال</button>
-              <button type="button" class="add-q" onclick="openBulkQModal()" style="flex:1; min-width:180px; margin-bottom:0; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> استيراد شيت أسئلة</button>
+              <button type="button" class="add-q" onclick="addQ()" style="flex:1; min-width:130px; margin-bottom:0;"><i class="fas fa-plus-circle"></i>إضافة سؤال</button>
+              <button type="button" class="add-q" onclick="openBulkQModal()" style="flex:1; min-width:160px; margin-bottom:0; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> استيراد شيت أسئلة</button>
+              <button type="button" class="add-q" onclick="exportCurrentEditorQuestions()" style="flex:1; min-width:150px; margin-bottom:0; background:linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color:#fff; border:none; box-shadow:0 4px 14px rgba(99,102,241,0.3);"><i class="fas fa-file-export"></i> تصدير الأسئلة</button>
             </div>
 
 
@@ -13763,6 +13764,19 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         transform: translateY(-1px);
       }
 
+      .btn-export.btn-excel {
+        background: rgba(16, 185, 129, 0.08);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.25);
+      }
+
+      .btn-export.btn-excel:hover {
+        background: #059669;
+        color: #fff;
+        border-color: #059669;
+        transform: translateY(-1px);
+      }
+
       /* Responsive overrides for tasks overview */
       @media (max-width: 768px) {
         #overviewOv .mhdr {
@@ -13949,6 +13963,228 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           <button class="btn-export btn-pdf" onclick="exportOverviewPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
           <button class="btn-export btn-img" onclick="exportOverviewImage()"><i class="fas fa-file-image"></i>
             صورة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TASK QUESTIONS EXPORT MODAL ══════════════════════════════ -->
+  <div class="overlay fullscreen" id="taskQuestionsExportOv" style="z-index: 10005;">
+    <style>
+      .tq-export-box {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        background: var(--bg);
+        border: 1px solid var(--bdr);
+        padding: 16px;
+        border-radius: 14px;
+      }
+      .tq-mode-toggle {
+        display: flex;
+        background: var(--bg2, #f1f5f9);
+        border-radius: 12px;
+        padding: 4px;
+        gap: 4px;
+        border: 1px solid var(--bdr);
+      }
+      .tq-mode-btn {
+        flex: 1;
+        padding: 9px 12px;
+        border-radius: 9px;
+        border: none;
+        background: transparent;
+        color: var(--t2);
+        font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .tq-mode-btn.active {
+        background: #ffffff;
+        color: var(--brand);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      }
+      .tq-preview-viewport {
+        flex: 1;
+        border: 1.5px solid var(--bdr);
+        border-radius: 14px;
+        background: #f1f5f9;
+        overflow-y: auto;
+        position: relative;
+        min-height: 320px;
+        padding: 24px;
+        display: flex;
+        justify-content: center;
+      }
+      .tq-paper-sheet {
+        background: #ffffff;
+        color: #1e293b;
+        width: 100%;
+        max-width: 820px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 36px 40px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+        font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+        direction: rtl;
+        box-sizing: border-box;
+      }
+      .tq-paper-sheet.landscape-view {
+        max-width: 1100px;
+      }
+      .tq-q-item {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .tq-q-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .tq-q-num {
+        background: var(--brand-bg, #eff2fe);
+        color: var(--brand, #5b6cf5);
+        font-weight: 900;
+        font-size: 0.95rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid var(--brand-l, #c7d2fe);
+      }
+      .tq-q-title {
+        flex: 1;
+        font-size: 1.02rem;
+        font-weight: 700;
+        line-height: 1.5;
+        color: #0f172a;
+      }
+      .tq-q-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .tq-opt-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        margin-top: 8px;
+        font-size: 0.92rem;
+        background: #ffffff;
+        transition: 0.15s;
+      }
+      .tq-opt-row.is-correct {
+        background: #ecfdf5 !important;
+        border-color: #10b981 !important;
+        color: #065f46 !important;
+        font-weight: 800;
+      }
+      @media (max-width: 768px) {
+        .tq-preview-viewport {
+          padding: 10px;
+        }
+        .tq-paper-sheet {
+          padding: 20px 16px;
+        }
+        .tq-mode-toggle {
+          flex-direction: column;
+        }
+      }
+    </style>
+    <div class="modal wide" style="display:flex; flex-direction:column; max-width:980px;">
+      <div class="mhdr">
+        <div class="mhdr-ico" style="background:var(--brand-bg); color:var(--brand);">
+          <i class="fas fa-file-export"></i>
+        </div>
+        <div>
+          <div class="mhdr-title" id="tqExportModalTitle">تصدير أسئلة التاسك وإجاباتها</div>
+          <div class="mhdr-sub" id="tqExportModalSub">تصدير أسئلة الاختبار بصيغ متعددة (PDF، صورة، Excel) مع التحكم في إظهار أو إخفاء الإجابات</div>
+        </div>
+        <div class="mclose" onclick="closeOv('taskQuestionsExportOv')"><i class="fas fa-times"></i></div>
+      </div>
+
+      <div class="mbody" style="flex:1 1 auto; min-height:0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px;">
+        <!-- Control Options Box -->
+        <div class="tq-export-box">
+          <!-- Answer Visibility Toggle -->
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-weight:800; font-size:.88rem; color:var(--t1);">
+              <i class="fas fa-eye-slash" style="color:var(--brand); margin-left:4px;"></i> حالة الإجابات:
+            </label>
+            <div class="tq-mode-toggle">
+              <button type="button" class="tq-mode-btn active" id="btnTqShowAns" onclick="setQuestionsAnswerVisibility(true)">
+                <i class="fas fa-check-circle" style="color:#10b981;"></i> إظهار الإجابات (نموذج إجابة)
+              </button>
+              <button type="button" class="tq-mode-btn" id="btnTqHideAns" onclick="setQuestionsAnswerVisibility(false)">
+                <i class="fas fa-eye-slash" style="color:#ef4444;"></i> إخفاء الإجابات (ورقة اختبار)
+              </button>
+            </div>
+          </div>
+
+          <!-- Page Orientation -->
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-weight:800; font-size:.88rem; color:var(--t1);">
+              <i class="fas fa-file-pdf" style="color:var(--brand); margin-left:4px;"></i> اتجاه الصفحة للتصدير:
+            </label>
+            <select id="tqOrientation" onchange="handleTqOrientationChange()"
+              style="padding:9px 12px; border:1px solid var(--bdr); border-radius:10px; background:#fff; font-size:.87rem; font-weight:700; outline:none; cursor:pointer;">
+              <option value="portrait" selected>طولي (Portrait) - ورقة A4 قياسية</option>
+              <option value="landscape">عرضي (Landscape)</option>
+            </select>
+          </div>
+
+          <!-- Exam Header & Degrees Checkboxes -->
+          <div style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; font-weight:700; color:var(--t1);">
+              <input type="checkbox" id="tqShowExamHeader" onchange="renderQuestionsExportPreview()" checked
+                style="accent-color:var(--brand); width:18px; height:18px; cursor:pointer;">
+              <span>ترويسة الاختبار (اسم الطالب، الفصل، التاريخ)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; font-weight:700; color:var(--t1);">
+              <input type="checkbox" id="tqShowDegrees" onchange="renderQuestionsExportPreview()" checked
+                style="accent-color:var(--brand); width:18px; height:18px; cursor:pointer;">
+              <span>عرض درجات الأسئلة</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Live Preview Container -->
+        <div class="tq-preview-viewport" id="tqPreviewViewport">
+          <div class="tq-paper-sheet" id="tqPaperExport">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div class="mfoot" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="font-size:.82rem; color:var(--t2); font-weight:700;" id="tqStatsText">جاهز للتصدير</div>
+        <div class="ov-mfoot-btns" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button class="btn btn-g" onclick="closeOv('taskQuestionsExportOv')" style="order:99;">إغلاق</button>
+          <button class="btn-export btn-msg" onclick="copyQuestionsText()"><i class="fas fa-copy"></i> نسخ كنص</button>
+          <button class="btn-export btn-excel" onclick="exportQuestionsExcel()"><i class="fas fa-file-excel"></i> Excel (.xlsx)</button>
+          <button class="btn-export btn-pdf" onclick="exportQuestionsPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="btn-export btn-img" onclick="exportQuestionsImage()"><i class="fas fa-file-image"></i> صورة</button>
         </div>
       </div>
     </div>
@@ -15203,7 +15439,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
               <button type="button" onclick="toggleTaskCardMenu(event, ${t.id})" style="background: transparent; border: none; color: var(--t3); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: 0.2s;" onmouseover="this.style.background='var(--bg3)'; this.style.color='var(--t1)';" onmouseout="this.style.background='transparent'; this.style.color='var(--t3)';">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
-              <div id="taskCardMenu_${t.id}" class="task-card-menu" style="display: none; position: absolute; left: 0; top: 100%; margin-top: 4px; z-index: 100; min-width: 130px; background: var(--surface-1, var(--bg2, #ffffff)); border: 1px solid var(--border, var(--bdr, #e2e8f0)); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Cairo', sans-serif;">
+              <div id="taskCardMenu_${t.id}" class="task-card-menu" style="display: none; position: absolute; left: 0; top: 100%; margin-top: 4px; z-index: 100; min-width: 140px; background: var(--surface-1, var(--bg2, #ffffff)); border: 1px solid var(--border, var(--bdr, #e2e8f0)); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Cairo', sans-serif;">
+                <button onclick="toggleTaskCardMenu(event, ${t.id}); openExportTaskQuestions(${t.id})" style="width: 100%; padding: 8px 12px; border: none; background: transparent; color: var(--t1); font-size: 0.8rem; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
+                  <i class="fas fa-file-export" style="color: var(--brand);"></i> تصدير الأسئلة
+                </button>
                 <button onclick="toggleTaskCardMenu(event, ${t.id}); openEdit(${t.id})" style="width: 100%; padding: 8px 12px; border: none; background: transparent; color: var(--t1); font-size: 0.8rem; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
                   <i class="fas fa-pen" style="color: var(--brand);"></i> تعديل التاسك
                 </button>
@@ -18984,6 +19223,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
               <i class="fas fa-ellipsis-v"></i>
             </button>
             <div id="detailMenuDropdown" style="display:none; position:absolute; bottom:100%; right:0; margin-bottom:8px; z-index:100; min-width:150px; background:var(--surface-1, var(--bg2, #ffffff)); border:1px solid var(--bdr); border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.15); overflow:hidden; font-family:'Cairo',sans-serif;">
+              <button onclick="toggleDetailMenu(event); openExportTaskQuestions(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
+                <i class="fas fa-file-export" style="color:var(--brand);"></i> تصدير الأسئلة
+              </button>
               <button onclick="toggleDetailMenu(event); copyTaskShareLink(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
                 <i class="fas fa-link" style="color:var(--brand);"></i> نسخ رابط التاسك
               </button>
@@ -19283,7 +19525,12 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        <div class="fsec-title"><i class="fas fa-question-circle"></i>الأسئلة</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <div class="fsec-title" style="margin-bottom:0;"><i class="fas fa-question-circle"></i>الأسئلة</div>
+          <button type="button" class="btn btn-g" onclick="openExportTaskQuestions(${t.id})" style="height:32px; padding:0 12px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; border-radius:8px;">
+            <i class="fas fa-file-export" style="color:var(--brand);"></i> تصدير الأسئلة
+          </button>
+        </div>
 
 
 
@@ -20702,15 +20949,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-      ['createOv', 'detailOv', 'confOv'].forEach(id =>
-
-
-
-        document.getElementById(id).addEventListener('click', function (e) { if (e.target === this) closeOv(id); })
-
-
-
-      );
+      ['createOv', 'detailOv', 'confOv', 'taskQuestionsExportOv'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', function (e) { if (e.target === this) closeOv(id); });
+      });
 
 
 
@@ -21625,6 +21867,569 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       } catch (e) {
         console.error(e);
         showToast('فشل إنشاء PDF: ' + e.message, 'err');
+      }
+    }
+
+    // ─── Task Questions & Answers Export Logic ─────────────────────────────────
+    window.currentExportTask = null;
+    window.currentExportQuestions = [];
+    window.currentExportShowAnswers = true;
+
+    function sanitizeFileName(str) {
+      return String(str || 'تاسك').replace(/[/\\?%*:|"<>]/g, '-').replace(/\s+/g, '_').trim();
+    }
+
+    async function openExportTaskQuestions(taskId) {
+      try {
+        let t = (typeof tasks !== 'undefined' && tasks) ? tasks.find(x => x.id == taskId) : null;
+        if (typeof detailTask !== 'undefined' && detailTask && detailTask.id == taskId) {
+          t = detailTask;
+        }
+
+        // If not loaded or questions empty, fetch task detail from API
+        if (!t || !t.questions || !t.questions.length) {
+          showToast('جاري تحميل أسئلة التاسك...', 'info');
+          const res = await api('getTaskDetail', { task_id: taskId });
+          if (res && res.success && res.task) {
+            t = res.task;
+            if (typeof detailTask !== 'undefined' && detailTask && detailTask.id == taskId) {
+              detailTask = res.task;
+            }
+          }
+        }
+
+        if (!t) {
+          showToast('تعذر العثور على بيانات التاسك', 'err');
+          return;
+        }
+
+        let qs = [];
+        if (Array.isArray(t.questions)) {
+          qs = t.questions;
+        } else if (typeof t.questions === 'string') {
+          try { qs = JSON.parse(t.questions); } catch (e) { qs = []; }
+        }
+
+        if (!qs || qs.length === 0) {
+          showToast('هذا التاسك لا يحتوي على أي أسئلة لتصديرها', 'err');
+          return;
+        }
+
+        window.currentExportTask = t;
+        window.currentExportQuestions = qs;
+        setupAndOpenQuestionsExportModal();
+      } catch (err) {
+        console.error(err);
+        showToast('حدث خطأ أثناء تحميل أسئلة التاسك', 'err');
+      }
+    }
+
+    function exportCurrentEditorQuestions() {
+      if (typeof collectForm !== 'function') {
+        showToast('تعذر قراءة أسئلة المحرر', 'err');
+        return;
+      }
+      const formData = collectForm('draft');
+      let qs = [];
+      if (formData && formData.questions) {
+        if (typeof formData.questions === 'string') {
+          try { qs = JSON.parse(formData.questions); } catch (e) { qs = []; }
+        } else if (Array.isArray(formData.questions)) {
+          qs = formData.questions;
+        }
+      }
+
+      if (!qs || qs.length === 0) {
+        showToast('لا توجد أسئلة في المحرر لتصديرها! أضف سؤالاً أولاً.', 'err');
+        return;
+      }
+
+      const titleInput = document.getElementById('qTitle');
+      const titleVal = titleInput && titleInput.value ? titleInput.value.trim() : 'تاسك بدون عنوان';
+      const degTotalEl = document.getElementById('degTotal');
+      const degVal = degTotalEl ? (parseInt(degTotalEl.textContent) || 0) : 0;
+      const classCheckboxes = document.querySelectorAll('.class-cb:checked');
+      const selClasses = Array.from(classCheckboxes).map(cb => cb.value);
+
+      const fakeTask = {
+        id: editId || 0,
+        title: titleVal,
+        total_degree: degVal,
+        questions: qs,
+        class_name: selClasses.join('، ') || 'عام'
+      };
+
+      window.currentExportTask = fakeTask;
+      window.currentExportQuestions = qs;
+      setupAndOpenQuestionsExportModal();
+    }
+
+    function setupAndOpenQuestionsExportModal() {
+      const t = window.currentExportTask || {};
+      const qs = window.currentExportQuestions || [];
+      const titleEl = document.getElementById('tqExportModalTitle');
+      const subEl = document.getElementById('tqExportModalSub');
+      const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || '');
+
+      if (titleEl) titleEl.textContent = `تصدير: ${t.title || 'أسئلة التاسك'}`;
+      if (subEl) subEl.textContent = `${classesLabel ? classesLabel + ' — ' : ''}${qs.length} سؤال — ${t.total_degree || 0} درجة`;
+
+      const oriSelect = document.getElementById('tqOrientation');
+      if (oriSelect) oriSelect.value = 'portrait';
+      const sheet = document.getElementById('tqPaperExport');
+      if (sheet) sheet.classList.remove('landscape-view');
+
+      setQuestionsAnswerVisibility(window.currentExportShowAnswers !== undefined ? window.currentExportShowAnswers : true);
+      openOv('taskQuestionsExportOv');
+    }
+
+    function setQuestionsAnswerVisibility(show) {
+      window.currentExportShowAnswers = !!show;
+      const btnShow = document.getElementById('btnTqShowAns');
+      const btnHide = document.getElementById('btnTqHideAns');
+      if (btnShow) btnShow.classList.toggle('active', !!show);
+      if (btnHide) btnHide.classList.toggle('active', !show);
+
+      renderQuestionsExportPreview();
+    }
+
+    function handleTqOrientationChange() {
+      const ori = document.getElementById('tqOrientation')?.value || 'portrait';
+      const sheet = document.getElementById('tqPaperExport');
+      if (sheet) {
+        sheet.classList.toggle('landscape-view', ori === 'landscape');
+      }
+      renderQuestionsExportPreview();
+    }
+
+    function renderQuestionsExportPreview() {
+      const container = document.getElementById('tqPaperExport');
+      if (!container) return;
+
+      const t = window.currentExportTask || {};
+      const qs = window.currentExportQuestions || [];
+      const showAns = !!window.currentExportShowAnswers;
+      const showExamHdr = document.getElementById('tqShowExamHeader') ? document.getElementById('tqShowExamHeader').checked : true;
+      const showDegrees = document.getElementById('tqShowDegrees') ? document.getElementById('tqShowDegrees').checked : true;
+      const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || 'عام');
+
+      const statsEl = document.getElementById('tqStatsText');
+      if (statsEl) {
+        statsEl.innerHTML = `عدد الأسئلة: <strong>${qs.length}</strong> | الدرجة الكلية: <strong>${t.total_degree || 0}</strong> | الحالة: <span style="color:${showAns ? '#059669' : '#dc2626'}; font-weight:800;">${showAns ? 'نموذج إجابة (الإجابات ظاهرة)' : 'ورقة اختبار (الإجابات مخفية للطلاب)'}</span>`;
+      }
+
+      let html = '';
+
+      // Sheet Header
+      html += `
+        <div class="tq-paper-header" style="border-bottom: 2.5px solid var(--brand, #5b6cf5); padding-bottom: 18px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 0.95rem; font-weight: 800; color: var(--brand, #5b6cf5); margin-bottom: 2px;">
+                كنيسة الشهيد العظيم مارجرجس والأنبا شنودة
+              </div>
+              <div style="font-size: 0.8rem; color: #64748b; font-weight: 700;">
+                خدمة مدارس الأحد — ${classesLabel ? esc(classesLabel) : 'عام'}
+              </div>
+            </div>
+            <div style="text-align: left;">
+              <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-size: 0.78rem; font-weight: 800; ${showAns ? 'background:#ecfdf5; color:#065f46; border:1.5px solid #10b981;' : 'background:#fef2f2; color:#991b1b; border:1.5px solid #f87171;'}">
+                ${showAns ? '✔ نموذج إجابة معتمد' : '📝 ورقة اختبار الطالب'}
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-top: 1px dashed #e2e8f0; padding-top: 12px;">
+            <h2 style="margin: 0; font-size: 1.4rem; font-weight: 900; color: #0f172a; line-height: 1.3;">
+              ${esc(t.title || 'أسئلة التاسك')}
+            </h2>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #475569; white-space: nowrap;">
+              التاريخ: ${new Date().toLocaleDateString('ar-EG')}
+            </div>
+          </div>
+      `;
+
+      if (showExamHdr) {
+        html += `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; padding: 10px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; margin-top: 14px; font-size: 0.88rem; font-weight: 700; color: #334155;">
+            <div>اسم الطالب: ...........................................</div>
+            <div>الفصل: ${classesLabel ? esc(classesLabel) : '.....................'}</div>
+            <div>الدرجة: ........... / ${t.total_degree || 0}</div>
+          </div>
+        `;
+      }
+
+      html += `</div>`; // End tq-paper-header
+
+      // Questions List
+      if (!qs.length) {
+        html += `<div style="text-align:center; padding:50px; color:#94a3b8;">لا توجد أسئلة</div>`;
+      } else {
+        html += `<div style="display: flex; flex-direction: column; gap: 14px;">`;
+        qs.forEach((q, i) => {
+          const qType = q.question_type || 'mcq';
+          const deg = parseInt(q.degree) || 0;
+          const ci = q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null;
+          const imgH = q.image_url ? `<div style="margin: 8px 0 12px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; max-height: 220px; display: flex; justify-content: center;"><img src="${esc(q.image_url)}" alt="" crossorigin="anonymous" style="max-height: 220px; max-width: 100%; object-fit: contain;"></div>` : '';
+
+          let typeLabel = 'اختيار من متعدد';
+          let typeColor = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;';
+          if (qType === 'tf') {
+            typeLabel = 'صح أو خطأ';
+            typeColor = 'background:#fffbeb; color:#b45309; border:1px solid #fde68a;';
+          } else if (qType === 'open') {
+            typeLabel = 'سؤال مقالي';
+            typeColor = 'background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe;';
+          }
+
+          html += `
+            <div class="tq-q-item">
+              <div class="tq-q-header">
+                <div class="tq-q-num">${i + 1}</div>
+                <div class="tq-q-title">${esc(q.question_text || '')}</div>
+                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                  <span class="tq-q-badge" style="${typeColor}">${typeLabel}</span>
+                  ${showDegrees ? `<span class="tq-q-badge" style="background:var(--brand-bg, #eff2fe); color:var(--brand, #5b6cf5); border:1px solid var(--brand-l, #c7d2fe);">${deg} ${deg === 1 ? 'درجة' : 'درجات'}</span>` : ''}
+                </div>
+              </div>
+              ${imgH}
+          `;
+
+          // Options rendering
+          if (qType === 'tf') {
+            const isTCorrect = showAns && ci === 0;
+            const isFCorrect = showAns && ci === 1;
+
+            html += `
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <div class="tq-opt-row ${isTCorrect ? 'is-correct' : ''}">
+                  <span style="font-weight: bold; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isTCorrect ? '#10b981' : '#94a3b8'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: ${isTCorrect ? '#10b981' : '#fff'}; color: ${isTCorrect ? '#fff' : '#475569'}; flex-shrink:0;">
+                    ${isTCorrect ? '✔' : ''}
+                  </span>
+                  <span>صحيح</span>
+                  ${isTCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800;">✔ الإجابة الصحيحة</span>' : ''}
+                </div>
+                <div class="tq-opt-row ${isFCorrect ? 'is-correct' : ''}">
+                  <span style="font-weight: bold; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isFCorrect ? '#10b981' : '#94a3b8'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: ${isFCorrect ? '#10b981' : '#fff'}; color: ${isFCorrect ? '#fff' : '#475569'}; flex-shrink:0;">
+                    ${isFCorrect ? '✔' : ''}
+                  </span>
+                  <span>خطأ</span>
+                  ${isFCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800;">✔ الإجابة الصحيحة</span>' : ''}
+                </div>
+              </div>
+            `;
+          } else if (qType === 'open') {
+            if (showAns) {
+              html += `
+                <div style="margin-top: 10px; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.88rem; color: #475569;">
+                  <strong style="color: var(--brand, #5b6cf5);"><i class="fas fa-pen-nib"></i> سؤال مقالي:</strong>
+                  إجابة كتابية حرة من الطالب يتم تقييمها وتصحيحها يدوياً (${deg} ${deg === 1 ? 'درجة' : 'درجات'}).
+                </div>
+              `;
+            } else {
+              html += `
+                <div style="margin-top: 12px; padding: 12px 14px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fafafa;">
+                  <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">مساحة إجابة الطالب:</div>
+                  <div style="border-bottom: 1px dotted #cbd5e1; height: 26px;"></div>
+                  <div style="border-bottom: 1px dotted #cbd5e1; height: 26px;"></div>
+                </div>
+              `;
+            }
+          } else {
+            // MCQ
+            const opts = typeof q.options === 'string' ? JSON.parse(q.options || '[]') : (q.options || []);
+            html += `<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">`;
+            opts.forEach((o, oi) => {
+              const isCorrect = showAns && oi === ci;
+              const letter = LETTERS[oi] || (oi + 1);
+              html += `
+                <div class="tq-opt-row ${isCorrect ? 'is-correct' : ''}">
+                  <span style="font-weight: 800; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isCorrect ? '#10b981' : '#cbd5e1'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; background: ${isCorrect ? '#10b981' : '#f8fafc'}; color: ${isCorrect ? '#fff' : '#334155'}; flex-shrink:0;">
+                    ${isCorrect ? '✔' : letter}
+                  </span>
+                  <span style="flex:1;">${esc(o)}</span>
+                  ${isCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> الإجابة الصحيحة</span>' : ''}
+                </div>
+              `;
+            });
+            html += `</div>`;
+          }
+
+          html += `</div>`; // End tq-q-item
+        });
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    async function getQuestionsExportCanvas(orientation = 'portrait') {
+      const paper = document.getElementById('tqPaperExport');
+      if (!paper) return null;
+
+      const clone = paper.cloneNode(true);
+      const targetWidth = orientation === 'landscape' ? 1120 : 820;
+
+      clone.style.position = 'absolute';
+      clone.style.top = '0';
+      clone.style.left = '-9999px';
+      clone.style.width = targetWidth + 'px';
+      clone.style.maxWidth = targetWidth + 'px';
+      clone.style.height = 'auto';
+      clone.style.overflow = 'visible';
+      clone.style.background = '#ffffff';
+      clone.style.padding = '36px 40px 60px 40px';
+      clone.style.boxShadow = 'none';
+      clone.style.border = 'none';
+
+      // Normalize icons inside clone for clean html2canvas rendering
+      clone.querySelectorAll('i.fa-check-circle, i.fa-check').forEach(el => {
+        const span = document.createElement('span');
+        span.style.color = '#10b981';
+        span.style.fontWeight = 'bold';
+        span.textContent = '✔ ';
+        if (el.parentNode) el.parentNode.replaceChild(span, el);
+      });
+      clone.querySelectorAll('i.fa-times-circle').forEach(el => {
+        const span = document.createElement('span');
+        span.style.color = '#ef4444';
+        span.style.fontWeight = 'bold';
+        span.textContent = '✖ ';
+        if (el.parentNode) el.parentNode.replaceChild(span, el);
+      });
+      clone.querySelectorAll('i.fa-pen-nib').forEach(el => {
+        const span = document.createElement('span');
+        span.textContent = '✍ ';
+        if (el.parentNode) el.parentNode.replaceChild(span, el);
+      });
+
+      document.body.appendChild(clone);
+      await new Promise(r => setTimeout(r, 160));
+
+      try {
+        const canvas = await html2canvas(clone, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          allowTaint: false,
+          width: clone.scrollWidth,
+          height: clone.scrollHeight,
+          windowWidth: clone.scrollWidth + 100,
+          windowHeight: clone.scrollHeight + 100
+        });
+        return canvas;
+      } finally {
+        document.body.removeChild(clone);
+      }
+    }
+
+    async function exportQuestionsPDF() {
+      const paper = document.getElementById('tqPaperExport');
+      if (!paper) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) { showToast('مكتبة PDF غير محملة', 'err'); return; }
+
+      showToast('جاري إنشاء ملف PDF...', 'info');
+
+      try {
+        const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
+        const canvas = await getQuestionsExportCanvas(orientation);
+        if (!canvas) { showToast('فشل إنشاء Canvas للـ PDF', 'err'); return; }
+
+        const pdf = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 8;
+        const printW = pageW - (margin * 2);
+        const printH = (canvas.height * printW) / canvas.width;
+        const imgData = canvas.toDataURL('image/png');
+
+        let heightLeft = printH;
+        let position = margin;
+
+        pdf.addImage(imgData, 'PNG', margin, position, printW, printH);
+        heightLeft -= (pageH - (margin * 2));
+
+        while (heightLeft > 0) {
+          position = margin - (printH - heightLeft);
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', margin, position, printW, printH);
+          heightLeft -= (pageH - (margin * 2));
+        }
+
+        const t = window.currentExportTask || {};
+        const safeTitle = sanitizeFileName(t.title || 'تاسك');
+        const modeLabel = window.currentExportShowAnswers ? 'نموذج_إجابة' : 'ورقة_اختبار';
+        pdf.save(`${safeTitle}_أسئلة_${modeLabel}.pdf`);
+        showToast('تم حفظ ملف PDF بنجاح 📄', 'ok');
+      } catch (e) {
+        console.error(e);
+        showToast('حدث خطأ أثناء إنشاء PDF: ' + (e.message || ''), 'err');
+      }
+    }
+
+    async function exportQuestionsImage() {
+      showToast('جاري تجهيز الصورة...', 'info');
+      try {
+        const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
+        const canvas = await getQuestionsExportCanvas(orientation);
+        if (!canvas) { showToast('فشل إنشاء الصورة', 'err'); return; }
+
+        const t = window.currentExportTask || {};
+        const safeTitle = sanitizeFileName(t.title || 'تاسك');
+        const modeLabel = window.currentExportShowAnswers ? 'نموذج_إجابة' : 'ورقة_اختبار';
+
+        const link = document.createElement('a');
+        link.download = `${safeTitle}_أسئلة_${modeLabel}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('تم حفظ الصورة بنجاح 🖼️', 'ok');
+      } catch (e) {
+        console.error(e);
+        showToast('فشل تصدير الصورة: ' + (e.message || ''), 'err');
+      }
+    }
+
+    function exportQuestionsExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('مكتبة Excel غير متوفرة', 'err');
+        return;
+      }
+
+      const t = window.currentExportTask || {};
+      const qs = window.currentExportQuestions || [];
+      const showAns = !!window.currentExportShowAnswers;
+      if (!qs.length) {
+        showToast('لا توجد أسئلة لتصديرها', 'err');
+        return;
+      }
+
+      try {
+        const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || 'عام');
+        const wsData = [
+          ['كنيسة الشهيد العظيم مارجرجس والأنبا شنودة — خدمة مدارس الأحد'],
+          ['عنوان التاسك:', t.title || 'تاسك', 'نوع الملف:', showAns ? 'نموذج إجابة معتمد' : 'ورقة اختبار بدون إجابات'],
+          ['الفصل:', classesLabel, 'عدد الأسئلة:', qs.length, 'إجمالي الدرجات:', t.total_degree || 0, 'تاريخ التصدير:', new Date().toLocaleDateString('ar-EG')],
+          [] // empty separator row
+        ];
+
+        if (showAns) {
+          wsData.push(['م', 'نوع السؤال', 'نص السؤال', 'الدرجة', 'الخيارات المتاحة', 'الإجابة الصحيحة', 'رابط الصورة المرفقة']);
+        } else {
+          wsData.push(['م', 'نوع السؤال', 'نص السؤال', 'الدرجة', 'الخيارات المتاحة', 'إجابة الطالب', 'رابط الصورة المرفقة']);
+        }
+
+        qs.forEach((q, i) => {
+          const qType = q.question_type || 'mcq';
+          let typeStr = 'اختيار من متعدد';
+          let optsStr = '';
+          let ansStr = '';
+
+          if (qType === 'tf') {
+            typeStr = 'صح أو خطأ';
+            optsStr = '1) صحيح  |  2) خطأ';
+            const ci = parseInt(q.correct_index || 0);
+            ansStr = ci === 0 ? 'صحيح' : 'خطأ';
+          } else if (qType === 'open') {
+            typeStr = 'سؤال مقالي';
+            optsStr = '— إجابة حرة من الطالب —';
+            ansStr = 'سؤال مقالي (تقييم يدوي)';
+          } else {
+            const opts = typeof q.options === 'string' ? JSON.parse(q.options || '[]') : (q.options || []);
+            const ci = parseInt(q.correct_index || 0);
+            optsStr = opts.map((o, oi) => `${LETTERS[oi] || (oi + 1)}) ${o}`).join('  |  ');
+            ansStr = opts[ci] ? `${LETTERS[ci] || (ci + 1)}) ${opts[ci]}` : '';
+          }
+
+          wsData.push([
+            i + 1,
+            typeStr,
+            q.question_text || '',
+            parseInt(q.degree) || 0,
+            optsStr,
+            showAns ? ansStr : '',
+            q.image_url || ''
+          ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!views'] = [{ RTL: true }];
+        ws['!cols'] = [
+          { wch: 6 },
+          { wch: 16 },
+          { wch: 45 },
+          { wch: 8 },
+          { wch: 45 },
+          { wch: 26 },
+          { wch: 25 }
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'الأسئلة');
+        const safeTitle = sanitizeFileName(t.title || 'تاسك');
+        const modeLabel = showAns ? 'نموذج_إجابة' : 'ورقة_اختبار';
+        XLSX.writeFile(wb, `${safeTitle}_أسئلة_${modeLabel}.xlsx`);
+        showToast('تم تنزيل ملف Excel بنجاح 📊', 'ok');
+      } catch (e) {
+        console.error(e);
+        showToast('فشل تصدير Excel: ' + (e.message || ''), 'err');
+      }
+    }
+
+    function copyQuestionsText() {
+      const t = window.currentExportTask || {};
+      const qs = window.currentExportQuestions || [];
+      const showAns = !!window.currentExportShowAnswers;
+      if (!qs.length) { showToast('لا توجد أسئلة لنسخها', 'err'); return; }
+
+      const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || 'عام');
+      let msg = `📝 *${t.title || 'أسئلة التاسك'}*\n`;
+      msg += `👥 الفصل: ${classesLabel}\n`;
+      msg += `📊 إجمالي الدرجات: ${t.total_degree || 0} درجة | عدد الأسئلة: ${qs.length}\n`;
+      msg += `📌 النوع: ${showAns ? 'نموذج إجابة' : 'ورقة اختبار'}\n\n`;
+      msg += `═══════════════════════════\n\n`;
+
+      qs.forEach((q, i) => {
+        const qType = q.question_type || 'mcq';
+        const deg = parseInt(q.degree) || 0;
+        msg += `*س${i + 1}:* ${q.question_text || ''} ${deg > 0 ? `(${deg} درجات)` : ''}\n`;
+
+        if (qType === 'tf') {
+          const ci = parseInt(q.correct_index || 0);
+          if (showAns) {
+            msg += `• الإجابة الصحيحة: ${ci === 0 ? '✔ صحيح' : '✖ خطأ'}\n`;
+          } else {
+            msg += `  ( ) صحيح      ( ) خطأ\n`;
+          }
+        } else if (qType === 'open') {
+          if (showAns) {
+            msg += `• النوع: سؤال مقالي (إجابة حرة)\n`;
+          } else {
+            msg += `  الإجابة: ....................................................\n`;
+          }
+        } else {
+          const opts = typeof q.options === 'string' ? JSON.parse(q.options || '[]') : (q.options || []);
+          const ci = parseInt(q.correct_index || 0);
+          opts.forEach((o, oi) => {
+            const letter = LETTERS[oi] || (oi + 1);
+            if (showAns && oi === ci) {
+              msg += `  [✔] ${letter}) ${o} (الإجابة الصحيحة)\n`;
+            } else {
+              msg += `  ( ) ${letter}) ${o}\n`;
+            }
+          });
+        }
+        msg += `\n`;
+      });
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(msg).then(() => {
+          showToast('تم نسخ الأسئلة كنص بنجاح 📋', 'ok');
+        }).catch(() => fallbackCopyTaskText(msg));
+      } else {
+        fallbackCopyTaskText(msg);
       }
     }
   </script>
