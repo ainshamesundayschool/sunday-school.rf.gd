@@ -22298,18 +22298,17 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 showToast('سيتم دمج الروابط المرتبطة تلقائيًا', 'info');
             }
 
-            const fd = new FormData();
-            fd.append('action', 'saveSiblingGroup');
-            fd.append('student_ids', JSON.stringify(allIds));
-            fd.append('group_id', groupId);
-            fd.append('status', 'approved');
-            fd.append('linked_by', localStorage.getItem('uncleName') || '');
+            const d = await new Promise(resolve => {
+                makeApiCall({
+                    action: 'saveSiblingGroup',
+                    student_ids: allIds,
+                    group_id: groupId,
+                    status: 'approved',
+                    linked_by: localStorage.getItem('uncleName') || ''
+                }, resolve, err => resolve({ success: false, message: err }));
+            });
 
-            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
-                .then(r => r.json())
-                .catch(() => ({ success: false }));
-
-            if (d.success) {
+            if (d && d.success) {
                 showToast(words.successLabel, 'success');
                 closeSiblingLinkModal();
                 await new Promise(resolve => setTimeout(resolve, 200));
@@ -22318,7 +22317,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     if (currentStudentForEdit) refreshStudentDetailsView(getStudentDisplayName(currentStudentForEdit));
                 }, 500);
             } else {
-                showToast(d.message || 'فشل في حفظ الربط', 'error');
+                showToast((d && d.message) || 'فشل في حفظ الربط', 'error');
             }
         }
 
@@ -22342,16 +22341,15 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             // Otherwise, we only clear the target sibling from the group
             const idsToClear = (allGroupIds.length <= 2) ? allGroupIds : [tid];
 
-            const fd = new FormData();
-            fd.append('action', 'saveSiblingGroup');
-            fd.append('op', 'clear');
-            fd.append('student_ids', JSON.stringify(idsToClear));
+            const d = await new Promise(resolve => {
+                makeApiCall({
+                    action: 'saveSiblingGroup',
+                    op: 'clear',
+                    student_ids: idsToClear
+                }, resolve, err => resolve({ success: false, message: err }));
+            });
 
-            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
-                .then(r => r.json())
-                .catch(() => ({ success: false }));
-
-            if (d.success) {
+            if (d && d.success) {
                 showToast('تم فك الارتباط بنجاح', 'success');
                 await new Promise(resolve => setTimeout(resolve, 200));
                 loadData();
@@ -22359,7 +22357,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     if (current) refreshStudentDetailsView(getStudentDisplayName(current));
                 }, 500);
             } else {
-                showToast(d.message || 'فشل في فك الارتباط', 'error');
+                showToast((d && d.message) || 'فشل في فك الارتباط', 'error');
             }
         }
 

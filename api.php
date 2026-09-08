@@ -33327,43 +33327,35 @@ function saveSiblingGroup()
 
         $basis = sanitize($_POST['basis'] ?? '');
 
-        $linkedBy = sanitize($_POST['linked_by'] ?? ($_SESSION['uncle_name'] ?? ''));
-
-        $linkedById = intval($_SESSION['uncle_id'] ?? 0);
+        $linkedBy = sanitize($_POST['linked_by'] ?? ($_SESSION['uncle_name'] ?? ($_POST['username'] ?? '')));
+        $linkedById = intval($_SESSION['uncle_id'] ?? ($_POST['uncle_id'] ?? 0));
 
         if ($groupId === '') {
-
             $groupId = 'family_' . time() . '_' . substr(md5(uniqid('', true)), 0, 8);
-
         }
-
-
 
         if (!is_array($studentIds) || empty($studentIds)) {
-
             sendJSON(['success' => false, 'message' => 'معرفات الطلاب مطلوبة']);
-
             return;
-
         }
 
-
-
         $conn = getDBConnection();
-
         ensureStudentSiblingGroupTables($conn);
 
         $churchId = getChurchId();
-
         $errors = [];
 
-
-
         $validIds = array_values(array_unique(array_filter(array_map('intval', $studentIds), function ($id) {
-
             return $id > 0;
-
         })));
+
+        if ($churchId <= 0 && !empty($validIds)) {
+            $firstId = (int)$validIds[0];
+            $qChurch = $conn->query("SELECT church_id FROM students WHERE id = {$firstId} LIMIT 1");
+            if ($qChurch && $rChurch = $qChurch->fetch_assoc()) {
+                $churchId = (int)($rChurch['church_id'] ?? 0);
+            }
+        }
 
 
 
