@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v42                     ║
+// ║  Sunday School PWA — Service Worker v43                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v42';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v43';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -488,14 +488,10 @@ self.addEventListener('push', e => {
     let d;
     try { d = e.data.json(); } catch(_) { d = { title: 'مدارس الأحد', body: e.data.text() }; }
 
-    // Silently ignore whatsapp_otp notifications
-    if (d.type === 'whatsapp_otp' || d.notifType === 'whatsapp_otp') {
-        return;
-    }
-
     const isReg = d.type === 'registration';
     const isDevMsg = d.type === 'developer_message';
-    const targetUrl = d.redirect_url || d.url || '/uncle/dashboard/';
+    const isOtp = d.type === 'whatsapp_otp' || d.notifType === 'whatsapp_otp';
+    const targetUrl = d.redirect_url || d.url || (isOtp ? '/uncle/dashboard/?open_otp=1' : '/uncle/dashboard/');
 
     const options = {
         body: d.body || '',
@@ -504,8 +500,8 @@ self.addEventListener('push', e => {
         dir: 'rtl', lang: 'ar',
         tag: d.type || 'general',
         renotify: true,
-        requireInteraction: isReg || (isDevMsg && !!d.button_text),
-        data: { url: targetUrl, type: d.type, className: d.className }
+        requireInteraction: isReg || (isDevMsg && !!d.button_text) || isOtp,
+        data: { url: targetUrl, type: d.type, className: d.className, otp: d.otp_code }
     };
     if (isReg) {
         options.actions = [
@@ -515,6 +511,11 @@ self.addEventListener('push', e => {
     } else if (isDevMsg && d.button_text) {
         options.actions = [
             { action: 'open', title: d.button_text },
+            { action: 'dismiss', title: 'إغلاق' }
+        ];
+    } else if (isOtp) {
+        options.actions = [
+            { action: 'open', title: 'عرض الكود' },
             { action: 'dismiss', title: 'إغلاق' }
         ];
     }

@@ -19785,17 +19785,54 @@ function sendCustomWhatsAppOTP() {
             throw new Exception("فشل في حفظ رمز التحقق في قاعدة البيانات");
         }
 
-        // Notify uncles of this church about the WhatsApp OTP code request
+        // Resolve church name if available for clearer notification
+        $churchName = '';
         if ($ownerChurchId > 0) {
-            $notifTitle = "طلب كود واتساب: " . $otp;
-            $notifBody = "طلب رمز تحقق للرقم: " . $normalizedPhone;
-            if (!empty($ownerName)) {
-                $notifBody .= " (" . $ownerName . ")";
+            $cStmt = $conn->prepare("SELECT church_name, name FROM churches WHERE id = ? LIMIT 1");
+            if ($cStmt) {
+                $cStmt->bind_param("i", $ownerChurchId);
+                $cStmt->execute();
+                $cRes = $cStmt->get_result();
+                if ($cRes && $cRow = $cRes->fetch_assoc()) {
+                    $churchName = $cRow['church_name'] ?? $cRow['name'] ?? '';
+                }
+                $cStmt->close();
             }
-            if (function_exists('pushNotification')) {
-                pushNotification($conn, $ownerChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newOtpId);
-            }
-            // PWA Web Push notification for WhatsApp code turned off
+        }
+
+        $notifTitle = "طلب كود واتساب: " . $otp;
+        $notifBody = "كود: " . $otp . " لرقم: " . $normalizedPhone;
+        if (!empty($ownerName)) {
+            $notifBody .= " (" . $ownerName . ")";
+        }
+        if (!empty($churchName)) {
+            $notifBody .= " - كنيسة " . $churchName;
+        }
+
+        // Notify developer account in-app
+        $devChurchId = 0;
+        $devQ = $conn->query("SELECT church_id FROM uncles WHERE (LOWER(TRIM(role)) IN ('developer', 'dev') OR LOWER(TRIM(username)) = 'peterfayez' OR LOWER(TRIM(email)) = 'peterfayez107@gmail.com') AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        if ($devQ && $dRow = $devQ->fetch_assoc()) {
+            $devChurchId = (int)($dRow['church_id'] ?? 0);
+        }
+        $targetInAppChurchId = $devChurchId > 0 ? $devChurchId : $ownerChurchId;
+        if ($targetInAppChurchId > 0 && function_exists('pushNotification')) {
+            pushNotification($conn, $targetInAppChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newOtpId);
+        }
+
+        $isTestingServer = (
+            strpos($_SERVER['HTTP_HOST'] ?? '', 'testing.') !== false ||
+            strpos(__DIR__, '/testing') !== false
+        );
+
+        // Send PWA push notification to developer account only (for all churches)
+        if (!$isTestingServer && function_exists('_sendWebPushToDeveloper')) {
+            _sendWebPushToDeveloper($conn, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
+                'otp_code' => $otp,
+                'phone' => $normalizedPhone,
+                'owner_name' => $ownerName,
+                'church_name' => $churchName
+            ]);
         }
 
         error_log(sprintf("[WhatsAppQueue] Step 2 Success: Enqueued pending OTP id=%d, church_id=%d, phone=%s, is_sent=0", $newOtpId, $ownerChurchId, $normalizedPhone));
@@ -19896,17 +19933,48 @@ function enqueueMirrorOTP() {
         $newId = intval($conn->insert_id ?: $stmt->insert_id);
         $stmt->close();
 
-        // Notify uncles of this church on production
+        // Resolve church name if available
+        $churchName = '';
         if ($mirrorChurchId > 0) {
-            $notifTitle = "طلب كود واتساب: " . $code;
-            $notifBody = "طلب رمز تحقق للرقم: " . $normalizedPhone;
-            if (!empty($mirrorOwnerName)) {
-                $notifBody .= " (" . $mirrorOwnerName . ")";
+            $cStmt = $conn->prepare("SELECT church_name, name FROM churches WHERE id = ? LIMIT 1");
+            if ($cStmt) {
+                $cStmt->bind_param("i", $mirrorChurchId);
+                $cStmt->execute();
+                $cRes = $cStmt->get_result();
+                if ($cRes && $cRow = $cRes->fetch_assoc()) {
+                    $churchName = $cRow['church_name'] ?? $cRow['name'] ?? '';
+                }
+                $cStmt->close();
             }
-            if (function_exists('pushNotification')) {
-                pushNotification($conn, $mirrorChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newId);
-            }
-            // PWA Web Push notification for WhatsApp code turned off
+        }
+
+        $notifTitle = "طلب كود واتساب: " . $code;
+        $notifBody = "كود: " . $code . " لرقم: " . $normalizedPhone;
+        if (!empty($mirrorOwnerName)) {
+            $notifBody .= " (" . $mirrorOwnerName . ")";
+        }
+        if (!empty($churchName)) {
+            $notifBody .= " - كنيسة " . $churchName;
+        }
+
+        $devChurchId = 0;
+        $devQ = $conn->query("SELECT church_id FROM uncles WHERE (LOWER(TRIM(role)) IN ('developer', 'dev') OR LOWER(TRIM(username)) = 'peterfayez' OR LOWER(TRIM(email)) = 'peterfayez107@gmail.com') AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        if ($devQ && $dRow = $devQ->fetch_assoc()) {
+            $devChurchId = (int)($dRow['church_id'] ?? 0);
+        }
+        $targetInAppChurchId = $devChurchId > 0 ? $devChurchId : $mirrorChurchId;
+        if ($targetInAppChurchId > 0 && function_exists('pushNotification')) {
+            pushNotification($conn, $targetInAppChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newId);
+        }
+
+        // PWA Web Push notification exclusively to developer account (sends for all churches)
+        if (function_exists('_sendWebPushToDeveloper')) {
+            _sendWebPushToDeveloper($conn, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
+                'otp_code' => $code,
+                'phone' => $normalizedPhone,
+                'owner_name' => $mirrorOwnerName,
+                'church_name' => $churchName
+            ]);
         }
 
         // Immediately notify bot to wake up and poll
@@ -46648,11 +46716,59 @@ function sendPushNotificationAction()
 
 
 
-// Helper: send web push to all devices subscribed for uncles of a church (disabled for WhatsApp OTP)
+// Helper: send web push notification for WhatsApp OTP specifically to developer account(s) across all churches
+function _sendWebPushToDeveloper($conn, $title, $body, $url = '/uncle/dashboard/?open_otp=1', $extra = [])
+{
+    try {
+        $vapid = defined('VAPID_PRIVATE_KEY') ? VAPID_PRIVATE_KEY : (getenv('VAPID_PRIVATE_KEY') ?: '');
+        $vapidPub = defined('VAPID_PUBLIC_KEY') ? VAPID_PUBLIC_KEY : (getenv('VAPID_PUBLIC_KEY') ?: '');
+        if (!$vapid || !$vapidPub) return;
+
+        $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
+        if (!$tbl) return;
+
+        // Target active push subscriptions belonging to developer account(s) across all churches
+        $sql = "SELECT ps.endpoint, ps.p256dh, ps.auth, ps.uncle_id 
+                FROM push_subscriptions ps
+                JOIN uncles u ON ps.uncle_id = u.id
+                WHERE (LOWER(TRIM(u.role)) IN ('developer', 'dev') 
+                   OR LOWER(TRIM(u.username)) = 'peterfayez' 
+                   OR LOWER(TRIM(u.email)) = 'peterfayez107@gmail.com')
+                  AND (u.deleted IS NULL OR u.deleted = 0)
+                LIMIT 50";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) return;
+        $stmt->execute();
+        $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        if (!$subs) return;
+
+        $payload = json_encode(array_merge([
+            'title' => $title,
+            'body' => $body,
+            'url' => $url,
+            'redirect_url' => $url,
+            'type' => 'whatsapp_otp',
+            'notifType' => 'whatsapp_otp',
+            'icon' => '/logo.png',
+            'badge' => '/badge.png'
+        ], $extra));
+
+        if (function_exists('_pushToEndpoint')) {
+            foreach ($subs as $sub) {
+                _pushToEndpoint($sub['endpoint'], $sub['p256dh'], $sub['auth'], $payload, $vapid, $vapidPub);
+            }
+        }
+    } catch (Exception $e) {
+        error_log("_sendWebPushToDeveloper error: " . $e->getMessage());
+    }
+}
+
+// Helper: send web push for WhatsApp OTP exclusively to developer account across all churches
 function _sendWebPushToUncles($conn, $churchId, $title, $body, $url = '/uncle/dashboard/?open_otp=1', $extra = [])
 {
-    // WhatsApp OTP PWA push notifications are turned off
-    return;
+    _sendWebPushToDeveloper($conn, $title, $body, $url, $extra);
 }
 
 // Helper: send web push to all devices subscribed for kids

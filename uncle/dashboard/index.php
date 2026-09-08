@@ -28495,6 +28495,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             // Navigate to classes view and scroll to pending
                             showClassesView();
                         }
+                    } else if (d.notifType === 'whatsapp_otp') {
+                        if (typeof showAdminOTPModal === 'function') {
+                            showAdminOTPModal();
+                        }
                     } else if (d.notifType === 'sync') {
                         showUnsavedModal();
                     } else if (d.notifType === 'birthday') {
