@@ -2845,6 +2845,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
+    .as-head-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .as-head-info-wrap {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
     .as-head-icon {
       width: 38px;
       height: 38px;
@@ -2858,6 +2871,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       flex-shrink: 0;
     }
 
+    .as-head-title-row {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--t1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .as-head-sub-text {
+      font-size: .73rem;
+      color: var(--t3);
+      font-weight: 600;
+    }
+
     .as-count-badge {
       display: inline-flex;
       align-items: center;
@@ -2869,6 +2897,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       font-size: .72rem;
       font-weight: 800;
       border: 1px solid var(--brand-l);
+    }
+
+    .acc-tag-long {
+      display: inline;
+    }
+
+    .acc-tag-short {
+      display: none;
     }
 
     .as-open-all-btn {
@@ -3084,6 +3120,148 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .acc-card-item:hover .acc-card-tag.switch-btn {
       background: var(--brand);
       color: #fff;
+    }
+
+    /* ══ MOBILE COMPACT STYLING FOR ACCOUNT SWITCHER ═════════ */
+    @media (max-width: 600px) {
+      .account-switcher-box {
+        padding: 10px 12px 9px;
+        margin-bottom: 12px;
+        border-radius: var(--r-md, 12px);
+      }
+
+      .account-switcher-box.highlight-pulse {
+        animation: boxGlowPulseMobile 1.6s ease-in-out 3;
+      }
+
+      .as-head-bar {
+        margin-bottom: 8px;
+      }
+
+      .as-head-info-wrap {
+        gap: 7px;
+      }
+
+      .as-head-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+      }
+
+      .as-head-title-row {
+        font-size: 0.82rem;
+        gap: 6px;
+      }
+
+      .as-count-badge {
+        font-size: 0.65rem;
+        padding: 0 6px;
+      }
+
+      .as-head-sub-text {
+        font-size: 0.66rem;
+      }
+
+      .as-open-all-btn {
+        padding: 3px 8px;
+        font-size: 0.68rem;
+        gap: 3px;
+      }
+
+      .first-time-switch-notice {
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        gap: 8px;
+        border-radius: 8px;
+      }
+
+      .notice-icon-box {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+      }
+
+      .notice-title {
+        font-size: 0.78rem;
+        margin-bottom: 1px;
+      }
+
+      .notice-desc {
+        font-size: 0.69rem;
+        line-height: 1.35;
+      }
+
+      .notice-arrow-hint {
+        display: none;
+      }
+
+      .notice-dismiss-btn {
+        padding: 3px 8px;
+        font-size: 0.68rem;
+        border-radius: 5px;
+      }
+
+      .acc-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .acc-card-item {
+        padding: 6px 10px;
+        gap: 8px;
+        border-radius: 8px;
+      }
+
+      .acc-card-av {
+        width: 32px;
+        height: 32px;
+        font-size: 0.88rem;
+        border-width: 1.5px;
+      }
+
+      .acc-card-name {
+        font-size: 0.82rem;
+      }
+
+      .acc-card-class {
+        font-size: 0.66rem;
+        gap: 3px;
+      }
+
+      .acc-card-tag {
+        font-size: 0.65rem;
+        padding: 2px 7px;
+        border-radius: 6px;
+      }
+
+      .acc-tag-long {
+        display: none;
+      }
+
+      .acc-tag-short {
+        display: inline;
+      }
+    }
+
+    @keyframes boxGlowPulseMobile {
+      0%, 100% {
+        box-shadow: var(--sh-sm);
+        border-color: var(--bdr);
+      }
+      50% {
+        box-shadow: 0 0 0 2.5px var(--brand-glow), 0 4px 14px rgba(79, 70, 229, 0.28);
+        border-color: var(--brand);
+      }
+    }
+
+    @media (max-width: 360px) {
+      .as-head-sub-text {
+        display: none;
+      }
+      .as-head-title-text {
+        font-size: 0.78rem;
+      }
     }
 
     /* First-time multi-account modal */
@@ -5336,17 +5514,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         </button>
       </div>
 
-      <div class="sc-head" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-        <div style="display:flex; align-items:center; gap:9px;">
+      <div class="sc-head as-head-bar">
+        <div class="as-head-info-wrap">
           <div class="as-head-icon">
             <i class="fas fa-users"></i>
           </div>
           <div>
-            <div style="font-size:1rem; font-weight:800; color:var(--t1); display:flex; align-items:center; gap:8px;">
-              <span>الحسابات المرتبطة بهذا الرقم</span>
+            <div class="as-head-title-row">
+              <span class="as-head-title-text">الحسابات المرتبطة بهذا الرقم</span>
               <span class="as-count-badge" id="asCountBadge">2</span>
             </div>
-            <div style="font-size:.73rem; color:var(--t3); font-weight:600;">اضغط على أي حساب للتبديل السريع إليه</div>
+            <div class="as-head-sub-text">اضغط على أي حساب للتبديل السريع إليه</div>
           </div>
         </div>
         <button type="button" class="as-open-all-btn" onclick="openOv('switchOv')">
@@ -9603,7 +9781,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                 <div class="acc-card-class"><i class="fas fa-graduation-cap"></i> ${esc(a.class || '—')}</div>
               </div>
               <div class="acc-card-tag ${isCurr ? 'current' : 'switch-btn'}">
-                ${isCurr ? '<i class="fas fa-check-circle"></i> الحساب الحالي' : '<i class="fas fa-exchange-alt"></i> تبديل'}
+                ${isCurr ? '<i class="fas fa-check-circle"></i> <span class="acc-tag-long">الحساب الحالي</span><span class="acc-tag-short">الحالي</span>' : '<i class="fas fa-exchange-alt"></i> <span>تبديل</span>'}
               </div>
             </div>
           `;
