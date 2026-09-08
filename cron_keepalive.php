@@ -41,12 +41,12 @@ foreach ($replitUrls as $replitUrl) {
 }
 $statusStr = implode(' | ', $statusMessages);
 
-// 2. Clean up expired OTPs older than 30 minutes
+// 2. Clean up expired OTPs older than 24 hours
 $cleanedCount = 0;
 try {
     if (function_exists('getDBConnection')) {
         $conn = getDBConnection();
-        $stmt = $conn->prepare("DELETE FROM phone_verifications WHERE created_at < NOW() - INTERVAL 30 MINUTE");
+        $stmt = $conn->prepare("DELETE FROM phone_verifications WHERE created_at < NOW() - INTERVAL 24 HOUR");
         if ($stmt) {
             $stmt->execute();
             $cleanedCount = $stmt->affected_rows;

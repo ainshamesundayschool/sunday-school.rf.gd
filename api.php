@@ -19763,11 +19763,63 @@ function sendCustomWhatsAppOTP() {
             @$conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS church_id INT NULL DEFAULT NULL AFTER id;");
         }
         
+        $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
+        $last10 = (strlen($normalizedPhone) >= 10) ? substr($normalizedPhone, -10) : $normalizedPhone;
+
+        // Check if an active OTP was already generated for this phone within the last 24 hours (86400 seconds)
+        $existingOtp = null;
+        $chkStmt = $conn->prepare("
+            SELECT id, request_token, otp_code, church_id, is_sent, created_at,
+                   TIMESTAMPDIFF(SECOND, created_at, NOW()) AS elapsed_sec
+            FROM phone_verifications 
+            WHERE (RIGHT(phone, 10) = ? OR phone = ? OR phone = ?)
+              AND TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400
+            ORDER BY id DESC LIMIT 1
+        ");
+        if ($chkStmt) {
+            $chkStmt->bind_param("sss", $last10, $cleanPhone, $normalizedPhone);
+            $chkStmt->execute();
+            $chkRes = $chkStmt->get_result();
+            if ($chkRes && $cRow = $chkRes->fetch_assoc()) {
+                $existingOtp = $cRow;
+            }
+            $chkStmt->close();
+        }
+
+        // If an active code was created in the last 24 hours, reuse it!
+        // Do NOT generate a new code and do NOT send a new alert to the developer or bot
+        if ($existingOtp && !empty($existingOtp['otp_code'])) {
+            $newOtpId = (int)$existingOtp['id'];
+            $otp = $existingOtp['otp_code'];
+            $requestToken = $existingOtp['request_token'];
+
+            if (empty($requestToken)) {
+                $bytes = random_bytes(4);
+                $requestToken = 'REQ-' . strtoupper(bin2hex($bytes));
+                $upStmt = $conn->prepare("UPDATE phone_verifications SET request_token = ? WHERE id = ?");
+                if ($upStmt) {
+                    $upStmt->bind_param("si", $requestToken, $newOtpId);
+                    $upStmt->execute();
+                    $upStmt->close();
+                }
+            }
+
+            error_log(sprintf("[WhatsAppQueue] 24h window: Reusing active OTP id=%d for phone=%s (generated %d sec ago)", $newOtpId, $normalizedPhone, $existingOtp['elapsed_sec'] ?? 0));
+
+            sendJSON([
+                'success' => true,
+                'message' => 'رمز التحقق تم إرساله مسبقاً وهو صالح لمدة 24 ساعة. يرجى إدخال الكود المستلم عبر واتساب.',
+                'request_token' => $requestToken,
+                'queue_id' => $newOtpId,
+                'is_existing' => true
+            ]);
+            return;
+        }
+
         // Step 1: Generate the OTP
         $otp = sprintf("%06d", mt_rand(100000, 999999));
         $bytes = random_bytes(4);
         $requestToken = 'REQ-' . strtoupper(bin2hex($bytes));
-        $normalizedPhone = normalizeEgyptianPhone($cleanPhone);
         
         // Step 2: Store/enqueue a pending WhatsApp message (id, phone, otp_code, is_sent=0)
         if ($ownerChurchId > 0) {
@@ -20000,7 +20052,7 @@ function verifyPendingOTPInQueue(int $otpId): ?array {
             WHERE id = ? 
               AND is_verified = 0 
               AND is_sent = 0
-              AND (created_at IS NULL OR ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30)
+              AND (created_at IS NULL OR TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400)
             LIMIT 1
         ");
         if (!$stmt) return null;
@@ -20185,7 +20237,7 @@ function getPendingOTPMessages() {
             SELECT id, phone, otp_code FROM phone_verifications 
             WHERE is_verified = 0 
               AND is_sent = 0 
-              AND (created_at IS NULL OR ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30)
+              AND (created_at IS NULL OR TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400)
             ORDER BY id ASC LIMIT 15
         ");
         if ($stmt) {
@@ -20615,7 +20667,7 @@ function adminCheckUserOTP() {
             }
 
             // Message without emojis
-            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $item['otp_code'] . "*\n\nصالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $item['otp_code'] . "*\n\nصالح لمدة 24 ساعة.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
             $item['manual_message'] = $msgText;
             $item['manual_whatsapp_url'] = "https://api.whatsapp.com/send?phone=" . $normPhone . "&text=" . rawurlencode($msgText);
         }
@@ -20714,7 +20766,7 @@ function adminResendUserOTP() {
             // Wake the bot
             $wakeResult = notifyWhatsAppOTNGPendingSafe($id);
 
-            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\nصالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\nصالح لمدة 24 ساعة.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
 
             sendJSON([
                 'success' => true,
@@ -20774,7 +20826,7 @@ function adminResendUserOTP() {
             }
 
             $wakeResult = notifyWhatsAppOTNGPendingSafe($newId);
-            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\nصالح لمدة 10 دقائق.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
+            $msgText = "كود التحقق الخاص بك في مدارس الأحد هو: *" . $otp . "*\n\nصالح لمدة 24 ساعة.\nيرجى إدخال هذا الرمز لإتمام الدخول أو التسجيل.";
 
             sendJSON([
                 'success' => true,
@@ -21389,7 +21441,7 @@ function verifyAndGetOTPToken() {
         $stmt = $conn->prepare("
             SELECT id, otp_code, phone FROM phone_verifications 
             WHERE request_token = ? 
-              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+              AND TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400
             ORDER BY id DESC LIMIT 1
         ");
         $stmt->bind_param("s", $token);
@@ -21450,13 +21502,12 @@ function verifyCustomWhatsAppOTP() {
         $normPhone = normalizeEgyptianPhone($cleanPhone);
         $last10 = (strlen($normPhone) >= 10) ? substr($normPhone, -10) : $normPhone;
         
-        // Strict match: ONLY accept OTP code generated specifically for this exact phone number
+        // Match OTP code for this phone number generated within the 24 hours interval (86400 seconds)
         $stmt = $conn->prepare("
             SELECT id FROM phone_verifications 
             WHERE (RIGHT(phone, 10) = ? OR phone = ? OR phone = ?) 
               AND otp_code = ? 
-              AND is_verified = 0 
-              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+              AND TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400
             ORDER BY id DESC LIMIT 1
         ");
         $stmt->bind_param("ssss", $last10, $cleanPhone, $normPhone, $code);
@@ -21470,7 +21521,7 @@ function verifyCustomWhatsAppOTP() {
             
             sendJSON(['success' => true, 'message' => 'تم التأكد من رقم الهاتف بنجاح']);
         } else {
-            sendJSON(['success' => false, 'message' => 'كود التحقق غير صحيح أو انتهت صلاحيته']);
+            sendJSON(['success' => false, 'message' => 'كود التحقق غير صحيح أو انتهت صلاحيته (صلاحية الكود 24 ساعة)']);
         }
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في التحقق: ' . $e->getMessage()]);
@@ -21497,7 +21548,7 @@ function checkWhatsAppVerificationStatus() {
                 SELECT id, is_verified, phone 
                 FROM phone_verifications 
                 WHERE request_token = ? 
-                  AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+                  AND TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400
                 ORDER BY id DESC LIMIT 1
             ");
             $stmt->bind_param("s", $token);
@@ -21506,7 +21557,7 @@ function checkWhatsAppVerificationStatus() {
                 SELECT id, is_verified, phone 
                 FROM phone_verifications 
                 WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
-                  AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+                  AND TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400
                 ORDER BY id DESC LIMIT 1
             ");
             $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
@@ -21545,8 +21596,7 @@ function getLatestPhoneOTP() {
         $stmt = $conn->prepare("
             SELECT otp_code FROM phone_verifications 
             WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ?) 
-              AND is_verified = 0 
-              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 15
+              AND TIMESTAMPDIFF(SECOND, created_at, NOW()) BETWEEN 0 AND 86400
             ORDER BY id DESC LIMIT 1
         ");
         $stmt->bind_param("sss", $last8, $cleanPhone, $cleanPhone);
