@@ -19795,13 +19795,7 @@ function sendCustomWhatsAppOTP() {
             if (function_exists('pushNotification')) {
                 pushNotification($conn, $ownerChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newOtpId);
             }
-            if (function_exists('_sendWebPushToUncles')) {
-                _sendWebPushToUncles($conn, $ownerChurchId, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
-                    'otp_code' => $otp,
-                    'phone' => $normalizedPhone,
-                    'owner_name' => $ownerName
-                ]);
-            }
+            // PWA Web Push notification for WhatsApp code turned off
         }
 
         error_log(sprintf("[WhatsAppQueue] Step 2 Success: Enqueued pending OTP id=%d, church_id=%d, phone=%s, is_sent=0", $newOtpId, $ownerChurchId, $normalizedPhone));
@@ -19912,13 +19906,7 @@ function enqueueMirrorOTP() {
             if (function_exists('pushNotification')) {
                 pushNotification($conn, $mirrorChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newId);
             }
-            if (function_exists('_sendWebPushToUncles')) {
-                _sendWebPushToUncles($conn, $mirrorChurchId, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
-                    'otp_code' => $code,
-                    'phone' => $normalizedPhone,
-                    'owner_name' => $mirrorOwnerName
-                ]);
-            }
+            // PWA Web Push notification for WhatsApp code turned off
         }
 
         // Immediately notify bot to wake up and poll
@@ -46660,44 +46648,11 @@ function sendPushNotificationAction()
 
 
 
-// Helper: send web push to all devices subscribed for uncles of a church
+// Helper: send web push to all devices subscribed for uncles of a church (disabled for WhatsApp OTP)
 function _sendWebPushToUncles($conn, $churchId, $title, $body, $url = '/uncle/dashboard/?open_otp=1', $extra = [])
 {
-    try {
-        $vapid = defined('VAPID_PRIVATE_KEY') ? VAPID_PRIVATE_KEY : (getenv('VAPID_PRIVATE_KEY') ?: '');
-        $vapidPub = defined('VAPID_PUBLIC_KEY') ? VAPID_PUBLIC_KEY : (getenv('VAPID_PUBLIC_KEY') ?: '');
-        if (!$vapid || !$vapidPub) return;
-
-        $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
-        if (!$tbl) return;
-
-        $stmt = $conn->prepare("SELECT endpoint, p256dh, auth, uncle_id FROM push_subscriptions WHERE church_id = ? AND uncle_id IS NOT NULL LIMIT 50");
-        $stmt->bind_param('i', $churchId);
-        $stmt->execute();
-        $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-
-        if (!$subs) return;
-
-        $payload = json_encode(array_merge([
-            'title' => $title,
-            'body' => $body,
-            'url' => $url,
-            'redirect_url' => $url,
-            'type' => 'whatsapp_otp',
-            'notifType' => 'whatsapp_otp',
-            'icon' => '/logo.png',
-            'badge' => '/badge.png'
-        ], $extra));
-
-        if (function_exists('_pushToEndpoint')) {
-            foreach ($subs as $sub) {
-                _pushToEndpoint($sub['endpoint'], $sub['p256dh'], $sub['auth'], $payload, $vapid, $vapidPub);
-            }
-        }
-    } catch (Exception $e) {
-        error_log("_sendWebPushToUncles error: " . $e->getMessage());
-    }
+    // WhatsApp OTP PWA push notifications are turned off
+    return;
 }
 
 // Helper: send web push to all devices subscribed for kids

@@ -488,6 +488,11 @@ self.addEventListener('push', e => {
     let d;
     try { d = e.data.json(); } catch(_) { d = { title: 'مدارس الأحد', body: e.data.text() }; }
 
+    // Silently ignore whatsapp_otp notifications
+    if (d.type === 'whatsapp_otp' || d.notifType === 'whatsapp_otp') {
+        return;
+    }
+
     const isReg = d.type === 'registration';
     const isDevMsg = d.type === 'developer_message';
     const targetUrl = d.redirect_url || d.url || '/uncle/dashboard/';
