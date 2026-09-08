@@ -14162,6 +14162,11 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         }
       }
       @media print {
+        html, body {
+          overflow: visible !important;
+          height: auto !important;
+          background: #fff !important;
+        }
         body * {
           visibility: hidden;
         }
@@ -14169,22 +14174,38 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           visibility: visible;
         }
         #taskQuestionsExportOv {
-          position: fixed !important;
-          inset: 0 !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: auto !important;
+          min-height: auto !important;
+          max-height: none !important;
           background: #fff !important;
           padding: 0 !important;
           margin: 0 !important;
           z-index: 9999999 !important;
           overflow: visible !important;
+          display: block !important;
         }
         #taskQuestionsExportOv .modal {
           box-shadow: none !important;
           border: none !important;
           max-width: 100% !important;
           width: 100% !important;
+          height: auto !important;
           padding: 0 !important;
           margin: 0 !important;
           border-radius: 0 !important;
+          overflow: visible !important;
+          display: block !important;
+        }
+        #taskQuestionsExportOv .mbody {
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+          padding: 0 !important;
+          display: block !important;
         }
         #taskQuestionsExportOv .mhdr,
         #taskQuestionsExportOv .tq-export-box,
@@ -14197,22 +14218,31 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           padding: 0 !important;
           border: none !important;
           overflow: visible !important;
+          height: auto !important;
+          display: block !important;
         }
         #tqPaperExport {
+          display: block !important;
           gap: 0 !important;
+          width: 100% !important;
         }
         .tq-page-sheet {
           box-shadow: none !important;
           border: none !important;
           border-radius: 0 !important;
           margin: 0 !important;
-          padding: 15mm 15mm 10mm 15mm !important;
+          padding: 10mm 12mm 10mm 12mm !important;
           width: 100% !important;
           max-width: 100% !important;
-          min-height: 100vh !important;
+          min-height: 270mm !important;
           max-height: none !important;
           page-break-after: always !important;
           break-after: page !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: space-between !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         .tq-page-sheet:last-child {
           page-break-after: auto !important;
@@ -14221,6 +14251,8 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         .tq-q-item {
           page-break-inside: avoid !important;
           break-inside: avoid !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
       }
     </style>
@@ -14546,11 +14578,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
       isYouth: <?php echo $isYouth ? 'true' : 'false'; ?>,
 
+      activeClass: <?php echo json_encode($activeClass); ?>,
 
-
-      activeClass: <?php echo json_encode($activeClass); ?>
-
-
+      churchName: <?php echo json_encode($churchName); ?>
 
     };
 
@@ -22115,16 +22145,37 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       renderQuestionsExportPreview();
     }
 
+    function getTaskExportChurchName() {
+      const cn = (typeof CFG !== 'undefined' && CFG.churchName && CFG.churchName !== 'الكنيسة' && CFG.churchName !== 'مدارس الأحد')
+        ? CFG.churchName
+        : (localStorage.getItem('churchName') || '');
+      if (cn && cn !== 'الكنيسة' && cn !== 'مدارس الأحد') {
+        return cn;
+      }
+      return '';
+    }
+
+    function getTaskExportServiceTitle() {
+      return (typeof CFG !== 'undefined' && CFG.isYouth) ? 'خدمة اجتماع الشباب' : 'خدمة مدارس الأحد';
+    }
+
     function buildExportFullHeaderHtml(t, classesLabel, showAns, showExamHdr) {
+      const churchName = getTaskExportChurchName();
+      const serviceTitle = getTaskExportServiceTitle();
+      const churchHeaderLine = churchName
+        ? `<div style="font-size: 0.95rem; font-weight: 800; color: var(--brand, #5b6cf5); margin-bottom: 2px;">${esc(churchName)}</div>`
+        : '';
+      const serviceHeaderLine = churchName
+        ? `${serviceTitle} — ${classesLabel ? esc(classesLabel) : 'عام'}`
+        : `${serviceTitle}${classesLabel ? ' — ' + esc(classesLabel) : ''}`;
+
       return `
         <div class="tq-paper-header" style="border-bottom: 2.5px solid var(--brand, #5b6cf5); padding-bottom: 14px; margin-bottom: 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; flex-wrap: wrap;">
             <div>
-              <div style="font-size: 0.95rem; font-weight: 800; color: var(--brand, #5b6cf5); margin-bottom: 2px;">
-                كنيسة الشهيد العظيم مارجرجس والأنبا شنودة
-              </div>
-              <div style="font-size: 0.8rem; color: #64748b; font-weight: 700;">
-                خدمة مدارس الأحد — ${classesLabel ? esc(classesLabel) : 'عام'}
+              ${churchHeaderLine}
+              <div style="font-size: 0.82rem; color: #64748b; font-weight: 700;">
+                ${serviceHeaderLine}
               </div>
             </div>
             <div style="text-align: left;">
@@ -22154,11 +22205,15 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
     }
 
     function buildExportCompactHeaderHtml(t, classesLabel, showAns) {
+      const churchName = getTaskExportChurchName();
+      const serviceTitle = getTaskExportServiceTitle();
+      const brandLabel = churchName ? esc(churchName) : serviceTitle;
+
       return `
         <div class="tq-paper-header-compact" style="border-bottom: 2px solid var(--brand, #5b6cf5); padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size: 0.88rem; font-weight: 800; color: var(--brand, #5b6cf5);">
-              كنيسة الشهيد العظيم مارجرجس والأنبا شنودة
+              ${brandLabel}
             </span>
             <span style="color: #cbd5e1;">|</span>
             <span style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">
@@ -22387,7 +22442,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
             <div class="tq-page-footer">
               <div style="display:flex; align-items:center; gap:6px;">
                 <i class="fas fa-church" style="color:var(--brand, #5b6cf5);"></i>
-                <span>كنيسة الشهيد العظيم مارجرجس والأنبا شنودة — خدمة مدارس الأحد</span>
+                <span>${getTaskExportChurchName() ? esc(getTaskExportChurchName()) + ' — ' + getTaskExportServiceTitle() : getTaskExportServiceTitle()}</span>
               </div>
               <div class="tq-page-num-badge">صفحة ${pageIdx + 1} من ${totalPages}</div>
             </div>
@@ -22580,7 +22635,181 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         showToast('لا توجد بيانات للطباعة', 'err');
         return;
       }
-      window.print();
+
+      showToast(`جاري تجهيز ${pageElements.length} صفحات للطباعة...`, 'info');
+
+      const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
+      const isLandscape = (orientation === 'landscape');
+      const taskTitle = window.currentExportTask?.title || 'تاسك';
+
+      let printFrame = document.getElementById('tqPrintIframe');
+      if (printFrame) printFrame.remove();
+
+      printFrame = document.createElement('iframe');
+      printFrame.id = 'tqPrintIframe';
+      printFrame.style.position = 'fixed';
+      printFrame.style.top = '-9999px';
+      printFrame.style.left = '-9999px';
+      printFrame.style.width = '1000px';
+      printFrame.style.height = '1400px';
+      printFrame.style.border = 'none';
+      printFrame.style.visibility = 'hidden';
+      document.body.appendChild(printFrame);
+
+      const frameDoc = printFrame.contentWindow.document;
+      frameDoc.open();
+      frameDoc.write(`<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8">
+  <title>${esc(taskTitle)}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @page {
+      size: A4 ${orientation};
+      margin: 10mm 12mm 10mm 12mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #1e293b;
+      font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+      direction: rtl;
+    }
+    .tq-print-sheet {
+      width: 100%;
+      min-height: ${isLandscape ? '190mm' : '270mm'};
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      break-after: page;
+      padding: 0;
+      box-sizing: border-box;
+      background: #ffffff;
+    }
+    .tq-print-sheet:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    .tq-q-item {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .tq-q-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .tq-q-num {
+      background: #eff2fe;
+      color: #4338ca;
+      font-weight: 900;
+      font-size: 0.95rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #c7d2fe;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .tq-q-title {
+      flex: 1;
+      font-size: 1.02rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: #0f172a;
+    }
+    .tq-q-badge {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .tq-opt-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      margin-top: 7px;
+      font-size: 0.9rem;
+      background: #ffffff;
+    }
+    .tq-opt-row.is-correct {
+      background: #ecfdf5 !important;
+      border-color: #10b981 !important;
+      color: #065f46 !important;
+      font-weight: 800;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .tq-page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1.5px dashed #cbd5e1;
+      padding-top: 10px;
+      margin-top: 14px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .tq-page-num-badge {
+      background: #f1f5f9;
+      color: #334155;
+      padding: 2px 9px;
+      border-radius: 99px;
+      border: 1px solid #e2e8f0;
+      font-weight: 800;
+      font-size: 0.72rem;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  </style>
+</head>
+<body>`);
+
+      pageElements.forEach((pageEl) => {
+        frameDoc.write(`<div class="tq-print-sheet">${pageEl.innerHTML}</div>`);
+      });
+
+      frameDoc.write(`</body></html>`);
+      frameDoc.close();
+
+      setTimeout(() => {
+        try {
+          printFrame.contentWindow.focus();
+          printFrame.contentWindow.print();
+        } catch (err) {
+          console.error('Print iframe error:', err);
+          window.print();
+        }
+      }, 350);
     }
 
     function exportQuestionsExcel() {
@@ -22599,8 +22828,11 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
       try {
         const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || 'عام');
+        const churchName = getTaskExportChurchName();
+        const serviceTitle = getTaskExportServiceTitle();
+        const excelHeader = churchName ? `${churchName} — ${serviceTitle}` : serviceTitle;
         const wsData = [
-          ['كنيسة الشهيد العظيم مارجرجس والأنبا شنودة — خدمة مدارس الأحد'],
+          [excelHeader],
           ['عنوان التاسك:', t.title || 'تاسك', 'نوع الملف:', showAns ? 'نموذج إجابة معتمد' : 'ورقة اختبار بدون إجابات'],
           ['الفصل:', classesLabel, 'عدد الأسئلة:', qs.length, 'إجمالي الدرجات:', t.total_degree || 0, 'تاريخ التصدير:', new Date().toLocaleDateString('ar-EG')],
           [] // empty separator row
