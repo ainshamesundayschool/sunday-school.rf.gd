@@ -2849,13 +2849,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
       margin-bottom: 12px;
+      flex-wrap: nowrap;
     }
 
     .as-head-info-wrap {
       display: flex;
       align-items: center;
       gap: 9px;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
     }
 
     .as-head-icon {
@@ -2871,6 +2876,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       flex-shrink: 0;
     }
 
+    .as-head-text-col {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+
     .as-head-title-row {
       font-size: 1rem;
       font-weight: 800;
@@ -2878,12 +2889,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       display: flex;
       align-items: center;
       gap: 8px;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .as-head-title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .as-title-full {
+      display: inline;
+    }
+
+    .as-title-mobile {
+      display: none;
     }
 
     .as-head-sub-text {
       font-size: .73rem;
       color: var(--t3);
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .as-count-badge {
@@ -2897,6 +2928,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       font-size: .72rem;
       font-weight: 800;
       border: 1px solid var(--brand-l);
+      flex-shrink: 0;
+      white-space: nowrap;
     }
 
     .acc-tag-long {
@@ -3136,10 +3169,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       .as-head-bar {
         margin-bottom: 8px;
+        gap: 8px;
+        flex-wrap: nowrap;
       }
 
       .as-head-info-wrap {
         gap: 7px;
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
       }
 
       .as-head-icon {
@@ -3147,26 +3185,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         height: 26px;
         font-size: 0.8rem;
         border-radius: 6px;
+        flex-shrink: 0;
+      }
+
+      .as-head-text-col {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
       }
 
       .as-head-title-row {
         font-size: 0.82rem;
-        gap: 6px;
+        gap: 5px;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+
+      .as-title-full {
+        display: none;
+      }
+
+      .as-title-mobile {
+        display: inline;
+        white-space: nowrap;
+      }
+
+      .as-head-title-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .as-count-badge {
         font-size: 0.65rem;
-        padding: 0 6px;
+        padding: 0 5px;
+        min-width: 18px;
+        height: 18px;
+        flex-shrink: 0;
       }
 
       .as-head-sub-text {
-        font-size: 0.66rem;
+        font-size: 0.65rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .as-open-all-btn {
         padding: 3px 8px;
         font-size: 0.68rem;
         gap: 3px;
+        flex-shrink: 0;
+        white-space: nowrap;
       }
 
       .first-time-switch-notice {
@@ -5519,9 +5590,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <div class="as-head-icon">
             <i class="fas fa-users"></i>
           </div>
-          <div>
+          <div class="as-head-text-col">
             <div class="as-head-title-row">
-              <span class="as-head-title-text">الحسابات المرتبطة بهذا الرقم</span>
+              <span class="as-head-title-text as-title-full">الحسابات المرتبطة بهذا الرقم</span>
+              <span class="as-head-title-text as-title-mobile">الحسابات المرتبطة</span>
               <span class="as-count-badge" id="asCountBadge">2</span>
             </div>
             <div class="as-head-sub-text">اضغط على أي حساب للتبديل السريع إليه</div>
@@ -9745,7 +9817,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
 
       if (countBadge) {
-        countBadge.textContent = allAccounts.length === 2 ? 'حسابان' : `${allAccounts.length} حسابات`;
+        countBadge.textContent = allAccounts.length;
       }
 
       // First time notice check
