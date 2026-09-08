@@ -7305,11 +7305,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const d = await api({ action: 'kidLogin', username: localStorage.getItem('savedUsername'), password: localStorage.getItem('savedPassword') });
         hideLoad();
         if (d.success && d.data && d.data.length > 0) {
-          allAccounts = d.data.map(norm);
+          const rawAccounts = d.data.map(norm);
           // Restore last active account from localStorage
           const savedId = parseInt(localStorage.getItem('activeKidAccountId') || '0');
-          const saved = savedId ? allAccounts.find(a => a.id === savedId) : null;
-          student = saved || allAccounts[0];
+          let saved = savedId ? rawAccounts.find(a => a.id === savedId) : null;
+          let initialStudent = saved || rawAccounts[0];
+
+          // Filter accounts to only those that share a common phone with initialStudent
+          allAccounts = rawAccounts.filter(a => doAccountsShareCommonPhone(initialStudent, a));
+          student = initialStudent;
+          localStorage.setItem('activeKidAccountId', String(student.id));
+
           await loadChurchSettings();
           renderPrivate(student);
           switchTab(getInitialTab());
@@ -7319,6 +7325,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           if (allAccounts.length > 1) {
             document.getElementById('switchBtnTop').style.display = 'flex';
             renderAccountSwitcher();
+          } else {
+            const swTop = document.getElementById('switchBtnTop');
+            if (swTop) swTop.style.display = 'none';
+            const swHero = document.getElementById('heroSwitchTag');
+            if (swHero) swHero.style.display = 'none';
+            const swBox = document.getElementById('scAccountSwitcher');
+            if (swBox) swBox.style.display = 'none';
           }
         } else noProfile('فشل في تحميل الملف الشخصي');
       } catch (e) { hideLoad(); noProfile('خطأ في الاتصال'); }
@@ -9595,11 +9608,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       try {
         const d = await api({ action: 'updateStudentInfo', studentId: student.id, name: n, address: document.getElementById('eA').value.trim(), phone: document.getElementById('eP').value.trim(), birthday: document.getElementById('eB').value.trim() });
         if (d.success) {
+          const newPhoneClean = document.getElementById('eP').value.trim();
           student.name = n; student.address = document.getElementById('eA').value.trim();
-          student.phone = document.getElementById('eP').value.trim(); student.birthday = document.getElementById('eB').value.trim();
+          student.phone = newPhoneClean; student.birthday = document.getElementById('eB').value.trim();
           document.getElementById('heroName').textContent = n;
           updateBirthdayGreetingButton(student);
           renderInfo(student, false); closeOv('editOv'); toast('تم الحفظ ✓', 'ok');
+
+          // If phone was changed, update savedUsername in localStorage
+          if (newPhoneClean) {
+            const rawDigits = newPhoneClean.replace(/[^\d]/g, '');
+            if (rawDigits) localStorage.setItem('savedUsername', rawDigits);
+          }
+
+          // Update current account in allAccounts
+          const selfRef = allAccounts.find(a => a.id === student.id);
+          if (selfRef) {
+            selfRef.name = n;
+            selfRef.phone = newPhoneClean;
+          }
+
+          // Exclude any accounts that no longer share a common phone with this account
+          allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
+          renderAccountSwitcher();
+          populateSwitchModal();
         } else toast(d.message || 'فشل', 'err');
       } catch (e) { toast('خطأ في الاتصال', 'err'); }
     }
@@ -9756,9 +9788,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (banner) banner.style.display = 'none';
     }
 
+    // ── Phone matching helper for account switcher ────────────────────
+    function getAllStudentPhones(s) {
+      if (!s) return [];
+      const list = [];
+      const add = (p) => {
+        if (!p) return;
+        if (typeof p === 'string' || typeof p === 'number') {
+          const clean = String(p).replace(/[^\d]/g, '');
+          if (clean.length >= 8) {
+            const last9 = clean.slice(-9);
+            if (!list.includes(last9)) list.push(last9);
+          }
+        } else if (Array.isArray(p)) {
+          p.forEach(add);
+        } else if (typeof p === 'object') {
+          Object.values(p).forEach(add);
+        }
+      };
+      add(s.phone);
+      add(s.emergency_phone);
+      add(s.parent_phones);
+      if (s.custom_info) {
+        add(s.custom_info.parent_phones);
+        add(s.custom_info.phone);
+        add(s.custom_info.emergency_phone);
+      }
+      return list;
+    }
+
+    function doAccountsShareCommonPhone(a, b) {
+      if (!a || !b) return false;
+      if (Number(a.id) === Number(b.id)) return true;
+      const phonesA = getAllStudentPhones(a);
+      const phonesB = getAllStudentPhones(b);
+      if (!phonesA.length || !phonesB.length) return false;
+      return phonesA.some(pA => phonesB.includes(pA));
+    }
+
     // ── Account switch ────────────────────────────────────────────────
     function populateSwitchModal() {
-      if (!allAccounts || !allAccounts.length) return;
+      if (!allAccounts || !allAccounts.length || !student) return;
+      allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
+      if (allAccounts.length <= 1) {
+        closeOv('switchOv');
+        renderAccountSwitcher();
+        return;
+      }
       selAccId = student ? student.id : null;
       const list = document.getElementById('switchList');
       if (!list) return;
@@ -9796,10 +9872,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const notice = document.getElementById('firstTimeSwitchNotice');
       const noticeTitle = document.getElementById('firstTimeNoticeTitle');
 
+      if (allAccounts && student) {
+        allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
+      }
+
       if (!allAccounts || allAccounts.length <= 1 || isViewingOther() || IS_PUBLIC) {
         if (container) container.style.display = 'none';
         if (heroTag) heroTag.style.display = 'none';
         if (switchBtnTop) switchBtnTop.style.display = 'none';
+        closeOv('switchOv');
         return;
       }
 
@@ -9940,9 +10021,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     async function pickAcc(id) {
       if (!id || (student && id === student.id)) { closeOv('switchOv'); return; }
-      const acc = allAccounts.find(a => a.id === id); if (!acc) return;
+      const acc = allAccounts.find(a => a.id === id); 
+      if (!acc) return;
+      if (!doAccountsShareCommonPhone(student, acc)) {
+        allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
+        renderAccountSwitcher();
+        populateSwitchModal();
+        closeOv('switchOv');
+        toast('هذا الحساب لم يعد مرتبطاً بهذا الرقم', 'err');
+        return;
+      }
       student = acc;
       localStorage.setItem('activeKidAccountId', String(acc.id));
+      if (acc.phone) {
+        const cleanP = String(acc.phone).replace(/[^\d]/g, '');
+        if (cleanP) localStorage.setItem('savedUsername', cleanP);
+      }
+      allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
       await loadChurchSettings();
       renderPrivate(student);
       switchTab(getInitialTab());
