@@ -964,6 +964,9 @@
                 }
                 if (!isAutoLogin) hideLoading();
                 if (data.success && data.data && data.data.length > 0) {
+                    if (data.data.length > 1) {
+                        localStorage.setItem('justLoggedInMultiAccounts', '1');
+                    }
                     localStorage.setItem('savedUsername', identifier);
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');
@@ -1058,6 +1061,9 @@
                 hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
+                    if (data.data.length > 1) {
+                        localStorage.setItem('justLoggedInMultiAccounts', '1');
+                    }
                     localStorage.setItem('savedUsername', cleanPhoneNumber(phone));
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');
@@ -1141,6 +1147,9 @@
                 if (!isAutoLogin) hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
+                    if (data.data.length > 1) {
+                        localStorage.setItem('justLoggedInMultiAccounts', '1');
+                    }
                     localStorage.setItem('savedUsername', username);
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');

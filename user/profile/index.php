@@ -571,13 +571,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     .htag.switch-tag {
-      background: rgba(255, 255, 255, .15);
-      border: none;
+      background: rgba(255, 255, 255, .18);
+      border: 1px solid rgba(255, 255, 255, .32);
+      color: #fff;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--r-full);
+      font-size: .78rem;
+      font-weight: 700;
+      font-family: inherit;
+      transition: all var(--fast);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     .htag.switch-tag:hover {
-      background: rgba(255, 255, 255, .18);
+      background: rgba(255, 255, 255, .28);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+      border-color: rgba(255, 255, 255, .55);
+    }
+
+    .htag.switch-tag:active {
+      transform: translateY(0);
     }
 
     /* ── COUPON HERO CARD ──────────────────────────────── */
@@ -2795,6 +2815,378 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       color: var(--t4);
     }
 
+    /* ══ MAIN PAGE ACCOUNT SWITCHER ═════════════════════════ */
+    .account-switcher-box {
+      background: var(--surf);
+      border: 1.5px solid var(--bdr);
+      border-radius: var(--r-lg);
+      padding: 18px 18px 16px;
+      margin-bottom: 20px;
+      box-shadow: var(--sh-md);
+      position: relative;
+      overflow: hidden;
+      transition: all var(--norm);
+      direction: rtl;
+      text-align: right;
+    }
+
+    .account-switcher-box.highlight-pulse {
+      animation: boxGlowPulse 1.8s ease-in-out 3;
+    }
+
+    @keyframes boxGlowPulse {
+      0%, 100% {
+        box-shadow: var(--sh-md);
+        border-color: var(--bdr);
+      }
+      50% {
+        box-shadow: 0 0 0 4px var(--brand-glow), 0 10px 30px rgba(79, 70, 229, 0.25);
+        border-color: var(--brand);
+      }
+    }
+
+    .as-head-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--r-md);
+      background: var(--brand-bg);
+      color: var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .as-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px 8px;
+      border-radius: var(--r-full);
+      background: var(--brand-bg);
+      color: var(--brand);
+      font-size: .72rem;
+      font-weight: 800;
+      border: 1px solid var(--brand-l);
+    }
+
+    .as-open-all-btn {
+      background: none;
+      border: 1px solid var(--bdr);
+      border-radius: var(--r-full);
+      padding: 6px 14px;
+      color: var(--t3);
+      font-family: inherit;
+      font-size: .76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all var(--fast);
+    }
+
+    .as-open-all-btn:hover {
+      background: var(--bdr2);
+      color: var(--brand);
+      border-color: var(--brand-l);
+    }
+
+    /* First-time notice inside switcher */
+    .first-time-switch-notice {
+      background: linear-gradient(135deg, #eef2ff 0%, #ede9fe 50%, #fdf4ff 100%);
+      border: 1.5px solid #a5b4fc;
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+      animation: fadeIn 0.4s ease both;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .notice-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .notice-text-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .notice-title {
+      font-size: .92rem;
+      font-weight: 800;
+      color: #312e81;
+      margin-bottom: 3px;
+    }
+
+    .notice-desc {
+      font-size: .78rem;
+      color: #4338ca;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .notice-arrow-hint {
+      font-size: .72rem;
+      color: #6366f1;
+      font-weight: 800;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .notice-dismiss-btn {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: var(--r-sm);
+      padding: 6px 14px;
+      font-family: inherit;
+      font-size: .76rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      align-self: center;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+      transition: all var(--fast);
+    }
+
+    .notice-dismiss-btn:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+
+    /* Account cards in main page */
+    .acc-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .acc-card-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--r-md);
+      border: 1.5px solid var(--bdr);
+      background: var(--s2);
+      cursor: pointer;
+      position: relative;
+      transition: all var(--fast);
+    }
+
+    .acc-card-item:hover {
+      background: var(--surf);
+      border-color: var(--brand-l);
+      transform: translateY(-2px);
+      box-shadow: var(--sh-sm);
+    }
+
+    .acc-card-item.active {
+      background: linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(245, 243, 255, 0.8));
+      border: 2px solid var(--brand);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.12);
+      cursor: default;
+    }
+
+    .acc-card-av {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--brand-bg);
+      color: var(--brand);
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .acc-card-av img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .acc-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .acc-card-name {
+      font-weight: 800;
+      font-size: .88rem;
+      color: var(--t1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .acc-card-class {
+      font-size: .72rem;
+      color: var(--t3);
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .acc-card-tag {
+      font-size: .7rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: var(--r-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .acc-card-tag.current {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+    }
+
+    .acc-card-tag.switch-btn {
+      background: var(--surf);
+      color: var(--brand);
+      border: 1px solid var(--brand-l);
+      transition: all var(--fast);
+    }
+
+    .acc-card-item:hover .acc-card-tag.switch-btn {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    /* First-time multi-account modal */
+    .ft-icon-ring {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), #8b5cf6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+      animation: avatarPop 0.5s var(--spring) both;
+    }
+
+    .ft-title {
+      font-size: 1.18rem;
+      font-weight: 900;
+      color: var(--t1);
+      margin-bottom: 8px;
+    }
+
+    .ft-desc {
+      font-size: .84rem;
+      color: var(--t3);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .ft-kids-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .ft-kid-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--r-full);
+      background: var(--brand-bg);
+      border: 1px solid var(--brand-l);
+      color: var(--brand);
+      font-size: .8rem;
+      font-weight: 800;
+    }
+
+    .ft-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ft-btn-primary {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--r-md);
+      background: linear-gradient(135deg, var(--brand), #7c3aed);
+      color: #fff;
+      border: none;
+      font-family: inherit;
+      font-size: .92rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: var(--sh-brand);
+      transition: all var(--fast);
+    }
+
+    .ft-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+    }
+
+    .ft-btn-secondary {
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--r-md);
+      background: none;
+      color: var(--t3);
+      border: 1px solid var(--bdr);
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--fast);
+    }
+
+    .ft-btn-secondary:hover {
+      background: var(--s2);
+      color: var(--t1);
+    }
+
     /* ══ LOADING / TOAST / EMPTY ═════════════════════════ */
     .loading-screen {
       position: fixed;
@@ -4782,6 +5174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="hero-tags" id="heroTags">
           <span class="htag class-tag" id="heroClass"><i class="fas fa-graduation-cap"></i><span
               id="heroClassTxt">—</span></span>
+          <button type="button" class="htag switch-tag" id="heroSwitchTag" style="display:none" onclick="openOv('switchOv')" title="تبديل الحساب">
+            <i class="fas fa-exchange-alt"></i><span>تبديل الحساب (<span id="heroSwitchCount">0</span>)</span>
+          </button>
           <div class="uncle-strip" id="uncleStrip" style="display:none"></div>
         </div>
         <button class="birthday-greeting-btn" id="birthdayGreetingBtn" type="button" onclick="openBirthdayGreeting()">
@@ -4919,6 +5314,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           style="background:none; border:none; color:var(--warn); opacity: 0.7; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; padding: 2px; margin-top: 2px; transition: opacity var(--fast);"
           onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7" title="إغلاق"><i
             class="fas fa-times"></i></button>
+      </div>
+    </div>
+
+    <!-- ══ ACCOUNT SWITCHER (MAIN PAGE) ══ -->
+    <div class="sc account-switcher-box" id="scAccountSwitcher" style="display:none;">
+      <!-- First-time Notice Banner -->
+      <div class="first-time-switch-notice" id="firstTimeSwitchNotice" style="display:none;">
+        <div class="notice-icon-box">
+          <i class="fas fa-users-cog"></i>
+        </div>
+        <div class="notice-text-content">
+          <div class="notice-title" id="firstTimeNoticeTitle">مرحباً بك! يوجد حسابان مرتبطان بهذا الرقم</div>
+          <div class="notice-desc">تم ربط حسابات أولادك بهذا الرقم، ويمكنك التبديل بين الحسابات بسهولة في أي وقت من هذه المنطقة مباشرة أو من زر التبديل بالأعلى.</div>
+          <div class="notice-arrow-hint">
+            <i class="fas fa-hand-point-down"></i> اضغط على أي حساب أدناه للتبديل الفوري إليه
+          </div>
+        </div>
+        <button type="button" class="notice-dismiss-btn" onclick="dismissFirstTimeSwitchNotice(event)" title="إغلاق التنبيه">
+          <i class="fas fa-check"></i> فهمت
+        </button>
+      </div>
+
+      <div class="sc-head" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <div class="as-head-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div>
+            <div style="font-size:1rem; font-weight:800; color:var(--t1); display:flex; align-items:center; gap:8px;">
+              <span>الحسابات المرتبطة بهذا الرقم</span>
+              <span class="as-count-badge" id="asCountBadge">2</span>
+            </div>
+            <div style="font-size:.73rem; color:var(--t3); font-weight:600;">اضغط على أي حساب للتبديل السريع إليه</div>
+          </div>
+        </div>
+        <button type="button" class="as-open-all-btn" onclick="openOv('switchOv')">
+          <span>عرض الكل</span>
+          <i class="fas fa-chevron-left" style="font-size:.7rem;"></i>
+        </button>
+      </div>
+
+      <div class="acc-cards-grid" id="accCardsGrid">
+        <!-- Rendered via JS -->
       </div>
     </div>
 
@@ -5641,6 +6079,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
   </div>
 
+  <!-- ══ FIRST TIME MULTI-ACCOUNT MODAL ══ -->
+  <div class="overlay settings-overlay" id="firstTimeMultiAccModal" style="z-index:99999;">
+    <div class="settings-sheet ft-sheet" style="max-width:440px; text-align:center; padding:24px 20px 20px; margin:auto; border-radius:var(--r-xl); direction:rtl;">
+      <div class="ft-icon-ring">
+        <i class="fas fa-users-cog"></i>
+      </div>
+      <h3 class="ft-title" id="ftModalTitle">يوجد حسابان مرتبطان بهذا الرقم</h3>
+      <p class="ft-desc" id="ftModalDesc">
+        مرحباً بك! لاحظنا وجود أكثر من حساب مرتبط برقم هاتفك. يمكنك التبديل بين حسابات أولادك في أي وقت بسهولة من منطقة <strong>"الحسابات المرتبطة"</strong> في الصفحة الرئيسية.
+      </p>
+      <div class="ft-kids-preview" id="ftKidsPreview">
+        <!-- Chips with kid names -->
+      </div>
+      <div class="ft-actions">
+        <button type="button" class="ft-btn-primary" onclick="closeFirstTimeModalAndHighlight()">
+          <i class="fas fa-hand-point-down"></i> مشاهدة منطقة التبديل
+        </button>
+        <button type="button" class="ft-btn-secondary" onclick="dismissFirstTimeModalOnly()">
+          حسناً، فهمت
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Trip Detail -->
   <div class="overlay settings-overlay" id="tripOv">
     <div class="settings-sheet" style="max-height:92vh;">
@@ -5859,6 +6321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           syncPassOverlay();
           if (allAccounts.length > 1) {
             document.getElementById('switchBtnTop').style.display = 'flex';
+            renderAccountSwitcher();
           }
         } else {
           await openFriendProfile(URL_ID, false);
@@ -6605,6 +7068,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           syncPassOverlay();
           if (allAccounts.length > 1) {
             document.getElementById('switchBtnTop').style.display = 'flex';
+            renderAccountSwitcher();
           }
         } else noProfile('فشل في تحميل الملف الشخصي');
       } catch (e) { hideLoad(); noProfile('خطأ في الاتصال'); }
@@ -7344,6 +7808,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       // Switch to home/initial tab — this handles all section show/hide
       switchTab(getInitialTab());
+      renderAccountSwitcher();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       syncViewMode();
     }
@@ -9024,23 +9489,196 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     // ── Account switch ────────────────────────────────────────────────
-    document.getElementById('switchBtnTop').addEventListener('click', () => {
-      selAccId = student.id;
-      document.getElementById('switchList').innerHTML = allAccounts.map(a => `
-    <div class="acc-item${a.id === student.id ? ' active' : ''}" data-id="${a.id}" onclick="pickAcc(${a.id})">
-      <div class="acc-av">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : a.name.charAt(0)}</div>
-      <div><div class="acc-name">${esc(a.name)}</div><div class="acc-cls"><i class="fas fa-graduation-cap"></i> ${esc(a.class)}</div></div>
-      ${a.id === student.id ? '<i class="fas fa-check-circle" style="color:var(--brand);margin-right:auto;"></i>' : ''}
-    </div>`).join('');
-      openOv('switchOv');
-    });
-    function pickAcc(id) {
-      if (!id || id === student.id) { closeOv('switchOv'); return; }
+    function populateSwitchModal() {
+      if (!allAccounts || !allAccounts.length) return;
+      selAccId = student ? student.id : null;
+      const list = document.getElementById('switchList');
+      if (!list) return;
+      list.innerHTML = allAccounts.map(a => `
+        <div class="acc-item${(student && a.id === student.id) ? ' active' : ''}" data-id="${a.id}" onclick="pickAcc(${a.id})">
+          <div class="acc-av">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : esc(a.name.charAt(0))}</div>
+          <div><div class="acc-name">${esc(a.name)}</div><div class="acc-cls"><i class="fas fa-graduation-cap"></i> ${esc(a.class || '—')}</div></div>
+          ${(student && a.id === student.id) ? '<i class="fas fa-check-circle" style="color:var(--brand);margin-right:auto;"></i>' : ''}
+        </div>`).join('');
+    }
+
+    const switchBtnTopEl = document.getElementById('switchBtnTop');
+    if (switchBtnTopEl) {
+      switchBtnTopEl.addEventListener('click', () => {
+        populateSwitchModal();
+        openOv('switchOv');
+      });
+    }
+
+    const heroSwitchTagEl = document.getElementById('heroSwitchTag');
+    if (heroSwitchTagEl) {
+      heroSwitchTagEl.addEventListener('click', () => {
+        populateSwitchModal();
+        openOv('switchOv');
+      });
+    }
+
+    function renderAccountSwitcher() {
+      const container = document.getElementById('scAccountSwitcher');
+      const heroTag = document.getElementById('heroSwitchTag');
+      const heroCount = document.getElementById('heroSwitchCount');
+      const switchBtnTop = document.getElementById('switchBtnTop');
+      const grid = document.getElementById('accCardsGrid');
+      const countBadge = document.getElementById('asCountBadge');
+      const notice = document.getElementById('firstTimeSwitchNotice');
+      const noticeTitle = document.getElementById('firstTimeNoticeTitle');
+
+      if (!allAccounts || allAccounts.length <= 1 || isViewingOther() || IS_PUBLIC) {
+        if (container) container.style.display = 'none';
+        if (heroTag) heroTag.style.display = 'none';
+        if (switchBtnTop) switchBtnTop.style.display = 'none';
+        return;
+      }
+
+      // Always show switch button in hero & tags
+      if (switchBtnTop) switchBtnTop.style.display = 'flex';
+      if (heroTag) {
+        heroTag.style.display = 'inline-flex';
+        if (heroCount) heroCount.textContent = allAccounts.length;
+      }
+
+      // Main page container visibility depends on active tab
+      const currentTab = document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') || 'home';
+      if (container) {
+        container.style.display = (currentTab === 'home') ? 'block' : 'none';
+      }
+
+      if (countBadge) {
+        countBadge.textContent = allAccounts.length === 2 ? 'حسابان' : `${allAccounts.length} حسابات`;
+      }
+
+      // First time notice check
+      const phoneOrUser = student?.phone || localStorage.getItem('savedUsername') || (student ? String(student.id) : '');
+      const noticeKey = 'multiAccNoticeSeen_' + phoneOrUser;
+      const isNoticeDismissed = localStorage.getItem(noticeKey) === 'true';
+
+      if (notice) {
+        if (!isNoticeDismissed) {
+          notice.style.display = 'flex';
+          if (noticeTitle) {
+            noticeTitle.textContent = allAccounts.length === 2
+              ? 'مرحباً بك! يوجد حسابان مرتبطان بهذا الرقم'
+              : `مرحباً بك! يوجد ${allAccounts.length} حسابات مرتبطة بهذا الرقم`;
+          }
+        } else {
+          notice.style.display = 'none';
+        }
+      }
+
+      // Render cards
+      if (grid) {
+        grid.innerHTML = allAccounts.map(a => {
+          const isCurr = student && (Number(a.id) === Number(student.id));
+          const av = a.image_url
+            ? `<img src="${esc(a.image_url)}" alt="${esc(a.name)}" onerror="this.parentElement.textContent='${esc(a.name.charAt(0))}'">`
+            : esc(a.name.charAt(0));
+          return `
+            <div class="acc-card-item${isCurr ? ' active' : ''}" onclick="${isCurr ? '' : `pickAcc(${a.id})`}">
+              <div class="acc-card-av">${av}</div>
+              <div class="acc-card-info">
+                <div class="acc-card-name" title="${esc(a.name)}">${esc(a.name)}</div>
+                <div class="acc-card-class"><i class="fas fa-graduation-cap"></i> ${esc(a.class || '—')}</div>
+              </div>
+              <div class="acc-card-tag ${isCurr ? 'current' : 'switch-btn'}">
+                ${isCurr ? '<i class="fas fa-check-circle"></i> الحساب الحالي' : '<i class="fas fa-exchange-alt"></i> تبديل'}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // First time welcome modal trigger
+      checkAndShowFirstTimeModal();
+    }
+
+    function checkAndShowFirstTimeModal() {
+      if (!allAccounts || allAccounts.length <= 1 || isViewingOther() || IS_PUBLIC) return;
+      const phoneOrUser = student?.phone || localStorage.getItem('savedUsername') || (student ? String(student.id) : '');
+      const modalKey = 'multiAccModalSeen_' + phoneOrUser;
+      if (localStorage.getItem(modalKey) === 'true') return;
+
+      const modal = document.getElementById('firstTimeMultiAccModal');
+      const title = document.getElementById('ftModalTitle');
+      const desc = document.getElementById('ftModalDesc');
+      const preview = document.getElementById('ftKidsPreview');
+
+      if (!modal) return;
+
+      const count = allAccounts.length;
+      if (title) {
+        title.textContent = count === 2
+          ? 'يوجد حسابان مرتبطان بهذا الرقم'
+          : `يوجد ${count} حسابات مرتبطة بهذا الرقم`;
+      }
+      if (desc) {
+        desc.innerHTML = count === 2
+          ? `مرحباً بك! لاحظنا وجود <strong>حسابين مسجلين</strong> برقم هاتفك. يمكنك التبديل بين حسابات أولادك بكل سهولة في أي وقت من منطقة <strong>"الحسابات المرتبطة"</strong> في الصفحة الرئيسية مباشرة أو من زر التبديل بالأعلى.`
+          : `مرحباً بك! لاحظنا وجود <strong>${count} حسابات مسجلة</strong> برقم هاتفك. يمكنك التبديل بين حسابات أبنائك بكل سهولة في أي وقت من منطقة <strong>"الحسابات المرتبطة"</strong> في الصفحة الرئيسية مباشرة أو من زر التبديل بالأعلى.`;
+      }
+      if (preview) {
+        preview.innerHTML = allAccounts.map(a => `
+          <div class="ft-kid-chip">
+            <i class="fas fa-user-circle"></i>
+            <span>${esc(a.name)}</span>
+          </div>
+        `).join('');
+      }
+
+      openOv('firstTimeMultiAccModal');
+      localStorage.removeItem('justLoggedInMultiAccounts');
+    }
+
+    function dismissFirstTimeSwitchNotice(e) {
+      if (e) e.stopPropagation();
+      const phoneOrUser = student?.phone || localStorage.getItem('savedUsername') || (student ? String(student.id) : '');
+      localStorage.setItem('multiAccNoticeSeen_' + phoneOrUser, 'true');
+      const notice = document.getElementById('firstTimeSwitchNotice');
+      if (notice) {
+        notice.style.transition = 'all 0.3s ease';
+        notice.style.opacity = '0';
+        notice.style.transform = 'translateY(-10px)';
+        setTimeout(() => { notice.style.display = 'none'; }, 300);
+      }
+    }
+
+    function closeFirstTimeModalAndHighlight() {
+      const phoneOrUser = student?.phone || localStorage.getItem('savedUsername') || (student ? String(student.id) : '');
+      localStorage.setItem('multiAccModalSeen_' + phoneOrUser, 'true');
+      closeOv('firstTimeMultiAccModal');
+
+      // Scroll to account switcher on main page & pulse
+      const switcher = document.getElementById('scAccountSwitcher');
+      if (switcher) {
+        switcher.style.display = 'block';
+        setTimeout(() => {
+          switcher.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          switcher.classList.remove('highlight-pulse');
+          void switcher.offsetWidth;
+          switcher.classList.add('highlight-pulse');
+        }, 150);
+      }
+    }
+
+    function dismissFirstTimeModalOnly() {
+      const phoneOrUser = student?.phone || localStorage.getItem('savedUsername') || (student ? String(student.id) : '');
+      localStorage.setItem('multiAccModalSeen_' + phoneOrUser, 'true');
+      closeOv('firstTimeMultiAccModal');
+    }
+
+    async function pickAcc(id) {
+      if (!id || (student && id === student.id)) { closeOv('switchOv'); return; }
       const acc = allAccounts.find(a => a.id === id); if (!acc) return;
       student = acc;
       localStorage.setItem('activeKidAccountId', String(acc.id));
+      await loadChurchSettings();
       renderPrivate(student);
       switchTab(getInitialTab());
+      renderAccountSwitcher();
       loadSiblings();
       syncPassOverlay();
       document.getElementById('bottomNavBar').style.display = 'flex';
@@ -9065,13 +9703,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         toast('غير مسموح في وضع المعاينة', 'err');
         return;
       }
+      if (id === 'switchOv') {
+        populateSwitchModal();
+      }
       const ov = document.getElementById(id);
+      if (!ov) return;
       ov.classList.add('open');
       document.documentElement.classList.add('ov-open');
       const sheet = ov.querySelector('.settings-sheet');
     }
     function closeOv(id) {
+      if (id === 'firstTimeMultiAccModal') {
+        const phoneOrUser = student?.phone || localStorage.getItem('savedUsername') || (student ? String(student.id) : '');
+        localStorage.setItem('multiAccModalSeen_' + phoneOrUser, 'true');
+      }
       const ov = document.getElementById(id);
+      if (!ov) return;
       ov.classList.remove('open');
       // Only remove ov-open if no other overlay is still open
       if (!document.querySelector('.overlay.open')) document.documentElement.classList.remove('ov-open');
@@ -9412,6 +10059,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (scClassFriends) scClassFriends.style.display = 'none';
       if (scSendCoupons) scSendCoupons.style.display = 'none';
       if (scPaperExams) scPaperExams.style.display = 'none';
+      const scAccSwitcher = document.getElementById('scAccountSwitcher');
+      if (scAccSwitcher) scAccSwitcher.style.display = 'none';
 
       const pPicBanner = document.getElementById('profilePicSuggestionBanner');
       if (pPicBanner) pPicBanner.style.display = 'none';
@@ -9421,6 +10070,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (hero) hero.style.display = 'flex';
         if (scInfo) scInfo.style.display = 'block';
         if (allTrips && allTrips.length && scTrips) scTrips.style.display = 'block';
+        if (scAccSwitcher && allAccounts && allAccounts.length > 1 && !isViewingOther() && !IS_PUBLIC) {
+          scAccSwitcher.style.display = 'block';
+        }
 
         if (!IS_PUBLIC) {
           if (statsBar) statsBar.style.setProperty('display', 'grid', 'important');
