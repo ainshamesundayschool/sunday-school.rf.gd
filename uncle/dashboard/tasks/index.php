@@ -14781,32 +14781,62 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
     }
 
+    function getTaskClassNames(t) {
+      if (!t) return ['كل الفصول'];
+      const classIds = (t.class_ids || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (classIds.includes('0') || (!classIds.length && (!t.class_id || parseInt(t.class_id) === 0))) {
+        return ['كل الفصول'];
+      }
+      if (t.class_names && Array.isArray(t.class_names) && t.class_names.length) {
+        return t.class_names;
+      }
+      const names = [];
+      if (classIds.length && typeof allClasses !== 'undefined' && allClasses.length) {
+        classIds.forEach(id => {
+          const found = allClasses.find(c => String(c.id) === String(id));
+          if (found && !names.includes(found.arabic_name)) {
+            names.push(found.arabic_name);
+          }
+        });
+      }
+      if (!names.length && t.class_name) {
+        t.class_name.split('،').map(s => s.trim().replace(/^,\s*/, '')).filter(Boolean).forEach(cn => {
+          if (!names.includes(cn)) names.push(cn);
+        });
+      }
+      return names.length ? names : ['كل الفصول'];
+    }
 
-
-
-
-
+    function getTaskStudents(t) {
+      if (!t) return [];
+      const classNames = getTaskClassNames(t);
+      if (classNames.includes('كل الفصول')) {
+        return classStuCache['كل الفصول'] || [];
+      }
+      let combined = [];
+      const seen = new Set();
+      classNames.forEach(cn => {
+        const list = classStuCache[cn] || [];
+        list.forEach(s => {
+          if (!seen.has(s.id)) {
+            seen.add(s.id);
+            combined.push(s);
+          }
+        });
+      });
+      return combined;
+    }
 
     // ─── Load tasks ─────────────────────────────────────────────────
 
-
-
     async function loadTasks() {
-
       try {
-
         const extra = {};
-
-        if (CFG.activeClass) extra.class_name = CFG.activeClass;
-
+        if (CFG.activeClass && CFG.activeClass !== 'كل الفصول') extra.class_name = CFG.activeClass;
         const d = await api('getTasks', extra);
-
         if (d.success) tasks = d.tasks || [];
-
         else showToast(d.message || 'فشل تحميل التاسكات', 'err');
-
       } catch (e) { showToast('خطأ في الاتصال', 'err'); }
-
       try {
         await loadStudents('كل الفصول');
       } catch (e) {
@@ -15144,8 +15174,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           return hasPending;
         }).length;
 
-        const clsName = t.class_name || 'كل الفصول';
-        const studentsInClass = classStuCache[clsName] || [];
+        const taskClasses = getTaskClassNames(t);
+        const taskClassesLabel = taskClasses.join('، ');
+        const studentsInClass = getTaskStudents(t);
         const answeredIds = (t.submissions || []).map(s => parseInt(s.student_id));
         const answeredStudents = studentsInClass.filter(s => answeredIds.includes(parseInt(s.id)));
         const notAnsweredStudents = studentsInClass.filter(s => !answeredIds.includes(parseInt(s.id)));
@@ -15186,7 +15217,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         <!-- Sub/Meta details -->
         <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.72rem; color: var(--t3); border-bottom: 1px dashed var(--bdr); padding-bottom: 10px; direction: rtl;">
-          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color:var(--brand);"></i> ${esc(t.class_name || 'كل الفصول')}</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color:var(--brand);"></i> ${esc(taskClassesLabel)}</span>
           <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="far fa-clock" style="color:var(--brand);"></i> ${parseInt(t.no_deadline || 0) ? 'بدون موعد' : fmtDate(t.end_date)}</span>
           <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-question-circle"></i> ${qs} سؤال (${t.total_degree || 0} درجة)</span>
         </div>
@@ -15454,8 +15485,15 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const allChk = document.getElementById('class_all');
       if (allChk) allChk.checked = isAllClasses;
 
+      const classNamesList = (t.class_name || '').split('،').map(s => s.trim().replace(/^,\s*/, '')).filter(Boolean);
+
       document.querySelectorAll('.class-checkbox').forEach(cb => {
-        cb.checked = !isAllClasses && (classIds.includes(String(cb.dataset.id)) || classIds.includes(String(cb.value)));
+        const isMatch = !isAllClasses && (
+          classIds.includes(String(cb.dataset.id)) ||
+          classIds.includes(String(cb.value)) ||
+          classNamesList.includes(cb.value)
+        );
+        cb.checked = !!isMatch;
       });
 
       if (parseInt(t.time_limit)) {
@@ -16853,8 +16891,15 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const allChk = document.getElementById('class_all');
       if (allChk) allChk.checked = isAllClasses;
 
+      const classNamesList = (t.class_name || '').split('،').map(s => s.trim().replace(/^,\s*/, '')).filter(Boolean);
+
       document.querySelectorAll('.class-checkbox').forEach(cb => {
-        cb.checked = !isAllClasses && (classIds.includes(String(cb.dataset.id)) || classIds.includes(String(cb.value)));
+        const isMatch = !isAllClasses && (
+          classIds.includes(String(cb.dataset.id)) ||
+          classIds.includes(String(cb.value)) ||
+          classNamesList.includes(cb.value)
+        );
+        cb.checked = !!isMatch;
       });
 
       if (parseInt(t.time_limit)) {
@@ -18504,21 +18549,9 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
         if (checkedBoxes.length > 0) {
-
-
-
           classIdsList = checkedBoxes.map(b => b.dataset.id);
-
-
-
           classId = parseInt(checkedBoxes[0].dataset.id);
-
-
-
-          className = checkedBoxes[0].value;
-
-
-
+          className = checkedBoxes.map(b => b.value).join('، ');
         }
 
 
@@ -18915,11 +18948,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
+        const taskClasses = getTaskClassNames(t);
+        const taskClassesLabel = taskClasses.join('، ');
         document.getElementById('dTitle').textContent = t.title;
-
-
-
-        document.getElementById('dSub').textContent = `${t.class_name || ''} — ${(t.questions || []).length} سؤال — ${t.total_degree} درجة`;
+        document.getElementById('dSub').textContent = `${taskClassesLabel} — ${(t.questions || []).length} سؤال — ${t.total_degree} درجة`;
 
 
 
@@ -18989,17 +19021,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
         const answeredIds = subs.map(s => parseInt(s.student_id));
-
-
-
-        const classStudents = await loadStudents(t.class_name || 'كل الفصول');
-
-
-
-
-
-
-
+        for (const cn of taskClasses) {
+          await loadStudents(cn);
+        }
+        const classStudents = getTaskStudents(t);
         const notAnswered = classStudents.filter(s => !answeredIds.includes(s.id));
 
 

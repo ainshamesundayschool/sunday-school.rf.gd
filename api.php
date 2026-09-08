@@ -42194,153 +42194,146 @@ function ensureTaskSubmissionsIsDeletedColumn($conn)
 
 // ─── getTasks ──────────────────────────────────────────────────
 
-function getTasks()
-
+function _resolveTaskClassNames($conn, $churchId, $classId, $classIdsStr, $fallbackName = '')
 {
+    $classIdsStr = trim((string)$classIdsStr);
+    $cIds = array_values(array_unique(array_filter(array_map('intval', explode(',', $classIdsStr)), function($v) { return $v >= 0; })));
 
+    if (in_array(0, $cIds) || ($classId == 0 && empty($cIds))) {
+        return ['names' => ['كل الفصول'], 'label' => 'كل الفصول', 'ids' => ['0']];
+    }
+
+    if (empty($cIds) && $classId > 0) {
+        $cIds = [$classId];
+    }
+
+    if (!empty($cIds)) {
+        static $cachedChurchClasses = [];
+        if (!isset($cachedChurchClasses[$churchId])) {
+            $cachedChurchClasses[$churchId] = [];
+            $cRes = $conn->query("SELECT id, arabic_name FROM church_classes WHERE church_id = " . intval($churchId) . " UNION SELECT id, arabic_name FROM classes");
+            if ($cRes) {
+                while ($cRow = $cRes->fetch_assoc()) {
+                    $cachedChurchClasses[$churchId][(int)$cRow['id']] = $cRow['arabic_name'];
+                }
+            }
+        }
+        $names = [];
+        foreach ($cIds as $cid) {
+            if (isset($cachedChurchClasses[$churchId][$cid]) && !in_array($cachedChurchClasses[$churchId][$cid], $names)) {
+                $names[] = $cachedChurchClasses[$churchId][$cid];
+            }
+        }
+        if (empty($names) && !empty($fallbackName)) {
+            $names = array_values(array_filter(array_map('trim', explode('،', $fallbackName))));
+        }
+        if (!empty($names)) {
+            return [
+                'names' => $names,
+                'label' => implode('، ', $names),
+                'ids'   => array_map('strval', $cIds)
+            ];
+        }
+    }
+
+    $finalName = !empty($fallbackName) ? $fallbackName : 'كل الفصول';
+    return ['names' => [$finalName], 'label' => $finalName, 'ids' => array_map('strval', $cIds)];
+}
+
+function getTasks()
+{
     try {
-
         $conn = getDBConnection();
-
         $churchId = getChurchId();
-
         $uncleId = $_SESSION['uncle_id'] ?? null;
-
         $uncleRole = strtolower($_SESSION['uncle_role'] ?? '');
-
         $className = sanitize($_POST['class_name'] ?? '');
-
         ensureTaskSubmissionsIsDeletedColumn($conn);
-
         $isAdmin = in_array($uncleRole, ['admin', 'developer', 'church']);
 
-
-
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS class_ids VARCHAR(255) NULL AFTER class_id");
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL");
-
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
-
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS shuffle_answers TINYINT(1) NOT NULL DEFAULT 0");
 
         $taskCols = [];
-
         $colRes = $conn->query("SHOW COLUMNS FROM tasks");
-
         while ($cr = $colRes->fetch_assoc())
-
             $taskCols[] = $cr['Field'];
 
         $hasNoDeadline = in_array('no_deadline', $taskCols);
-
         $hasClassIds = in_array('class_ids', $taskCols);
-
         $hasGroupName = in_array('group_name', $taskCols);
-
         $hasGroupIcon = in_array('group_icon', $taskCols);
-
         $hasShuffleAnswers = in_array('shuffle_answers', $taskCols);
 
-
-
         $sql = "
-
             SELECT
-
                 t.id, t.uncle_id, t.class_id, t.title, t.description,
-
                 t.start_date, t.end_date, t.time_limit, t.timer_behavior,
-
                 t.total_degree, t.max_coupons, t.coupon_matrix,
-
                 t.status, t.assign_to, t.specific_ids,
-
                 t.shuffle, " . ($hasShuffleAnswers ? "t.shuffle_answers, " : "") . "t.show_result, t.show_answers, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ($hasClassIds ? ", t.class_ids" : "") . ($hasGroupName ? ", t.group_name" : "") . ($hasGroupIcon ? ", t.group_icon" : "") . ",
-
                 t.created_at,
-
                 CASE
-
                     WHEN t.class_id = 0 THEN 'كل الفصول'
-
                     ELSE COALESCE(cc.arabic_name, '')
-
                 END AS class_name,
-
                 u.name AS uncle_name
-
             FROM tasks t
-
             LEFT JOIN church_classes cc ON cc.id = t.class_id AND cc.church_id = t.church_id
-
             LEFT JOIN uncles u ON u.id = t.uncle_id
-
             WHERE t.church_id = ?
-
         ";
 
         $params = [$churchId];
-
         $types = 'i';
 
-
-
         if (!$isAdmin && $uncleId) {
-
             $sql .= " AND t.uncle_id = ?";
-
             $params[] = (int) $uncleId;
-
             $types .= 'i';
-
         }
 
-        if ($className) {
-
+        if ($className && $className !== 'كل الفصول') {
             if ($hasClassIds) {
-
                 $cStmt = $conn->prepare("SELECT id FROM church_classes WHERE church_id = ? AND arabic_name = ? LIMIT 1");
-
                 $cStmt->bind_param('is', $churchId, $className);
-
                 $cStmt->execute();
-
                 $cId = (int)($cStmt->get_result()->fetch_assoc()['id'] ?? 0);
+                if (!$cId) {
+                    $cStmt2 = $conn->prepare("SELECT id FROM classes WHERE arabic_name = ? LIMIT 1");
+                    $cStmt2->bind_param('s', $className);
+                    $cStmt2->execute();
+                    $cId = (int)($cStmt2->get_result()->fetch_assoc()['id'] ?? 0);
+                }
 
-                
-
-                $sql .= " AND (cc.arabic_name = ? OR t.class_id = 0 OR FIND_IN_SET(?, t.class_ids))";
-
+                $sql .= " AND (t.class_id = 0 OR FIND_IN_SET('0', t.class_ids) OR cc.arabic_name = ? OR (? > 0 AND FIND_IN_SET(?, t.class_ids)))";
                 $params[] = $className;
-
                 $params[] = $cId;
-
-                $types .= 'si';
-
+                $params[] = $cId;
+                $types .= 'sii';
             } else {
-
                 $sql .= " AND (cc.arabic_name = ? OR t.class_id = 0)";
-
                 $params[] = $className;
-
                 $types .= 's';
-
             }
-
         }
-
-
 
         $sql .= " ORDER BY t.created_at DESC";
 
-
-
         $stmt = $conn->prepare($sql);
-
         $stmt->bind_param($types, ...$params);
-
         $stmt->execute();
-
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        foreach ($rows as &$r) {
+            $resolved = _resolveTaskClassNames($conn, $churchId, $r['class_id'] ?? 0, $r['class_ids'] ?? '', $r['class_name'] ?? '');
+            $r['class_name'] = $resolved['label'];
+            $r['class_ids'] = implode(',', $resolved['ids']);
+            $r['class_names'] = $resolved['names'];
+        }
+        unset($r);
 
 
 
@@ -42489,13 +42482,14 @@ function getTaskDetail()
         $task = $stmt->get_result()->fetch_assoc();
 
         if ($task) {
-
             $task['no_deadline'] = isset($task['no_deadline']) ? (int) $task['no_deadline'] : 0;
-
             $task['shuffle'] = isset($task['shuffle']) ? (int) $task['shuffle'] : 0;
-
             $task['shuffle_answers'] = isset($task['shuffle_answers']) ? (int) $task['shuffle_answers'] : 0;
 
+            $resolved = _resolveTaskClassNames($conn, $churchId, $task['class_id'] ?? 0, $task['class_ids'] ?? '', $task['class_name'] ?? '');
+            $task['class_name'] = $resolved['label'];
+            $task['class_ids'] = implode(',', $resolved['ids']);
+            $task['class_names'] = $resolved['names'];
         }
 
         if (!$task) {
@@ -42670,113 +42664,69 @@ function createTask()
 
 
 
-        $classIds = sanitize($_POST['class_ids'] ?? '');
-
-        if (empty($classIds)) {
-
-            $classIds = (string)$classId;
-
+        $classIdsRaw = sanitize($_POST['class_ids'] ?? '');
+        $parsedIds = array_values(array_unique(array_filter(array_map('intval', explode(',', $classIdsRaw)), function($v){ return $v >= 0; })));
+        if (empty($parsedIds)) {
+            if ($classId > 0) $parsedIds = [$classId];
+            else $parsedIds = [0];
+        }
+        if (in_array(0, $parsedIds)) {
+            $classId = 0;
+            $classIds = '0';
+        } else {
+            $classId = $parsedIds[0];
+            $classIds = implode(',', $parsedIds);
         }
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS no_deadline TINYINT(1) NOT NULL DEFAULT 0 AFTER end_date");
-
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS class_ids VARCHAR(255) NULL AFTER class_id");
-
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL");
-
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
-
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS shuffle_answers TINYINT(1) NOT NULL DEFAULT 0");
-
         $conn->begin_transaction();
 
-
-
         $stmt = $conn->prepare("
-
             INSERT INTO tasks
-
                 (church_id, uncle_id, class_id, class_ids, title, description,
-
                  start_date, end_date, no_deadline, time_limit, timer_behavior,
-
                  total_degree, max_coupons, coupon_matrix,
-
                  status, assign_to, specific_ids,
-
                  shuffle, shuffle_answers, show_result, show_answers, allow_review,
-
                  group_name, group_icon, created_at)
-
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
-
         ");
-
         $stmt->bind_param(
-
             'iiisssssiisiissssiiiiiss',
-
             $churchId,
-
             $uncleId,
-
             $classId,
-
             $classIds,
-
             $title,
-
             $description,
-
             $startDate,
-
             $endDate,
-
             $noDeadline,
-
             $timeLimit,
-
             $timerBeh,
-
             $totalDegree,
-
             $maxCoupons,
-
             $couponMatrix,
-
             $status,
-
             $assignTo,
-
             $specificIds,
-
             $shuffle,
-
             $shuffleAnswers,
-
             $showResult,
-
             $showAnswers,
-
             $allowReview,
-
             $groupName,
-
             $groupIcon
-
         );
-
         $stmt->execute();
-
         $taskId = $conn->insert_id;
 
-
-
         $questions = json_decode($questionsJson, true) ?: [];
-
         _insertTaskQuestions($conn, $taskId, $questions);
-
-
 
         $conn->commit();
 
@@ -42789,11 +42739,10 @@ function createTask()
                     $extra['student_ids'] = $cleanIds;
                 }
             } else {
-                if (!empty($classIds)) {
-                    $cleanClassIds = implode(',', array_map('intval', explode(',', $classIds)));
-                    $extra['class_ids'] = $cleanClassIds;
-                } else if ($classId) {
-                    $extra['class_ids'] = (string)$classId;
+                if ($classId === 0 || $classIds === '0') {
+                    $extra['class_ids'] = null;
+                } else {
+                    $extra['class_ids'] = $classIds;
                 }
             }
             _sendWebPushToKids($conn, $churchId, 'تاسك جديد 📝', "تاسك جديد: {$title}", $extra);
@@ -42803,8 +42752,26 @@ function createTask()
                 $annText = "تاسك جديد: \"{$title}\"";
                 $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, is_active, created_at) VALUES (?, 'task', ?, '/user/profile/', ?, 1, NOW())");
                 if ($annStmt) {
-                    $annStmt->bind_param('iss', $churchId, $annText, $className);
-                    $annStmt->execute();
+                    if ($classId === 0 || $classIds === '0') {
+                        $allCls = 'كل الفصول';
+                        $annStmt->bind_param('iss', $churchId, $annText, $allCls);
+                        $annStmt->execute();
+                    } else {
+                        $targetNames = [];
+                        $qCls = $conn->query("SELECT arabic_name FROM church_classes WHERE id IN ($classIds) AND church_id = $churchId UNION SELECT arabic_name FROM classes WHERE id IN ($classIds)");
+                        if ($qCls) {
+                            while ($qr = $qCls->fetch_assoc()) {
+                                if (!empty($qr['arabic_name'])) $targetNames[] = $qr['arabic_name'];
+                            }
+                        }
+                        if (empty($targetNames) && !empty($className)) {
+                            $targetNames = array_values(array_filter(array_map('trim', explode('،', $className))));
+                        }
+                        foreach ($targetNames as $tn) {
+                            $annStmt->bind_param('iss', $churchId, $annText, $tn);
+                            $annStmt->execute();
+                        }
+                    }
                 }
             } catch (Exception $annEx) {}
         }
@@ -43265,12 +43232,18 @@ function updateTask()
 
 
 
-        $classIds = sanitize($_POST['class_ids'] ?? '');
-
-        if (empty($classIds)) {
-
-            $classIds = (string)$classId;
-
+        $classIdsRaw = sanitize($_POST['class_ids'] ?? '');
+        $parsedIds = array_values(array_unique(array_filter(array_map('intval', explode(',', $classIdsRaw)), function($v){ return $v >= 0; })));
+        if (empty($parsedIds)) {
+            if ($classId > 0) $parsedIds = [$classId];
+            else $parsedIds = [0];
+        }
+        if (in_array(0, $parsedIds)) {
+            $classId = 0;
+            $classIds = '0';
+        } else {
+            $classId = $parsedIds[0];
+            $classIds = implode(',', $parsedIds);
         }
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS no_deadline TINYINT(1) NOT NULL DEFAULT 0 AFTER end_date");
@@ -43628,11 +43601,10 @@ function updateTask()
                     $extra['student_ids'] = $cleanIds;
                 }
             } else {
-                if (!empty($classIds)) {
-                    $cleanClassIds = implode(',', array_map('intval', explode(',', $classIds)));
-                    $extra['class_ids'] = $cleanClassIds;
-                } else if ($classId) {
-                    $extra['class_ids'] = (string)$classId;
+                if ($classId === 0 || $classIds === '0') {
+                    $extra['class_ids'] = null;
+                } else {
+                    $extra['class_ids'] = $classIds;
                 }
             }
             _sendWebPushToKids($conn, $churchId, 'تحديث تاسك 📝', "تم تحديث التاسك: {$title}", $extra);
@@ -43972,177 +43944,131 @@ function getStudentTasks()
 
 
 
-        // Get student class_id
-
-        $sStmt = $conn->prepare("SELECT class_id FROM students WHERE id=? AND church_id=? LIMIT 1");
-
+        // Get student class_id and class name
+        $sStmt = $conn->prepare("SELECT id, class_id, class FROM students WHERE id=? AND church_id=? LIMIT 1");
         $sStmt->bind_param('ii', $studentId, $churchId);
-
         $sStmt->execute();
-
         $stu = $sStmt->get_result()->fetch_assoc();
-
         if (!$stu) {
-
             sendJSON(['success' => false, 'message' => 'الطفل غير موجود']);
-
             return;
-
         }
 
-        $classId = (int) $stu['class_id'];
+        $classId = (int) ($stu['class_id'] ?? 0);
+        $studentClassName = trim((string)($stu['class'] ?? ''));
 
+        // If classId is missing/0 but student has class name, resolve it from church_classes / classes
+        if ($classId <= 0 && !empty($studentClassName)) {
+            $cLookup = $conn->prepare("SELECT id FROM church_classes WHERE church_id=? AND (arabic_name=? OR code=?) UNION SELECT id FROM classes WHERE (arabic_name=? OR code=?) LIMIT 1");
+            $cLookup->bind_param('issss', $churchId, $studentClassName, $studentClassName, $studentClassName, $studentClassName);
+            $cLookup->execute();
+            $cFound = $cLookup->get_result()->fetch_assoc();
+            if ($cFound && !empty($cFound['id'])) {
+                $classId = (int)$cFound['id'];
+                @$conn->query("UPDATE students SET class_id = {$classId} WHERE id = {$studentId} AND church_id = {$churchId}");
+            }
+        } elseif ($classId > 0 && empty($studentClassName)) {
+            $cLookup = $conn->prepare("SELECT arabic_name FROM church_classes WHERE id=? AND church_id=? UNION SELECT arabic_name FROM classes WHERE id=? LIMIT 1");
+            $cLookup->bind_param('iii', $classId, $churchId, $classId);
+            $cLookup->execute();
+            $cFound = $cLookup->get_result()->fetch_assoc();
+            if ($cFound && !empty($cFound['arabic_name'])) {
+                $studentClassName = trim($cFound['arabic_name']);
+                @$conn->query("UPDATE students SET class = '" . $conn->real_escape_string($studentClassName) . "' WHERE id = {$studentId} AND church_id = {$churchId}");
+            }
+        }
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS class_ids VARCHAR(255) NULL AFTER class_id");
 
         // Detect which optional task columns exist using SHOW COLUMNS (no information_schema needed)
-
         $allCols = [];
-
         $colRes = $conn->query("SHOW COLUMNS FROM tasks");
-
         while ($cr = $colRes->fetch_assoc())
-
             $allCols[] = $cr['Field'];
 
-
-
         $hasStatus = in_array('status', $allCols);
-
         $hasAssignTo = in_array('assign_to', $allCols);
-
         $hasTimer = in_array('timer_behavior', $allCols);
-
         $hasShuffle = in_array('shuffle', $allCols);
-
         $hasShuffleAnswers = in_array('shuffle_answers', $allCols);
-
         $hasShow = in_array('show_result', $allCols);
-
         $hasShowAnswers = in_array('show_answers', $allCols);
-
         $hasReview = in_array('allow_review', $allCols);
-
         $hasIsActive = in_array('is_active', $allCols);
-
         $hasNoDeadline = in_array('no_deadline', $allCols);
-
         $hasClassIds = in_array('class_ids', $allCols);
 
-
-
         // Build SELECT dynamically based on existing columns
-
         $sel = "t.id, t.title, t.description, t.start_date, t.end_date,
-
                 t.time_limit, t.total_degree, t.max_coupons, t.coupon_matrix,
-
                 CASE
-
                     WHEN t.class_id = 0 THEN 'كل الفصول'
-
                     ELSE COALESCE(cc.arabic_name,'')
-
                 END AS class_name";
-
         if ($hasStatus)
-
             $sel .= ", t.status";
-
         if ($hasAssignTo)
-
             $sel .= ", t.assign_to, t.specific_ids";
-
         if ($hasTimer)
-
             $sel .= ", t.timer_behavior";
-
         if ($hasShuffle)
-
             $sel .= ", t.shuffle";
-
         if ($hasShuffleAnswers)
-
             $sel .= ", t.shuffle_answers";
-
         if ($hasShow)
-
             $sel .= ", t.show_result";
-
         if ($hasShowAnswers)
-
             $sel .= ", t.show_answers";
-
         if ($hasReview)
-
             $sel .= ", t.allow_review";
-
         if ($hasNoDeadline)
-
             $sel .= ", t.no_deadline";
-
         if ($hasClassIds)
-
             $sel .= ", t.class_ids";
 
-
-
         // Build WHERE — show all tasks (active, upcoming, expired) so kids can see their history
-
-        // The JS tSt() function handles status badges; we just filter by class + church + active flag
-
+        // Matches if task is for all classes, or matches student's class_id or class name
         if ($hasClassIds) {
-
-            $where = "t.church_id = ? AND (t.class_id = ? OR t.class_id = 0 OR FIND_IN_SET(?, t.class_ids))";
-
-            $stmtParams = [$churchId, $classId, $classId];
-
-            $stmtTypes = 'iii';
-
+            $where = "t.church_id = ? AND (
+                t.class_id = 0 
+                OR FIND_IN_SET('0', t.class_ids) 
+                OR (? > 0 AND (t.class_id = ? OR FIND_IN_SET(?, t.class_ids)))
+                OR (? != '' AND (cc.arabic_name = ? OR FIND_IN_SET(?, t.class_ids)))
+            )";
+            $stmtParams = [$churchId, $classId, $classId, $classId, $studentClassName, $studentClassName, $studentClassName];
+            $stmtTypes = 'iiissss';
         } else {
-
-            $where = "t.church_id = ? AND (t.class_id = ? OR t.class_id = 0)";
-
-            $stmtParams = [$churchId, $classId];
-
-            $stmtTypes = 'ii';
-
+            $where = "t.church_id = ? AND (t.class_id = 0 OR (? > 0 AND t.class_id = ?) OR (? != '' AND cc.arabic_name = ?))";
+            $stmtParams = [$churchId, $classId, $classId, $studentClassName, $studentClassName];
+            $stmtTypes = 'iiiss';
         }
 
         if ($hasStatus)
-
             $where .= " AND (t.status = 'published' OR t.status IS NULL)";
-
         if ($hasIsActive)
-
             $where .= " AND (t.is_active IS NULL OR t.is_active = 1)";
 
-
-
         $stmt = $conn->prepare("
-
             SELECT $sel
-
             FROM tasks t
-
             LEFT JOIN church_classes cc ON cc.id = t.class_id
-
             WHERE $where
-
             ORDER BY
-
                 CASE WHEN t.end_date IS NULL OR " . ($hasNoDeadline ? "t.no_deadline = 1" : "0=1") . " THEN 1 ELSE 0 END,
-
                 t.end_date ASC,
-
                 t.start_date DESC
-
         ");
-
         $stmt->bind_param($stmtTypes, ...$stmtParams);
-
         $stmt->execute();
-
         $tasks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        foreach ($tasks as &$t) {
+            $resolved = _resolveTaskClassNames($conn, $churchId, $t['class_id'] ?? 0, $t['class_ids'] ?? '', $t['class_name'] ?? '');
+            $t['class_name'] = $resolved['label'];
+            $t['class_ids'] = implode(',', $resolved['ids']);
+            $t['class_names'] = $resolved['names'];
+        }
+        unset($t);
 
 
 
