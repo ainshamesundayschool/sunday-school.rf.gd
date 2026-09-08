@@ -19788,13 +19788,13 @@ function sendCustomWhatsAppOTP() {
         // Resolve church name if available for clearer notification
         $churchName = '';
         if ($ownerChurchId > 0) {
-            $cStmt = $conn->prepare("SELECT church_name, name FROM churches WHERE id = ? LIMIT 1");
+            $cStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
             if ($cStmt) {
                 $cStmt->bind_param("i", $ownerChurchId);
                 $cStmt->execute();
                 $cRes = $cStmt->get_result();
                 if ($cRes && $cRow = $cRes->fetch_assoc()) {
-                    $churchName = $cRow['church_name'] ?? $cRow['name'] ?? '';
+                    $churchName = $cRow['church_name'] ?? '';
                 }
                 $cStmt->close();
             }
@@ -19936,13 +19936,13 @@ function enqueueMirrorOTP() {
         // Resolve church name if available
         $churchName = '';
         if ($mirrorChurchId > 0) {
-            $cStmt = $conn->prepare("SELECT church_name, name FROM churches WHERE id = ? LIMIT 1");
+            $cStmt = $conn->prepare("SELECT church_name FROM churches WHERE id = ? LIMIT 1");
             if ($cStmt) {
                 $cStmt->bind_param("i", $mirrorChurchId);
                 $cStmt->execute();
                 $cRes = $cStmt->get_result();
                 if ($cRes && $cRow = $cRes->fetch_assoc()) {
-                    $churchName = $cRow['church_name'] ?? $cRow['name'] ?? '';
+                    $churchName = $cRow['church_name'] ?? '';
                 }
                 $cStmt->close();
             }
