@@ -43978,6 +43978,22 @@ function getStudentTasks()
             }
         }
 
+        // Collect all related class IDs for this student (handles church_classes vs global classes)
+        $studentClassIds = [];
+        if ($classId > 0) {
+            $studentClassIds[] = $classId;
+        }
+        if (!empty($studentClassName)) {
+            $cLookupAll = $conn->prepare("SELECT id FROM church_classes WHERE church_id=? AND (arabic_name=? OR code=?) UNION SELECT id FROM classes WHERE (arabic_name=? OR code=?)");
+            $cLookupAll->bind_param('issss', $churchId, $studentClassName, $studentClassName, $studentClassName, $studentClassName);
+            $cLookupAll->execute();
+            $cAllRes = $cLookupAll->get_result();
+            while ($cRow = $cAllRes->fetch_assoc()) {
+                if (!empty($cRow['id'])) $studentClassIds[] = (int)$cRow['id'];
+            }
+        }
+        $studentClassIds = array_values(array_unique(array_filter($studentClassIds)));
+
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS class_ids VARCHAR(255) NULL AFTER class_id");
 
         // Detect which optional task columns exist using SHOW COLUMNS (no information_schema needed)
@@ -44028,20 +44044,40 @@ function getStudentTasks()
 
         // Build WHERE — show all tasks (active, upcoming, expired) so kids can see their history
         // Matches if task is for all classes, or matches student's class_id or class name
+        $classConds = [
+            "t.class_id = 0"
+        ];
         if ($hasClassIds) {
-            $where = "t.church_id = ? AND (
-                t.class_id = 0 
-                OR FIND_IN_SET('0', t.class_ids) 
-                OR (? > 0 AND (t.class_id = ? OR FIND_IN_SET(?, t.class_ids)))
-                OR (? != '' AND (cc.arabic_name = ? OR FIND_IN_SET(?, t.class_ids)))
-            )";
-            $stmtParams = [$churchId, $classId, $classId, $classId, $studentClassName, $studentClassName, $studentClassName];
-            $stmtTypes = 'iiissss';
-        } else {
-            $where = "t.church_id = ? AND (t.class_id = 0 OR (? > 0 AND t.class_id = ?) OR (? != '' AND cc.arabic_name = ?))";
-            $stmtParams = [$churchId, $classId, $classId, $studentClassName, $studentClassName];
-            $stmtTypes = 'iiiss';
+            $classConds[] = "FIND_IN_SET('0', REPLACE(COALESCE(t.class_ids, ''), ' ', ''))";
         }
+        $stmtParams = [$churchId];
+        $stmtTypes = 'i';
+
+        foreach ($studentClassIds as $scId) {
+            $classConds[] = "t.class_id = {$scId}";
+            if ($hasClassIds) {
+                $classConds[] = "FIND_IN_SET('{$scId}', REPLACE(COALESCE(t.class_ids, ''), ' ', ''))";
+            }
+        }
+
+        if (!empty($studentClassName)) {
+            $classConds[] = "cc.arabic_name = ?";
+            $stmtParams[] = $studentClassName;
+            $stmtTypes .= 's';
+
+            if ($hasClassIds) {
+                $classConds[] = "EXISTS (
+                    SELECT 1 FROM church_classes sub_cc 
+                    WHERE sub_cc.church_id = ? AND sub_cc.arabic_name = ? 
+                    AND (t.class_id = sub_cc.id OR FIND_IN_SET(sub_cc.id, REPLACE(COALESCE(t.class_ids, ''), ' ', '')))
+                )";
+                $stmtParams[] = $churchId;
+                $stmtParams[] = $studentClassName;
+                $stmtTypes .= 'is';
+            }
+        }
+
+        $where = "t.church_id = ? AND (" . implode(' OR ', $classConds) . ")";
 
         if ($hasStatus)
             $where .= " AND (t.status = 'published' OR t.status IS NULL)";

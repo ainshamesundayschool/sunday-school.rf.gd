@@ -19134,7 +19134,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         
         <!-- Metadata pills -->
         <div style="display:flex; flex-wrap:wrap; gap:12px; font-size:0.75rem; color:var(--t3); border-bottom:1px dashed var(--bdr); padding-bottom:12px; justify-content:flex-start; align-items:center; direction:rtl; text-align:right;">
-          <span style="display:inline-flex; align-items:center; gap:4px; background:var(--brand-bg); color:var(--brand); padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fas fa-users"></i> ${esc(t.class_name || 'كل الفصول')}</span>
+          <span style="display:inline-flex; align-items:center; gap:4px; background:var(--brand-bg); color:var(--brand); padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fas fa-users"></i> ${esc(taskClassesLabel)}</span>
           <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-calendar-check" style="color:var(--brand);"></i> البدء: ${fmtDate(t.start_date)}</span>
           <span style="display:inline-flex; align-items:center; gap:4px;"><i class="far fa-clock" style="color:var(--brand);"></i> النهاية: ${parseInt(t.no_deadline || 0) ? 'بدون موعد' : fmtDate(t.end_date)}</span>
           ${t.time_limit ? `<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-stopwatch" style="color:var(--brand);"></i> ${t.time_limit} دقيقة</span>` : ''}
@@ -19844,7 +19844,12 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         gradeSubs = d.submissions || [];
         if (gradeTaskData) {
-          await loadStudents(gradeTaskData.class_name || 'كل الفصول');
+          const gClasses = getTaskClassNames(gradeTaskData);
+          if (gClasses.length) {
+            await Promise.all(gClasses.map(c => loadStudents(c)));
+          } else {
+            await loadStudents(gradeTaskData.class_name || 'كل الفصول');
+          }
         }
 
         if (targetSubId) {
@@ -21167,10 +21172,11 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
       const targetTasks = tasks.filter(t => {
         if (t.status === 'draft') return false;
-        if (t.class_id === 0 || t.class_name === 'كل الفصول') return true;
-        if (checkedClassNames.includes(t.class_name)) return true;
+        const tClasses = getTaskClassNames(t);
+        if (t.class_id === 0 || tClasses.includes('كل الفصول')) return true;
+        if (tClasses.some(cn => checkedClassNames.includes(cn))) return true;
         if (t.class_ids) {
-          const ids = String(t.class_ids).split(',');
+          const ids = String(t.class_ids).split(',').map(s => s.trim()).filter(Boolean);
           if (ids.some(id => checkedClassIds.includes(id))) return true;
         }
         return false;
@@ -21249,7 +21255,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
           html += `<tr>`;
           html += `<td><strong>${esc(t.title)}</strong></td>`;
-          html += `<td style="text-align:center;"><span class="ov-class-badge">${esc(t.class_name || 'كل الفصول')}</span></td>`;
+          html += `<td style="text-align:center;"><span class="ov-class-badge">${esc(getTaskClassNames(t).join('، ') || 'كل الفصول')}</span></td>`;
           html += `<td style="text-align:center;"><strong style="color:var(--brand);">${respondents.length}</strong> / ${targetStudents.length}</td>`;
           html += `<td>${namesText}</td>`;
           html += `</tr>`;
