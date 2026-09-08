@@ -29991,6 +29991,9 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 developer_message: 'fa-envelope',
                 system: 'fa-circle-check',
                 announcement: 'fa-bullhorn',
+                whatsapp_otp: 'fa-key',
+                naughty_status: 'fa-exclamation-triangle',
+                leaderboard_upgrade: 'fa-trophy',
             };
             const typeLabel = {
                 registration: 'تسجيل جديد',
@@ -29998,12 +30001,18 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 developer_message: 'رسالة',
                 system: 'نظام',
                 announcement: 'إعلان',
+                whatsapp_otp: 'كود واتساب',
+                naughty_status: 'سلوك',
+                leaderboard_upgrade: 'ترقية',
             };
             const typeAction = {
                 registration: 'عرض الطلبات',
                 task_submission: 'فتح التاسكات',
                 developer_message: 'فتح الرسالة',
                 announcement: 'عرض الإعلان',
+                whatsapp_otp: 'عرض الكود',
+                naughty_status: 'عرض التفاصيل',
+                leaderboard_upgrade: 'عرض لوحة الصدارة',
             };
             const typeUrl = {
                 registration: '#pending',
@@ -30012,6 +30021,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     : '/uncle/dashboard/tasks/',
                 developer_message: '/uncle/dashboard/', // Fallback, will be overridden dynamically
                 announcement: '/uncle/dashboard/',
+                whatsapp_otp: '/uncle/dashboard/?open_otp=1',
             };
             el.innerHTML = _notifData.map(n => {
                 const icon = typeIcon[n.type] || 'fa-bell';
@@ -30055,7 +30065,13 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             // Navigate
             toggleNotifPanel();
 
-            if (type === 'registration') {
+            if (type === 'whatsapp_otp') {
+                if (typeof showAdminOTPModal === 'function') {
+                    showAdminOTPModal();
+                } else {
+                    window.location.href = '/uncle/dashboard/?open_otp=1';
+                }
+            } else if (type === 'registration') {
                 const body = document.getElementById('pendingBody');
                 const btn = document.getElementById('pendingCollapseBtn');
                 if (body && body.style.display === 'none') {
@@ -30581,10 +30597,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         // also create a DB notification so it shows in the panel
         navigator.serviceWorker?.addEventListener('message', e => {
             if (!e.data) return;
-            if (e.data.type === 'NEW_REGISTRATION') {
-                loadUnifiedNotifications();
-            }
-            if (e.data.type === 'NOTIFICATION_CLICK') {
+            if (e.data.type === 'NEW_REGISTRATION' || e.data.type === 'NOTIFICATION_CLICK' || e.data.type === 'PUSH_NOTIFICATION_RECEIVED') {
                 loadUnifiedNotifications();
             }
         });

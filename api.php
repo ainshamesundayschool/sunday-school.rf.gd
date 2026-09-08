@@ -2946,6 +2946,11 @@ function ensureTripCollaborationRequestsTable($conn)
             $conn->query("ALTER TABLE `trips` MODIFY COLUMN `hide_from_uncles` TINYINT(1) NOT NULL DEFAULT 0");
         }
     }
+
+    $res6 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'kids_visibility'");
+    if ($res6 && $res6->num_rows === 0) {
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `kids_visibility` VARCHAR(30) NOT NULL DEFAULT 'auto_hide'");
+    }
 }
 
 
@@ -19714,28 +19719,39 @@ function sendCustomWhatsAppOTP() {
             // Registration mode
             if (!empty($_POST['church_id'])) {
                 $ownerChurchId = (int)$_POST['church_id'];
+            } elseif (!empty($_POST['churchId'])) {
+                $ownerChurchId = (int)$_POST['churchId'];
             }
             if (!empty($_POST['name'])) {
                 $ownerName = sanitize($_POST['name']);
             }
             if ($ownerChurchId === 0) {
-                $regStmt = $conn->prepare("SELECT church_id, name FROM registration_requests WHERE RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ? ORDER BY id DESC LIMIT 1");
-                if ($regStmt) {
-                    $regStmt->bind_param("ss", $cleanPhone, $cleanPhone);
-                    $regStmt->execute();
-                    $regRes = $regStmt->get_result();
-                    if ($regRes && $regRes->num_rows > 0) {
-                        $rRow = $regRes->fetch_assoc();
-                        $ownerChurchId = (int)($rRow['church_id'] ?? 0);
-                        if (empty($ownerName)) $ownerName = $rRow['name'] ?? '';
+                try {
+                    $chkTable = $conn->query("SHOW TABLES LIKE 'pending_registrations'");
+                    if ($chkTable && $chkTable->num_rows > 0) {
+                        $regStmt = $conn->prepare("SELECT church_id, name FROM pending_registrations WHERE RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ? ORDER BY id DESC LIMIT 1");
+                        if ($regStmt) {
+                            $regStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+                            $regStmt->execute();
+                            $regRes = $regStmt->get_result();
+                            if ($regRes && $regRes->num_rows > 0) {
+                                $rRow = $regRes->fetch_assoc();
+                                $ownerChurchId = (int)($rRow['church_id'] ?? 0);
+                                if (empty($ownerName)) $ownerName = $rRow['name'] ?? '';
+                            }
+                            $regStmt->close();
+                        }
                     }
-                    $regStmt->close();
+                } catch (Throwable $ignore) {
+                    error_log("Failed checking pending_registrations for OTP: " . $ignore->getMessage());
                 }
             }
         }
 
         if ($ownerChurchId === 0 && !empty($_POST['church_id'])) {
             $ownerChurchId = (int)$_POST['church_id'];
+        } elseif ($ownerChurchId === 0 && !empty($_POST['churchId'])) {
+            $ownerChurchId = (int)$_POST['churchId'];
         }
         if ($ownerChurchId === 0 && !empty($_SESSION['church_id'])) {
             $ownerChurchId = (int)$_SESSION['church_id'];
@@ -25981,6 +25997,11 @@ function addTrip()
 
         $hideFromUncles = $hideFromUncles ? 1 : 0;
 
+        $kidsVisibility = sanitize($_POST['kids_visibility'] ?? 'auto_hide');
+        if (!in_array($kidsVisibility, ['auto_hide', 'always', 'never'], true)) {
+            $kidsVisibility = 'auto_hide';
+        }
+
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
 
         $hasPointsGame = $hasPointsGame ? 1 : 0;
@@ -26296,9 +26317,9 @@ function addTrip()
 
                 has_points_game, custom_fields, custom_field_icons,
 
-                has_rooms, rooms_config, hide_from_uncles
+                has_rooms, rooms_config, hide_from_uncles, kids_visibility
 
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
         ");
 
@@ -26306,7 +26327,7 @@ function addTrip()
 
         $stmt->bind_param(
 
-            "isssssddsissiiissisi",
+            "isssssddsissiiissisis",
 
             $churchId,
 
@@ -26346,7 +26367,9 @@ function addTrip()
 
             $roomsConfig,
 
-            $hideFromUncles
+            $hideFromUncles,
+
+            $kidsVisibility
 
         );
 
@@ -26822,6 +26845,11 @@ function updateTrip()
         $hideFromUncles = isset($_POST['hide_from_uncles']) ? intval($_POST['hide_from_uncles']) : intval($oldTrip['hide_from_uncles'] ?? 0);
         $hideFromUncles = $hideFromUncles ? 1 : 0;
 
+        $kidsVisibility = sanitize($_POST['kids_visibility'] ?? ($oldTrip['kids_visibility'] ?? 'auto_hide'));
+        if (!in_array($kidsVisibility, ['auto_hide', 'always', 'never'], true)) {
+            $kidsVisibility = 'auto_hide';
+        }
+
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : intval($oldTrip['has_points_game'] ?? 0);
         $hasPointsGame = $hasPointsGame ? 1 : 0;
 
@@ -27101,11 +27129,11 @@ function updateTrip()
                         start_date = ?, end_date = ?, price = ?, 
                         discount = ?, discount_type = ?, max_participants = ?, 
                         status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
-                        has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, image_url = ?, updated_at = NOW()
+                        has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, kids_visibility = ?, image_url = ?, updated_at = NOW()
                     WHERE id = ?
                 ");
                 $stmt->bind_param(
-                    "sssssddsisiiisissisi",
+                    "sssssddsisiiisississi",
                     $title,
                     $description,
                     $type,
@@ -27124,6 +27152,7 @@ function updateTrip()
                     $roomsConfig,
                     $pointsConfig,
                     $hideFromUncles,
+                    $kidsVisibility,
                     $imageUrl,
                     $tripId
                 );
@@ -27134,11 +27163,11 @@ function updateTrip()
                         start_date = ?, end_date = ?, price = ?, 
                         discount = ?, discount_type = ?, max_participants = ?, 
                         status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
-                        has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, image_url = ?, updated_at = NOW()
+                        has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, kids_visibility = ?, image_url = ?, updated_at = NOW()
                     WHERE id = ? AND church_id = ?
                 ");
                 $stmt->bind_param(
-                    "sssssddsisiiisissisii",
+                    "sssssddsisiiisississii",
                     $title,
                     $description,
                     $type,
@@ -27157,6 +27186,7 @@ function updateTrip()
                     $roomsConfig,
                     $pointsConfig,
                     $hideFromUncles,
+                    $kidsVisibility,
                     $imageUrl,
                     $tripId,
                     $churchId
@@ -43208,7 +43238,130 @@ function restoreSubmission()
 
 }
 
+/**
+ * Automatically finalize submissions and award coupons for tasks that have no open/review questions.
+ */
+function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
+{
+    $taskId = (int) $taskId;
+    if ($taskId <= 0) return;
 
+    $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_graded TINYINT(1) NOT NULL DEFAULT 0");
+    $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS coupons_awarded INT NOT NULL DEFAULT 0");
+    $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS graded_by_uncle_id INT DEFAULT NULL");
+    $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS graded_at DATETIME DEFAULT NULL");
+
+    // Check questions of this task
+    $qStmt = $conn->prepare("SELECT id, question_type, correct_index, degree FROM task_questions WHERE task_id=? ORDER BY sort_order ASC, id ASC");
+    if (!$qStmt) return;
+    $qStmt->bind_param('i', $taskId);
+    $qStmt->execute();
+    $questions = $qStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $qStmt->close();
+
+    $hasOpenQuestions = false;
+    foreach ($questions as $q) {
+        if (($q['question_type'] ?? 'mcq') === 'open') {
+            $hasOpenQuestions = true;
+            break;
+        }
+    }
+
+    // If task still has open questions, manual teacher review is still required
+    if ($hasOpenQuestions) return;
+
+    // Load task metadata
+    $tStmt = $conn->prepare("SELECT total_degree, coupon_matrix, church_id FROM tasks WHERE id=? LIMIT 1");
+    if (!$tStmt) return;
+    $tStmt->bind_param('i', $taskId);
+    $tStmt->execute();
+    $task = $tStmt->get_result()->fetch_assoc();
+    $tStmt->close();
+    if (!$task) return;
+
+    $totalDegree = (int) ($task['total_degree'] ?? 0);
+    $matrix = json_decode($task['coupon_matrix'] ?? '[]', true) ?: [];
+
+    // Find submissions for this task that are not deleted
+    $subStmt = $conn->prepare("
+        SELECT id, student_id, answers, score, coupons_awarded, is_graded 
+        FROM task_submissions 
+        WHERE task_id=? AND (is_deleted IS NULL OR is_deleted = 0)
+    ");
+    if (!$subStmt) return;
+    $subStmt->bind_param('i', $taskId);
+    $subStmt->execute();
+    $subs = $subStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $subStmt->close();
+
+    foreach ($subs as $s) {
+        $answers = json_decode($s['answers'] ?? '{}', true) ?: [];
+        $mcqScore = 0;
+        foreach ($questions as $q) {
+            if ($q['correct_index'] === null) continue;
+            $given = $answers[$q['id']] ?? $answers[(string)$q['id']] ?? null;
+            if ($given !== null && (int)$given === (int)$q['correct_index']) {
+                $mcqScore += (int)$q['degree'];
+            }
+        }
+
+        $pct = $totalDegree > 0 ? ($mcqScore / $totalDegree * 100) : 0;
+        $coupons = 0;
+        foreach ($matrix as $tier) {
+            if ($pct >= (float)$tier['from'] && $pct <= (float)$tier['to']) {
+                $coupons = (int)$tier['val'];
+                break;
+            }
+        }
+
+        $oldCoupons = (int)($s['coupons_awarded'] ?? 0);
+        $oldIsGraded = (int)($s['is_graded'] ?? 0);
+        $oldScore = (int)($s['score'] ?? 0);
+        $couponDiff = $coupons - $oldCoupons;
+
+        if ($oldIsGraded !== 1 || $oldCoupons !== $coupons || $oldScore !== $mcqScore) {
+            $upd = $conn->prepare("
+                UPDATE task_submissions 
+                SET score=?, coupons_awarded=?, is_graded=1,
+                    graded_by_uncle_id = IF(? > 0 AND (graded_by_uncle_id IS NULL OR graded_by_uncle_id = 0), ?, graded_by_uncle_id),
+                    graded_at = IF(graded_at IS NULL, NOW(), graded_at)
+                WHERE id=?
+            ");
+            if ($upd) {
+                $upd->bind_param('iiiii', $mcqScore, $coupons, $actingUncleId, $actingUncleId, $s['id']);
+                $upd->execute();
+                $upd->close();
+            }
+
+            if ($couponDiff !== 0) {
+                $stuQ = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+                if ($stuQ) {
+                    $stuQ->bind_param('i', $s['student_id']);
+                    $stuQ->execute();
+                    $stu = $stuQ->get_result()->fetch_assoc();
+                    $stuQ->close();
+                    if ($stu) {
+                        $newTask = max(0, (int)$stu['task_coupons'] + $couponDiff);
+                        $newTotal = $newTask + (int)$stu['attendance_coupons'] + (int)$stu['commitment_coupons'];
+                        $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$s['student_id']}");
+                        
+                        $reason = "اعتماد نتيجة تاسك #{$taskId}: {$mcqScore}/{$totalDegree} (+{$couponDiff} كوبون)";
+                        $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+                        if ($log) {
+                            $log->bind_param('iiiiss', $s['student_id'], $actingUncleId, $stu['task_coupons'], $newTask, $couponDiff, $reason);
+                            $log->execute();
+                            $log->close();
+                        }
+
+                        if (function_exists('auditCouponChange')) {
+                            auditCouponChange($s['student_id'], $stu['name'] ?? '', (int)$stu['coupons'], $newTotal, $reason);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 // ─── updateTask ────────────────────────────────────────────────
 
@@ -43501,8 +43654,20 @@ function updateTask()
         $newQsStmt->execute();
         $newQs = $newQsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+        $hasAnyOpenQuestions = false;
+        foreach ($newQs as $q) {
+            if (($q['question_type'] ?? 'mcq') === 'open') {
+                $hasAnyOpenQuestions = true;
+                break;
+            }
+        }
+
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_graded TINYINT(1) NOT NULL DEFAULT 0");
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS graded_by_uncle_id INT DEFAULT NULL");
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS graded_at DATETIME DEFAULT NULL");
+
         // Load all submissions for this task
-        $allSubsStmt = $conn->prepare("SELECT id, student_id, answers, score AS old_score, coupons_awarded AS old_coupons, open_scores, correction_notes FROM task_submissions WHERE task_id=?");
+        $allSubsStmt = $conn->prepare("SELECT id, student_id, answers, score AS old_score, coupons_awarded AS old_coupons, open_scores, correction_notes, is_graded FROM task_submissions WHERE task_id=? AND (is_deleted IS NULL OR is_deleted = 0)");
         $allSubsStmt->bind_param('i', $taskId);
         $allSubsStmt->execute();
         $allSubs = $allSubsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -43536,117 +43701,99 @@ function updateTask()
             $openScoresJson = json_encode($newOpenScores, JSON_UNESCAPED_UNICODE);
             $corrNotesJson = !empty($newCorrNotes) ? json_encode($newCorrNotes, JSON_UNESCAPED_UNICODE) : null;
 
-
             $mcqScore = 0;
-
             $openScore = 0;
+            $hasUnscoredOpenQ = false;
 
             foreach ($newQs as $q) {
-
-                if ($q['question_type'] === 'open') {
-
-                    $openScore += (int) ($newOpenScores[$q['id']] ?? $newOpenScores[(string) $q['id']] ?? 0);
-
+                if (($q['question_type'] ?? 'mcq') === 'open') {
+                    $qidStr = (string) $q['id'];
+                    if (isset($newOpenScores[$q['id']]) && $newOpenScores[$q['id']] !== null && $newOpenScores[$q['id']] !== '') {
+                        $openScore += (int) $newOpenScores[$q['id']];
+                    } elseif (isset($newOpenScores[$qidStr]) && $newOpenScores[$qidStr] !== null && $newOpenScores[$qidStr] !== '') {
+                        $openScore += (int) $newOpenScores[$qidStr];
+                    } else {
+                        $hasUnscoredOpenQ = true;
+                    }
                 } else {
-
                     if ($q['correct_index'] === null)
-
                         continue;
 
                     $given = $newAnswers[$q['id']] ?? $newAnswers[(string) $q['id']] ?? null;
-
                     if ($given !== null && (int) $given === (int) $q['correct_index']) {
-
                         $mcqScore += (int) $q['degree'];
-
                     }
-
                 }
-
             }
 
             $newScore = $mcqScore + $openScore;
 
-
-
-            // Compute new coupons from matrix
-
-            $pct = $totalDegree > 0 ? ($newScore / $totalDegree * 100) : 0;
-
-            $newCoupons = 0;
-
-            foreach ($newMatrix as $tier) {
-
-                if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
-
-                    $newCoupons = (int) $tier['val'];
-
-                    break;
-
-                }
-
+            // Determine if submission is finalized/graded:
+            // If after edit there are NO open review questions in the task, it is ALWAYS graded (is_graded = 1)!
+            if (!$hasAnyOpenQuestions) {
+                $isGraded = 1;
+            } elseif (!$hasUnscoredOpenQ) {
+                $isGraded = 1;
+            } else {
+                $isGraded = 0;
             }
 
-
+            // Compute new coupons from matrix (only awarded if graded)
+            $pct = $totalDegree > 0 ? ($newScore / $totalDegree * 100) : 0;
+            $newCoupons = 0;
+            if ($isGraded === 1) {
+                foreach ($newMatrix as $tier) {
+                    if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
+                        $newCoupons = (int) $tier['val'];
+                        break;
+                    }
+                }
+            }
 
             $oldScore = (int) $sub['old_score'];
-
             $oldCoupons = (int) $sub['old_coupons'];
-
+            $oldIsGraded = (int) ($sub['is_graded'] ?? 0);
             $couponDiff = $newCoupons - $oldCoupons;
 
-
-
-            // Update submission score, coupons, and rewritten answers/scores/notes
-
-            $updSub = $conn->prepare("UPDATE task_submissions SET score=?, coupons_awarded=?, answers=?, open_scores=?, correction_notes=? WHERE id=?");
-
-            $updSub->bind_param('iisssi', $newScore, $newCoupons, $answersJson, $openScoresJson, $corrNotesJson, $sub['id']);
-
+            // Update submission score, coupons, is_graded, and rewritten answers/scores/notes
+            $updSub = $conn->prepare("
+                UPDATE task_submissions 
+                SET score=?, coupons_awarded=?, answers=?, open_scores=?, correction_notes=?, is_graded=?,
+                    graded_by_uncle_id = IF(?=1 AND (graded_by_uncle_id IS NULL OR graded_by_uncle_id=0), ?, graded_by_uncle_id),
+                    graded_at = IF(?=1 AND graded_at IS NULL, NOW(), graded_at)
+                WHERE id=?
+            ");
+            $updSub->bind_param('iisssiiiii', $newScore, $newCoupons, $answersJson, $openScoresJson, $corrNotesJson, $isGraded, $isGraded, $uncleId, $isGraded, $sub['id']);
             $updSub->execute();
 
-
-
             // Apply coupon diff to student
-
             if ($couponDiff !== 0) {
-
                 $stuQ2 = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
-
                 $stuQ2->bind_param('i', $sub['student_id']);
-
                 $stuQ2->execute();
-
                 $stu2 = $stuQ2->get_result()->fetch_assoc();
 
                 if ($stu2) {
-
                     $newTask2 = max(0, (int) $stu2['task_coupons'] + $couponDiff);
-
                     $newTotal2 = $newTask2 + (int) $stu2['attendance_coupons'] + (int) $stu2['commitment_coupons'];
 
                     $conn->query("UPDATE students SET task_coupons={$newTask2}, coupons={$newTotal2} WHERE id={$sub['student_id']}");
 
                     // Log
-
-                    $reason2 = "تحديث تاسك #{$taskId}: تعديل درجة {$oldScore}→{$newScore}";
+                    if ($oldIsGraded === 0 && $isGraded === 1) {
+                        $reason2 = "اعتماد نتيجة تاسك #{$taskId}: {$newScore}/{$totalDegree} (+{$couponDiff} كوبون)";
+                    } else {
+                        $reason2 = "تحديث تاسك #{$taskId}: تعديل درجة {$oldScore}→{$newScore}";
+                    }
 
                     $log2 = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
-
                     $log2->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu2['task_coupons'], $newTask2, $couponDiff, $reason2);
-
                     $log2->execute();
 
-
-
                     // ► AUDIT
-
                     auditCouponChange($sub['student_id'], $stu2['name'] ?? '', (int) $stu2['coupons'], $newTotal2, $reason2);
-
                 }
-
             }
-
         }
 
         // Send announcement to notify kids of the update
@@ -44385,19 +44532,36 @@ function getStudentTasks()
             $subRow = $subStmt->get_result()->fetch_assoc();
 
             if ($subRow) {
+                $hasOpenQsInTask = false;
+                foreach ($qs as $chkQ) {
+                    if (($chkQ['question_type'] ?? 'mcq') === 'open') {
+                        $hasOpenQsInTask = true;
+                        break;
+                    }
+                }
+                if (!$hasOpenQsInTask && ((int)($subRow['is_graded'] ?? 0) === 0 || ((int)($subRow['coupons_awarded'] ?? 0) === 0 && (int)($subRow['score'] ?? 0) > 0))) {
+                    syncTaskSubmissionsForTask($conn, $t['id']);
+                    // Re-read updated submission
+                    $refStmt = $conn->prepare("SELECT score, coupons_awarded, is_graded, submitted_at FROM task_submissions WHERE id=? LIMIT 1");
+                    if ($refStmt) {
+                        $refStmt->bind_param('i', $subRow['id']);
+                        $refStmt->execute();
+                        $refRow = $refStmt->get_result()->fetch_assoc();
+                        $refStmt->close();
+                        if ($refRow) {
+                            $subRow['score'] = $refRow['score'];
+                            $subRow['coupons_awarded'] = $refRow['coupons_awarded'];
+                            $subRow['is_graded'] = $refRow['is_graded'];
+                        }
+                    }
+                }
 
                 $mySubmission = [
-
                     'id' => $subRow['id'],
-
                     'score' => isset($subRow['score']) ? (int) $subRow['score'] : 0,
-
                     'coupons_awarded' => isset($subRow['coupons_awarded']) ? (int) $subRow['coupons_awarded'] : 0,
-
-                    'is_graded' => isset($subRow['is_graded']) ? (int) $subRow['is_graded'] : 0,
-
+                    'is_graded' => !$hasOpenQsInTask ? 1 : (isset($subRow['is_graded']) ? (int) $subRow['is_graded'] : 0),
                     'submitted_at' => $subRow['submitted_at'] ?? null,
-
                 ];
 
 
@@ -45183,8 +45347,8 @@ function getStudentTrips()
                 t.price, t.discount, t.discount_type,
 
                 t.max_participants, t.image_url,
-
-                COALESCE(t.show_registered_kids, 1) AS show_registered_kids
+                COALESCE(t.show_registered_kids, 1) AS show_registered_kids,
+                COALESCE(t.kids_visibility, 'auto_hide') AS kids_visibility
 
             FROM trips t
 
@@ -45247,10 +45411,22 @@ function getStudentTrips()
             // Registered kids (name + photo only, no payments) can be hidden per trip.
 
             $row['show_registered_kids'] = (int) ($row['show_registered_kids'] ?? 1);
+            $kidsVis = $row['kids_visibility'] ?? 'auto_hide';
+            $maxPart = (int) ($row['max_participants'] ?? 0);
+            $cnt = $row['registered_count'];
+
+            $shouldShowKids = ($row['show_registered_kids'] === 1);
+            if ($kidsVis === 'never') {
+                $shouldShowKids = false;
+            } elseif ($kidsVis === 'auto_hide') {
+                if ($maxPart > 0 && $cnt >= $maxPart) {
+                    $shouldShowKids = false;
+                }
+            }
 
             $row['registered_kids'] = [];
 
-            if ($row['show_registered_kids'] === 1) {
+            if ($shouldShowKids) {
 
                 $rStmt = $conn->prepare("
 
@@ -45842,40 +46018,55 @@ function getNotifications()
         $uncleIdStr = (string)$uncleId;
 
         $limit = (int) ($_POST['limit'] ?? 50);
-
         $offset = (int) ($_POST['offset'] ?? 0);
+        $isDev = isDeveloperRole();
 
-        $stmt = $conn->prepare("
+        if ($isDev) {
+            $stmt = $conn->prepare("
+                SELECT n.id, n.type, n.title, n.body, n.entity_type, n.entity_id, n.is_read, n.created_at, dm.redirect_url
+                FROM notifications n
+                LEFT JOIN developer_messages dm ON n.entity_type = 'developer_message' AND n.entity_id = dm.id
+                WHERE (n.church_id = ? OR n.church_id = 0 OR n.type IN ('whatsapp_otp', 'developer_message'))
+                  AND (n.deleted_by_uncles IS NULL OR FIND_IN_SET(?, n.deleted_by_uncles) = 0)
+                ORDER BY n.created_at DESC
+                LIMIT ? OFFSET ?
+            ");
+            $stmt->bind_param('isii', $churchId, $uncleIdStr, $limit, $offset);
+            $stmt->execute();
+            $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-            SELECT n.id, n.type, n.title, n.body, n.entity_type, n.entity_id, n.is_read, n.created_at, dm.redirect_url
+            $countStmt = $conn->prepare("
+                SELECT COUNT(*) as c 
+                FROM notifications 
+                WHERE (church_id=? OR church_id = 0 OR type IN ('whatsapp_otp', 'developer_message')) 
+                  AND is_read=0 
+                  AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)
+            ");
+            $countStmt->bind_param('is', $churchId, $uncleIdStr);
+            $countStmt->execute();
+            $unread = (int) $countStmt->get_result()->fetch_assoc()['c'];
 
-            FROM notifications n
+            sendJSON(['success' => true, 'notifications' => $rows, 'unread_count' => $unread]);
+        } else {
+            $stmt = $conn->prepare("
+                SELECT n.id, n.type, n.title, n.body, n.entity_type, n.entity_id, n.is_read, n.created_at, dm.redirect_url
+                FROM notifications n
+                LEFT JOIN developer_messages dm ON n.entity_type = 'developer_message' AND n.entity_id = dm.id
+                WHERE (n.church_id = ? OR n.church_id = 0) AND (n.deleted_by_uncles IS NULL OR FIND_IN_SET(?, n.deleted_by_uncles) = 0)
+                ORDER BY n.created_at DESC
+                LIMIT ? OFFSET ?
+            ");
+            $stmt->bind_param('isii', $churchId, $uncleIdStr, $limit, $offset);
+            $stmt->execute();
+            $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-            LEFT JOIN developer_messages dm ON n.entity_type = 'developer_message' AND n.entity_id = dm.id
+            $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE (church_id=? OR church_id = 0) AND is_read=0 AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)");
+            $countStmt->bind_param('is', $churchId, $uncleIdStr);
+            $countStmt->execute();
+            $unread = (int) $countStmt->get_result()->fetch_assoc()['c'];
 
-            WHERE n.church_id = ? AND (n.deleted_by_uncles IS NULL OR FIND_IN_SET(?, n.deleted_by_uncles) = 0)
-
-            ORDER BY n.created_at DESC
-
-            LIMIT ? OFFSET ?
-
-        ");
-
-        $stmt->bind_param('isii', $churchId, $uncleIdStr, $limit, $offset);
-
-        $stmt->execute();
-
-        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE church_id=? AND is_read=0 AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)");
-
-        $countStmt->bind_param('is', $churchId, $uncleIdStr);
-
-        $countStmt->execute();
-
-        $unread = (int) $countStmt->get_result()->fetch_assoc()['c'];
-
-        sendJSON(['success' => true, 'notifications' => $rows, 'unread_count' => $unread]);
+            sendJSON(['success' => true, 'notifications' => $rows, 'unread_count' => $unread]);
+        }
 
     } catch (Exception $e) {
 
@@ -45901,9 +46092,13 @@ function markNotificationRead()
 
         ensureNotificationsTable($conn);
 
-        $stmt = $conn->prepare("UPDATE notifications SET is_read=1 WHERE id=? AND church_id=?");
-
-        $stmt->bind_param('ii', $id, $churchId);
+        if (isDeveloperRole()) {
+            $stmt = $conn->prepare("UPDATE notifications SET is_read=1 WHERE id=?");
+            $stmt->bind_param('i', $id);
+        } else {
+            $stmt = $conn->prepare("UPDATE notifications SET is_read=1 WHERE id=? AND (church_id=? OR church_id=0)");
+            $stmt->bind_param('ii', $id, $churchId);
+        }
 
         $stmt->execute();
 
@@ -45936,17 +46131,29 @@ function deleteNotification()
         $uncleId = isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : 0;
         $uncleIdStr = (string)$uncleId;
 
-        $stmt = $conn->prepare("
-            UPDATE notifications 
-            SET deleted_by_uncles = CASE 
-                WHEN deleted_by_uncles IS NULL OR deleted_by_uncles = '' THEN ? 
-                WHEN FIND_IN_SET(?, deleted_by_uncles) > 0 THEN deleted_by_uncles
-                ELSE CONCAT(deleted_by_uncles, ',', ?) 
-            END
-            WHERE id = ? AND church_id = ?
-        ");
-
-        $stmt->bind_param('sssii', $uncleIdStr, $uncleIdStr, $uncleIdStr, $id, $churchId);
+        if (isDeveloperRole()) {
+            $stmt = $conn->prepare("
+                UPDATE notifications 
+                SET deleted_by_uncles = CASE 
+                    WHEN deleted_by_uncles IS NULL OR deleted_by_uncles = '' THEN ? 
+                    WHEN FIND_IN_SET(?, deleted_by_uncles) > 0 THEN deleted_by_uncles
+                    ELSE CONCAT(deleted_by_uncles, ',', ?) 
+                END
+                WHERE id = ?
+            ");
+            $stmt->bind_param('sssi', $uncleIdStr, $uncleIdStr, $uncleIdStr, $id);
+        } else {
+            $stmt = $conn->prepare("
+                UPDATE notifications 
+                SET deleted_by_uncles = CASE 
+                    WHEN deleted_by_uncles IS NULL OR deleted_by_uncles = '' THEN ? 
+                    WHEN FIND_IN_SET(?, deleted_by_uncles) > 0 THEN deleted_by_uncles
+                    ELSE CONCAT(deleted_by_uncles, ',', ?) 
+                END
+                WHERE id = ? AND (church_id = ? OR church_id = 0)
+            ");
+            $stmt->bind_param('sssii', $uncleIdStr, $uncleIdStr, $uncleIdStr, $id, $churchId);
+        }
 
         $stmt->execute();
 
@@ -45974,9 +46181,13 @@ function markAllNotificationsRead()
 
         ensureNotificationsTable($conn);
 
-        $stmt = $conn->prepare("UPDATE notifications SET is_read=1 WHERE church_id=? AND is_read=0");
-
-        $stmt->bind_param('i', $churchId);
+        if (isDeveloperRole()) {
+            $stmt = $conn->prepare("UPDATE notifications SET is_read=1 WHERE (church_id=? OR church_id=0 OR type IN ('whatsapp_otp', 'developer_message')) AND is_read=0");
+            $stmt->bind_param('i', $churchId);
+        } else {
+            $stmt = $conn->prepare("UPDATE notifications SET is_read=1 WHERE (church_id=? OR church_id=0) AND is_read=0");
+            $stmt->bind_param('i', $churchId);
+        }
 
         $stmt->execute();
 
@@ -46479,6 +46690,24 @@ function _sendWebPushToChurch($conn, $churchId, $title, $body, $extra = [])
 
         }
 
+        // Ensure in-app notification exists so it appears in the notifications modal
+        if (function_exists('pushNotification')) {
+            $notifType = $extra['notifType'] ?? $extra['type'] ?? 'general';
+            $entityType = $extra['entity_type'] ?? null;
+            $entityId = isset($extra['entity_id']) ? (int)$extra['entity_id'] : null;
+            $classId = isset($extra['class_id']) ? (int)$extra['class_id'] : null;
+            $chk = $conn->prepare("SELECT id FROM notifications WHERE church_id = ? AND title = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 60 SECOND) LIMIT 1");
+            if ($chk) {
+                $chk->bind_param('is', $churchId, $title);
+                $chk->execute();
+                $exists = $chk->get_result()->fetch_assoc();
+                $chk->close();
+                if (!$exists) {
+                    pushNotification($conn, $churchId, $notifType, $title, $body, $entityType, $entityId, $classId);
+                }
+            }
+        }
+
     } catch (Exception $e) {
 
         error_log("_sendWebPushToChurch error: " . $e->getMessage());
@@ -46808,6 +47037,24 @@ function _sendWebPushToDeveloper($conn, $title, $body, $url = '/uncle/dashboard/
         if (function_exists('_pushToEndpoint')) {
             foreach ($subs as $sub) {
                 _pushToEndpoint($sub['endpoint'], $sub['p256dh'], $sub['auth'], $payload, $vapid, $vapidPub);
+            }
+        }
+
+        // Ensure in-app notification exists so it appears in the notifications modal
+        if (function_exists('pushNotification')) {
+            $notifType = $extra['type'] ?? $extra['notifType'] ?? 'whatsapp_otp';
+            $entityType = $extra['entity_type'] ?? 'phone_verification';
+            $entityId = isset($extra['otp_code']) ? (int)$extra['otp_code'] : (isset($extra['queue_id']) ? (int)$extra['queue_id'] : null);
+            $targetChurchId = !empty($extra['church_id']) ? (int)$extra['church_id'] : 0;
+            $chk = $conn->prepare("SELECT id FROM notifications WHERE type = ? AND title = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 60 SECOND) LIMIT 1");
+            if ($chk) {
+                $chk->bind_param('ss', $notifType, $title);
+                $chk->execute();
+                $exists = $chk->get_result()->fetch_assoc();
+                $chk->close();
+                if (!$exists) {
+                    pushNotification($conn, $targetChurchId, $notifType, $title, $body, $entityType, $entityId);
+                }
             }
         }
     } catch (Exception $e) {
@@ -47383,26 +47630,19 @@ function getPendingOpenSubmissions()
 
 
         // Migration helper: mark past submissions for tasks without open questions as is_graded=1
-
         $conn->query("
-
             UPDATE task_submissions ts 
-
             SET ts.is_graded = 1 
-
             WHERE ts.is_graded = 0 
-
               AND NOT EXISTS (
-
                   SELECT 1 FROM task_questions tq 
-
                   WHERE tq.task_id = ts.task_id AND tq.question_type = 'open'
-
               )
-
         ");
 
-
+        if ($taskId > 0) {
+            syncTaskSubmissionsForTask($conn, $taskId);
+        }
 
         $where = "ts.church_id = ? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)";
 

@@ -3442,7 +3442,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       inset: 0;
       background: rgba(255, 255, 255, .96);
       backdrop-filter: blur(12px);
-      z-index: 1000;
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 10000;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -3450,11 +3451,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       gap: 14px;
       font-weight: 700;
       color: var(--brand);
-      font-size: .9rem;
+      font-size: .95rem;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
     }
 
     .loading-screen.hidden {
-      display: none;
+      display: none !important;
     }
 
     .spin {
@@ -6766,7 +6768,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     async function initTempIdAssignment(tempid) {
-      document.getElementById('ls').style.display = 'none'; // Hide loading screen
+      hideLoad(); // Hide loading screen
       const container = document.getElementById('tempIdAssignContainer');
       container.style.display = 'block';
 
@@ -8462,7 +8464,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         // Coupon row — always visible
         let couponRow = '';
         if (sub) {
-          const isGraded = parseInt(sub.is_graded || 0) === 1;
+          const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open' && (parseInt(q.degree) || 0) > 0);
+          const isGraded = (parseInt(sub.is_graded || 0) === 1) || !hasOpenQs;
           const pct = t.total_degree > 0 ? Math.round(sub.score / t.total_degree * 100) : 0;
           if (isGraded) {
             couponRow = `<div class="task-result">
@@ -10031,24 +10034,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         toast('هذا الحساب لم يعد مرتبطاً بهذا الرقم', 'err');
         return;
       }
-      student = acc;
-      localStorage.setItem('activeKidAccountId', String(acc.id));
-      if (acc.phone) {
-        const cleanP = String(acc.phone).replace(/[^\d]/g, '');
-        if (cleanP) localStorage.setItem('savedUsername', cleanP);
-      }
-      allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
-      await loadChurchSettings();
-      renderPrivate(student);
-      switchTab(getInitialTab());
-      renderAccountSwitcher();
-      loadSiblings();
-      syncPassOverlay();
-      document.getElementById('bottomNavBar').style.display = 'flex';
+
       closeOv('switchOv');
-      toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
-      if (!IS_PUBLIC && _creds) {
-        _initPushNotifications();
+      showLoad(`جاري التبديل إلى ${acc.name}…`);
+
+      // Allow browser to render loading screen
+      await new Promise(r => setTimeout(r, 100));
+
+      try {
+        student = acc;
+        localStorage.setItem('activeKidAccountId', String(acc.id));
+        if (acc.phone) {
+          const cleanP = String(acc.phone).replace(/[^\d]/g, '');
+          if (cleanP) localStorage.setItem('savedUsername', cleanP);
+        }
+        allAccounts = allAccounts.filter(a => doAccountsShareCommonPhone(student, a));
+        await loadChurchSettings();
+        renderPrivate(student);
+        switchTab(getInitialTab());
+        renderAccountSwitcher();
+        loadSiblings();
+        syncPassOverlay();
+        document.getElementById('bottomNavBar').style.display = 'flex';
+        toast(`تم التبديل إلى ${acc.name} ✓`, 'ok');
+        if (!IS_PUBLIC && _creds) {
+          _initPushNotifications();
+        }
+      } catch (err) {
+        console.error('Account switch error:', err);
+        toast('حدث خطأ أثناء التبديل', 'err');
+      } finally {
+        setTimeout(() => {
+          hideLoad();
+        }, 150);
       }
     }
 
@@ -10100,8 +10118,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('mainPage').style.display = 'block';
       document.getElementById('noProfile').style.setProperty('display', 'none', 'important');
     }
-    function showLoad(m = 'جارٍ التحميل…') { document.getElementById('lt').textContent = m; document.getElementById('ls').classList.remove('hidden'); }
-    function hideLoad() { document.getElementById('ls').classList.add('hidden'); }
+    function showLoad(m = 'جارٍ التحميل…') {
+      const el = document.getElementById('ls');
+      if (!el) return;
+      const txt = document.getElementById('lt');
+      if (txt) txt.textContent = m;
+      el.style.display = 'flex';
+      el.classList.remove('hidden');
+    }
+    function hideLoad() {
+      const el = document.getElementById('ls');
+      if (!el) return;
+      el.style.display = 'none';
+      el.classList.add('hidden');
+    }
     function noProfile(m) { hideLoad(); document.getElementById('noMsg').textContent = m; document.getElementById('noProfile').style.setProperty('display', 'flex', 'important'); }
     function toast(m, t = 'info') {
       const tc = document.getElementById('tc');

@@ -1384,6 +1384,14 @@ async function initiateRegistrationOTP(phone) {
     const fd = new FormData();
     fd.append('action', 'sendRegistrationWhatsAppOTP');
     fd.append('phone', phone);
+    if (churchId) {
+      fd.append('church_id', churchId);
+      fd.append('churchId', churchId);
+    }
+    const kidName = val('kidName');
+    if (kidName) {
+      fd.append('name', kidName);
+    }
 
     const res = await fetch(API, { method: 'POST', body: fd });
     const data = await res.json();
@@ -1471,6 +1479,14 @@ async function resendRegistrationOTP() {
     const fd = new FormData();
     fd.append('action', 'sendRegistrationWhatsAppOTP');
     fd.append('phone', phone);
+    if (churchId) {
+      fd.append('church_id', churchId);
+      fd.append('churchId', churchId);
+    }
+    const kidName = val('kidName');
+    if (kidName) {
+      fd.append('name', kidName);
+    }
 
     const res = await fetch(API, { method: 'POST', body: fd });
     const data = await res.json();

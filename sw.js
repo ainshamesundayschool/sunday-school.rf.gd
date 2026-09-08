@@ -519,7 +519,14 @@ self.addEventListener('push', e => {
             { action: 'dismiss', title: 'إغلاق' }
         ];
     }
-    e.waitUntil(self.registration.showNotification(d.title || 'مدارس الأحد', options));
+    e.waitUntil(Promise.all([
+        self.registration.showNotification(d.title || 'مدارس الأحد', options),
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+            clients.forEach(client => {
+                client.postMessage({ type: 'PUSH_NOTIFICATION_RECEIVED', data: d });
+            });
+        })
+    ]));
 });
 
 // ── NOTIFICATION CLICK ────────────────────────────────────────

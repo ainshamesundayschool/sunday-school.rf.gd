@@ -14019,32 +14019,82 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         overflow-y: auto;
         position: relative;
         min-height: 320px;
-        padding: 24px;
+        padding: 24px 16px;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
       }
-      .tq-paper-sheet {
+      .tq-paper-sheet,
+      .tq-page-sheet {
         background: #ffffff;
         color: #1e293b;
         width: 100%;
-        max-width: 820px;
+        max-width: 800px;
+        min-height: 1131px;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 36px 40px;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+        padding: 30px 36px 24px 36px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
         font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
         direction: rtl;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        flex-shrink: 0;
       }
-      .tq-paper-sheet.landscape-view {
-        max-width: 1100px;
+      .tq-paper-sheet.landscape-view,
+      .tq-page-sheet.landscape-view {
+        max-width: 1131px;
+        min-height: 800px;
+      }
+      .tq-page-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        max-width: 800px;
+        color: #64748b;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin: 4px 0;
+      }
+      .tq-page-divider.landscape-view {
+        max-width: 1131px;
+      }
+      .tq-page-divider::before,
+      .tq-page-divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1.5px dashed #cbd5e1;
+      }
+      .tq-page-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1.5px dashed #cbd5e1;
+        padding-top: 12px;
+        margin-top: 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #64748b;
+        flex-shrink: 0;
+      }
+      .tq-page-num-badge {
+        background: #f1f5f9;
+        color: #334155;
+        padding: 2px 10px;
+        border-radius: 99px;
+        border: 1px solid #e2e8f0;
+        font-weight: 800;
       }
       .tq-q-item {
         background: #ffffff;
         border: 1.5px solid #e2e8f0;
         border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 18px;
+        padding: 14px 18px;
+        margin-bottom: 12px;
         page-break-inside: avoid;
         break-inside: avoid;
       }
@@ -14104,11 +14154,73 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         .tq-preview-viewport {
           padding: 10px;
         }
-        .tq-paper-sheet {
+        .tq-page-sheet {
           padding: 20px 16px;
         }
         .tq-mode-toggle {
           flex-direction: column;
+        }
+      }
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #taskQuestionsExportOv, #taskQuestionsExportOv * {
+          visibility: visible;
+        }
+        #taskQuestionsExportOv {
+          position: fixed !important;
+          inset: 0 !important;
+          background: #fff !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          z-index: 9999999 !important;
+          overflow: visible !important;
+        }
+        #taskQuestionsExportOv .modal {
+          box-shadow: none !important;
+          border: none !important;
+          max-width: 100% !important;
+          width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+        }
+        #taskQuestionsExportOv .mhdr,
+        #taskQuestionsExportOv .tq-export-box,
+        #taskQuestionsExportOv .mfoot,
+        #taskQuestionsExportOv .tq-page-divider {
+          display: none !important;
+        }
+        .tq-preview-viewport {
+          background: #fff !important;
+          padding: 0 !important;
+          border: none !important;
+          overflow: visible !important;
+        }
+        #tqPaperExport {
+          gap: 0 !important;
+        }
+        .tq-page-sheet {
+          box-shadow: none !important;
+          border: none !important;
+          border-radius: 0 !important;
+          margin: 0 !important;
+          padding: 15mm 15mm 10mm 15mm !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: 100vh !important;
+          max-height: none !important;
+          page-break-after: always !important;
+          break-after: page !important;
+        }
+        .tq-page-sheet:last-child {
+          page-break-after: auto !important;
+          break-after: auto !important;
+        }
+        .tq-q-item {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
         }
       }
     </style>
@@ -14171,7 +14283,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         <!-- Live Preview Container -->
         <div class="tq-preview-viewport" id="tqPreviewViewport">
-          <div class="tq-paper-sheet" id="tqPaperExport">
+          <div id="tqPaperExport" style="display:flex; flex-direction:column; align-items:center; gap:20px; width:100%;">
             <!-- Rendered dynamically -->
           </div>
         </div>
@@ -14184,6 +14296,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           <button class="btn-export btn-msg" onclick="copyQuestionsText()"><i class="fas fa-copy"></i> نسخ كنص</button>
           <button class="btn-export btn-excel" onclick="exportQuestionsExcel()"><i class="fas fa-file-excel"></i> Excel (.xlsx)</button>
           <button class="btn-export btn-pdf" onclick="exportQuestionsPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="btn-export btn-print" onclick="printQuestionsExam()" style="background:#0284c7; color:#fff;"><i class="fas fa-print"></i> طباعة</button>
           <button class="btn-export btn-img" onclick="exportQuestionsImage()"><i class="fas fa-file-image"></i> صورة</button>
         </div>
       </div>
@@ -22002,28 +22115,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       renderQuestionsExportPreview();
     }
 
-    function renderQuestionsExportPreview() {
-      const container = document.getElementById('tqPaperExport');
-      if (!container) return;
-
-      const t = window.currentExportTask || {};
-      const qs = window.currentExportQuestions || [];
-      const showAns = !!window.currentExportShowAnswers;
-      const showExamHdr = document.getElementById('tqShowExamHeader') ? document.getElementById('tqShowExamHeader').checked : true;
-      const showDegrees = document.getElementById('tqShowDegrees') ? document.getElementById('tqShowDegrees').checked : true;
-      const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || 'عام');
-
-      const statsEl = document.getElementById('tqStatsText');
-      if (statsEl) {
-        statsEl.innerHTML = `عدد الأسئلة: <strong>${qs.length}</strong> | الدرجة الكلية: <strong>${t.total_degree || 0}</strong> | الحالة: <span style="color:${showAns ? '#059669' : '#dc2626'}; font-weight:800;">${showAns ? 'نموذج إجابة (الإجابات ظاهرة)' : 'ورقة اختبار (الإجابات مخفية للطلاب)'}</span>`;
-      }
-
-      let html = '';
-
-      // Sheet Header
-      html += `
-        <div class="tq-paper-header" style="border-bottom: 2.5px solid var(--brand, #5b6cf5); padding-bottom: 18px; margin-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap;">
+    function buildExportFullHeaderHtml(t, classesLabel, showAns, showExamHdr) {
+      return `
+        <div class="tq-paper-header" style="border-bottom: 2.5px solid var(--brand, #5b6cf5); padding-bottom: 14px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; flex-wrap: wrap;">
             <div>
               <div style="font-size: 0.95rem; font-weight: 800; color: var(--brand, #5b6cf5); margin-bottom: 2px;">
                 كنيسة الشهيد العظيم مارجرجس والأنبا شنودة
@@ -22039,150 +22134,286 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-top: 1px dashed #e2e8f0; padding-top: 12px;">
-            <h2 style="margin: 0; font-size: 1.4rem; font-weight: 900; color: #0f172a; line-height: 1.3;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-top: 1px dashed #e2e8f0; padding-top: 10px;">
+            <h2 style="margin: 0; font-size: 1.35rem; font-weight: 900; color: #0f172a; line-height: 1.3;">
               ${esc(t.title || 'أسئلة التاسك')}
             </h2>
             <div style="font-size: 0.85rem; font-weight: 700; color: #475569; white-space: nowrap;">
               التاريخ: ${new Date().toLocaleDateString('ar-EG')}
             </div>
           </div>
+          ${showExamHdr ? `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; padding: 8px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; margin-top: 12px; font-size: 0.88rem; font-weight: 700; color: #334155;">
+              <div>اسم الطالب: ...........................................</div>
+              <div>الفصل: ${classesLabel ? esc(classesLabel) : '.....................'}</div>
+              <div>الدرجة: ........... / ${t.total_degree || 0}</div>
+            </div>
+          ` : ''}
+        </div>
       `;
+    }
 
-      if (showExamHdr) {
-        html += `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; padding: 10px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; margin-top: 14px; font-size: 0.88rem; font-weight: 700; color: #334155;">
-            <div>اسم الطالب: ...........................................</div>
-            <div>الفصل: ${classesLabel ? esc(classesLabel) : '.....................'}</div>
-            <div>الدرجة: ........... / ${t.total_degree || 0}</div>
+    function buildExportCompactHeaderHtml(t, classesLabel, showAns) {
+      return `
+        <div class="tq-paper-header-compact" style="border-bottom: 2px solid var(--brand, #5b6cf5); padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size: 0.88rem; font-weight: 800; color: var(--brand, #5b6cf5);">
+              كنيسة الشهيد العظيم مارجرجس والأنبا شنودة
+            </span>
+            <span style="color: #cbd5e1;">|</span>
+            <span style="font-size: 0.88rem; font-weight: 700; color: #1e293b;">
+              ${esc(t.title || 'أسئلة التاسك')}
+            </span>
           </div>
-        `;
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 99px; ${showAns ? 'background:#ecfdf5; color:#065f46; border:1px solid #10b981;' : 'background:#fef2f2; color:#991b1b; border:1px solid #f87171;'}">
+              ${showAns ? 'نموذج إجابة' : 'ورقة اختبار'}
+            </span>
+            <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">
+              ${new Date().toLocaleDateString('ar-EG')}
+            </span>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildExportQuestionHtml(q, i, showAns, showDegrees) {
+      const qType = q.question_type || 'mcq';
+      const deg = parseInt(q.degree) || 0;
+      const ci = q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null;
+      const imgH = q.image_url ? `<div style="margin: 8px 0 12px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; height: 180px; max-height: 180px; display: flex; justify-content: center; align-items: center;"><img src="${esc(q.image_url)}" alt="" crossorigin="anonymous" style="max-height: 100%; max-width: 100%; object-fit: contain;"></div>` : '';
+
+      let typeLabel = 'اختيار من متعدد';
+      let typeColor = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;';
+      if (qType === 'tf') {
+        typeLabel = 'صح أو خطأ';
+        typeColor = 'background:#fffbeb; color:#b45309; border:1px solid #fde68a;';
+      } else if (qType === 'open') {
+        typeLabel = 'سؤال مقالي';
+        typeColor = 'background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe;';
       }
 
-      html += `</div>`; // End tq-paper-header
+      let html = `
+        <div class="tq-q-item">
+          <div class="tq-q-header">
+            <div class="tq-q-num">${i + 1}</div>
+            <div class="tq-q-title">${esc(q.question_text || '')}</div>
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              <span class="tq-q-badge" style="${typeColor}">${typeLabel}</span>
+              ${showDegrees ? `<span class="tq-q-badge" style="background:var(--brand-bg, #eff2fe); color:var(--brand, #5b6cf5); border:1px solid var(--brand-l, #c7d2fe);">${deg} ${deg === 1 ? 'درجة' : 'درجات'}</span>` : ''}
+            </div>
+          </div>
+          ${imgH}
+      `;
 
-      // Questions List
-      if (!qs.length) {
-        html += `<div style="text-align:center; padding:50px; color:#94a3b8;">لا توجد أسئلة</div>`;
-      } else {
-        html += `<div style="display: flex; flex-direction: column; gap: 14px;">`;
-        qs.forEach((q, i) => {
-          const qType = q.question_type || 'mcq';
-          const deg = parseInt(q.degree) || 0;
-          const ci = q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null;
-          const imgH = q.image_url ? `<div style="margin: 8px 0 12px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; max-height: 220px; display: flex; justify-content: center;"><img src="${esc(q.image_url)}" alt="" crossorigin="anonymous" style="max-height: 220px; max-width: 100%; object-fit: contain;"></div>` : '';
-
-          let typeLabel = 'اختيار من متعدد';
-          let typeColor = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;';
-          if (qType === 'tf') {
-            typeLabel = 'صح أو خطأ';
-            typeColor = 'background:#fffbeb; color:#b45309; border:1px solid #fde68a;';
-          } else if (qType === 'open') {
-            typeLabel = 'سؤال مقالي';
-            typeColor = 'background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe;';
-          }
-
+      if (qType === 'tf') {
+        const isTCorrect = showAns && ci === 0;
+        const isFCorrect = showAns && ci === 1;
+        html += `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <div class="tq-opt-row ${isTCorrect ? 'is-correct' : ''}">
+              <span style="font-weight: bold; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isTCorrect ? '#10b981' : '#94a3b8'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: ${isTCorrect ? '#10b981' : '#fff'}; color: ${isTCorrect ? '#fff' : '#475569'}; flex-shrink:0;">
+                ${isTCorrect ? '✔' : ''}
+              </span>
+              <span>صحيح</span>
+              ${isTCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800;">✔ الإجابة الصحيحة</span>' : ''}
+            </div>
+            <div class="tq-opt-row ${isFCorrect ? 'is-correct' : ''}">
+              <span style="font-weight: bold; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isFCorrect ? '#10b981' : '#94a3b8'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: ${isFCorrect ? '#10b981' : '#fff'}; color: ${isFCorrect ? '#fff' : '#475569'}; flex-shrink:0;">
+                ${isFCorrect ? '✔' : ''}
+              </span>
+              <span>خطأ</span>
+              ${isFCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800;">✔ الإجابة الصحيحة</span>' : ''}
+            </div>
+          </div>
+        `;
+      } else if (qType === 'open') {
+        if (showAns) {
           html += `
-            <div class="tq-q-item">
-              <div class="tq-q-header">
-                <div class="tq-q-num">${i + 1}</div>
-                <div class="tq-q-title">${esc(q.question_text || '')}</div>
-                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                  <span class="tq-q-badge" style="${typeColor}">${typeLabel}</span>
-                  ${showDegrees ? `<span class="tq-q-badge" style="background:var(--brand-bg, #eff2fe); color:var(--brand, #5b6cf5); border:1px solid var(--brand-l, #c7d2fe);">${deg} ${deg === 1 ? 'درجة' : 'درجات'}</span>` : ''}
-                </div>
-              </div>
-              ${imgH}
+            <div style="margin-top: 10px; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.88rem; color: #475569;">
+              <strong style="color: var(--brand, #5b6cf5);"><i class="fas fa-pen-nib"></i> سؤال مقالي:</strong>
+              إجابة كتابية حرة من الطالب يتم تقييمها وتصحيحها يدوياً (${deg} ${deg === 1 ? 'درجة' : 'درجات'}).
+            </div>
           `;
-
-          // Options rendering
-          if (qType === 'tf') {
-            const isTCorrect = showAns && ci === 0;
-            const isFCorrect = showAns && ci === 1;
-
-            html += `
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                <div class="tq-opt-row ${isTCorrect ? 'is-correct' : ''}">
-                  <span style="font-weight: bold; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isTCorrect ? '#10b981' : '#94a3b8'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: ${isTCorrect ? '#10b981' : '#fff'}; color: ${isTCorrect ? '#fff' : '#475569'}; flex-shrink:0;">
-                    ${isTCorrect ? '✔' : ''}
-                  </span>
-                  <span>صحيح</span>
-                  ${isTCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800;">✔ الإجابة الصحيحة</span>' : ''}
-                </div>
-                <div class="tq-opt-row ${isFCorrect ? 'is-correct' : ''}">
-                  <span style="font-weight: bold; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isFCorrect ? '#10b981' : '#94a3b8'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: ${isFCorrect ? '#10b981' : '#fff'}; color: ${isFCorrect ? '#fff' : '#475569'}; flex-shrink:0;">
-                    ${isFCorrect ? '✔' : ''}
-                  </span>
-                  <span>خطأ</span>
-                  ${isFCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800;">✔ الإجابة الصحيحة</span>' : ''}
-                </div>
-              </div>
-            `;
-          } else if (qType === 'open') {
-            if (showAns) {
-              html += `
-                <div style="margin-top: 10px; padding: 12px 16px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.88rem; color: #475569;">
-                  <strong style="color: var(--brand, #5b6cf5);"><i class="fas fa-pen-nib"></i> سؤال مقالي:</strong>
-                  إجابة كتابية حرة من الطالب يتم تقييمها وتصحيحها يدوياً (${deg} ${deg === 1 ? 'درجة' : 'درجات'}).
-                </div>
-              `;
-            } else {
-              html += `
-                <div style="margin-top: 12px; padding: 12px 14px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fafafa;">
-                  <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">مساحة إجابة الطالب:</div>
-                  <div style="border-bottom: 1px dotted #cbd5e1; height: 26px;"></div>
-                  <div style="border-bottom: 1px dotted #cbd5e1; height: 26px;"></div>
-                </div>
-              `;
-            }
-          } else {
-            // MCQ
-            const opts = typeof q.options === 'string' ? JSON.parse(q.options || '[]') : (q.options || []);
-            html += `<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">`;
-            opts.forEach((o, oi) => {
-              const isCorrect = showAns && oi === ci;
-              const letter = LETTERS[oi] || (oi + 1);
-              html += `
-                <div class="tq-opt-row ${isCorrect ? 'is-correct' : ''}">
-                  <span style="font-weight: 800; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isCorrect ? '#10b981' : '#cbd5e1'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; background: ${isCorrect ? '#10b981' : '#f8fafc'}; color: ${isCorrect ? '#fff' : '#334155'}; flex-shrink:0;">
-                    ${isCorrect ? '✔' : letter}
-                  </span>
-                  <span style="flex:1;">${esc(o)}</span>
-                  ${isCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> الإجابة الصحيحة</span>' : ''}
-                </div>
-              `;
-            });
-            html += `</div>`;
-          }
-
-          html += `</div>`; // End tq-q-item
+        } else {
+          html += `
+            <div style="margin-top: 12px; padding: 12px 14px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fafafa;">
+              <div style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">مساحة إجابة الطالب:</div>
+              <div style="border-bottom: 1px dotted #cbd5e1; height: 26px;"></div>
+              <div style="border-bottom: 1px dotted #cbd5e1; height: 26px;"></div>
+            </div>
+          `;
+        }
+      } else {
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options || '[]') : (q.options || []);
+        html += `<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">`;
+        opts.forEach((o, oi) => {
+          const isCorrect = showAns && oi === ci;
+          const letter = LETTERS[oi] || (oi + 1);
+          html += `
+            <div class="tq-opt-row ${isCorrect ? 'is-correct' : ''}">
+              <span style="font-weight: 800; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${isCorrect ? '#10b981' : '#cbd5e1'}; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; background: ${isCorrect ? '#10b981' : '#f8fafc'}; color: ${isCorrect ? '#fff' : '#334155'}; flex-shrink:0;">
+                ${isCorrect ? '✔' : letter}
+              </span>
+              <span style="flex:1;">${esc(o)}</span>
+              ${isCorrect ? '<span style="margin-right:auto; font-size:0.75rem; color:#059669; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> الإجابة الصحيحة</span>' : ''}
+            </div>
+          `;
         });
         html += `</div>`;
       }
 
-      container.innerHTML = html;
+      html += `</div>`;
+      return html;
     }
 
-    async function getQuestionsExportCanvas(orientation = 'portrait') {
-      const paper = document.getElementById('tqPaperExport');
-      if (!paper) return null;
+    function measureQuestionHeights(t, qs, showAns, showExamHdr, showDegrees, isLandscape, classesLabel) {
+      const targetW = isLandscape ? 1131 : 800;
+      const tester = document.createElement('div');
+      tester.style.position = 'absolute';
+      tester.style.top = '0';
+      tester.style.left = '-9999px';
+      tester.style.width = targetW + 'px';
+      tester.style.padding = '30px 36px 24px 36px';
+      tester.style.boxSizing = 'border-box';
+      tester.style.fontFamily = "'Baloo Bhaijaan 2', 'Cairo', sans-serif";
+      tester.style.direction = 'rtl';
+      tester.style.visibility = 'hidden';
+      document.body.appendChild(tester);
 
-      const clone = paper.cloneNode(true);
-      const targetWidth = orientation === 'landscape' ? 1120 : 820;
+      tester.innerHTML = buildExportFullHeaderHtml(t, classesLabel, showAns, showExamHdr);
+      const fullHeaderH = tester.firstElementChild ? (tester.firstElementChild.offsetHeight + 16) : 180;
 
+      tester.innerHTML = buildExportCompactHeaderHtml(t, classesLabel, showAns);
+      const compactHeaderH = tester.firstElementChild ? (tester.firstElementChild.offsetHeight + 16) : 55;
+
+      const qHeights = [];
+      for (let i = 0; i < qs.length; i++) {
+        tester.innerHTML = buildExportQuestionHtml(qs[i], i, showAns, showDegrees);
+        const itemEl = tester.firstElementChild;
+        const h = itemEl ? (itemEl.offsetHeight + 14) : 110;
+        qHeights.push(h);
+      }
+
+      document.body.removeChild(tester);
+      return { fullHeaderH, compactHeaderH, qHeights };
+    }
+
+    function renderQuestionsExportPreview() {
+      const container = document.getElementById('tqPaperExport');
+      if (!container) return;
+
+      const t = window.currentExportTask || {};
+      const qs = window.currentExportQuestions || [];
+      const showAns = !!window.currentExportShowAnswers;
+      const showExamHdr = document.getElementById('tqShowExamHeader') ? document.getElementById('tqShowExamHeader').checked : true;
+      const showDegrees = document.getElementById('tqShowDegrees') ? document.getElementById('tqShowDegrees').checked : true;
+      const classesLabel = typeof getTaskClassNames === 'function' ? getTaskClassNames(t).join('، ') : (t.class_name || 'عام');
+      const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
+      const isLandscape = (orientation === 'landscape');
+
+      if (!qs.length) {
+        container.innerHTML = `<div style="text-align:center; padding:50px; color:#94a3b8; width:100%;">لا توجد أسئلة لتصديرها</div>`;
+        const statsEl = document.getElementById('tqStatsText');
+        if (statsEl) statsEl.innerHTML = 'لا توجد أسئلة';
+        return;
+      }
+
+      const { fullHeaderH, compactHeaderH, qHeights } = measureQuestionHeights(t, qs, showAns, showExamHdr, showDegrees, isLandscape, classesLabel);
+
+      // Usable content area (excluding header/footer/paddings)
+      const usablePageH = isLandscape ? 670 : 990;
+
+      // Group questions into discrete pages without cutting mid-question
+      const pages = [];
+      let curPageQs = [];
+      let curPageContentH = 0;
+
+      for (let i = 0; i < qs.length; i++) {
+        const qH = qHeights[i];
+        const isFirst = (pages.length === 0);
+        const headerH = isFirst ? fullHeaderH : compactHeaderH;
+        const maxAllowed = usablePageH - headerH;
+
+        if (curPageQs.length === 0 || (curPageContentH + qH <= maxAllowed)) {
+          curPageQs.push(i);
+          curPageContentH += qH;
+        } else {
+          pages.push(curPageQs);
+          curPageQs = [i];
+          curPageContentH = qH;
+        }
+      }
+      if (curPageQs.length > 0) {
+        pages.push(curPageQs);
+      }
+
+      const totalPages = pages.length;
+
+      const statsEl = document.getElementById('tqStatsText');
+      if (statsEl) {
+        statsEl.innerHTML = `عدد الأسئلة: <strong>${qs.length}</strong> | الدرجة: <strong>${t.total_degree || 0}</strong> | الصفحات: <strong>${totalPages} ${totalPages === 1 ? 'صفحة' : 'صفحات'} A4</strong> | الحالة: <span style="color:${showAns ? '#059669' : '#dc2626'}; font-weight:800;">${showAns ? 'نموذج إجابة' : 'ورقة اختبار'}</span>`;
+      }
+
+      let pagesHtml = '';
+
+      pages.forEach((pageQIndices, pageIdx) => {
+        const isFirst = (pageIdx === 0);
+        const headerHtml = isFirst 
+          ? buildExportFullHeaderHtml(t, classesLabel, showAns, showExamHdr)
+          : buildExportCompactHeaderHtml(t, classesLabel, showAns);
+
+        let qItemsHtml = '';
+        pageQIndices.forEach(qIdx => {
+          qItemsHtml += buildExportQuestionHtml(qs[qIdx], qIdx, showAns, showDegrees);
+        });
+
+        if (pageIdx > 0) {
+          pagesHtml += `
+            <div class="tq-page-divider ${isLandscape ? 'landscape-view' : ''}">
+              <span>الصفحة ${pageIdx + 1} من ${totalPages} (A4)</span>
+            </div>
+          `;
+        }
+
+        pagesHtml += `
+          <div class="tq-page-sheet ${isLandscape ? 'landscape-view' : ''}" data-page="${pageIdx + 1}">
+            <div class="tq-page-body">
+              ${headerHtml}
+              <div class="tq-page-questions" style="display:flex; flex-direction:column; gap:12px;">
+                ${qItemsHtml}
+              </div>
+            </div>
+            <div class="tq-page-footer">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <i class="fas fa-church" style="color:var(--brand, #5b6cf5);"></i>
+                <span>كنيسة الشهيد العظيم مارجرجس والأنبا شنودة — خدمة مدارس الأحد</span>
+              </div>
+              <div class="tq-page-num-badge">صفحة ${pageIdx + 1} من ${totalPages}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = pagesHtml;
+    }
+
+    async function renderPageToCanvas(pageEl, isLandscape = false) {
+      const targetW = isLandscape ? 1131 : 800;
+      const targetH = isLandscape ? 800 : 1131;
+
+      const clone = pageEl.cloneNode(true);
       clone.style.position = 'absolute';
       clone.style.top = '0';
       clone.style.left = '-9999px';
-      clone.style.width = targetWidth + 'px';
-      clone.style.maxWidth = targetWidth + 'px';
-      clone.style.height = 'auto';
-      clone.style.overflow = 'visible';
-      clone.style.background = '#ffffff';
-      clone.style.padding = '36px 40px 60px 40px';
+      clone.style.width = targetW + 'px';
+      clone.style.height = targetH + 'px';
+      clone.style.maxHeight = targetH + 'px';
       clone.style.boxShadow = 'none';
       clone.style.border = 'none';
+      clone.style.borderRadius = '0';
+      clone.style.background = '#ffffff';
 
-      // Normalize icons inside clone for clean html2canvas rendering
       clone.querySelectorAll('i.fa-check-circle, i.fa-check').forEach(el => {
         const span = document.createElement('span');
         span.style.color = '#10b981';
@@ -22202,9 +22433,14 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         span.textContent = '✍ ';
         if (el.parentNode) el.parentNode.replaceChild(span, el);
       });
+      clone.querySelectorAll('i.fa-church').forEach(el => {
+        const span = document.createElement('span');
+        span.textContent = '⛪ ';
+        if (el.parentNode) el.parentNode.replaceChild(span, el);
+      });
 
       document.body.appendChild(clone);
-      await new Promise(r => setTimeout(r, 160));
+      await new Promise(r => setTimeout(r, 60));
 
       try {
         const canvas = await html2canvas(clone, {
@@ -22213,10 +22449,8 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           backgroundColor: '#ffffff',
           logging: false,
           allowTaint: false,
-          width: clone.scrollWidth,
-          height: clone.scrollHeight,
-          windowWidth: clone.scrollWidth + 100,
-          windowHeight: clone.scrollHeight + 100
+          width: targetW,
+          height: targetH
         });
         return canvas;
       } finally {
@@ -22225,45 +22459,54 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
     }
 
     async function exportQuestionsPDF() {
-      const paper = document.getElementById('tqPaperExport');
-      if (!paper) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+      const pageElements = document.querySelectorAll('#tqPaperExport .tq-page-sheet');
+      if (!pageElements || !pageElements.length) {
+        showToast('لا توجد بيانات لتصديرها', 'err');
+        return;
+      }
 
       const { jsPDF } = window.jspdf || {};
-      if (!jsPDF) { showToast('مكتبة PDF غير محملة', 'err'); return; }
+      if (!jsPDF) {
+        showToast('مكتبة PDF غير محملة', 'err');
+        return;
+      }
 
-      showToast('جاري إنشاء ملف PDF...', 'info');
+      const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
+      const isLandscape = (orientation === 'landscape');
+      const pageW_mm = isLandscape ? 297 : 210;
+      const pageH_mm = isLandscape ? 210 : 297;
+      const totalPages = pageElements.length;
+
+      showToast(`جاري إنشاء PDF (${totalPages} صفحات)...`, 'info');
 
       try {
-        const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
-        const canvas = await getQuestionsExportCanvas(orientation);
-        if (!canvas) { showToast('فشل إنشاء Canvas للـ PDF', 'err'); return; }
+        const pdf = new jsPDF({
+          orientation: orientation,
+          unit: 'mm',
+          format: 'a4',
+          compress: true
+        });
 
-        const pdf = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
-        const pageW = pdf.internal.pageSize.getWidth();
-        const pageH = pdf.internal.pageSize.getHeight();
-        const margin = 8;
-        const printW = pageW - (margin * 2);
-        const printH = (canvas.height * printW) / canvas.width;
-        const imgData = canvas.toDataURL('image/png');
+        for (let i = 0; i < totalPages; i++) {
+          const pageEl = pageElements[i];
+          const canvas = await renderPageToCanvas(pageEl, isLandscape);
+          if (!canvas) continue;
 
-        let heightLeft = printH;
-        let position = margin;
+          // Highly optimized JPEG encoding: 95% smaller file size (~180KB-250KB per page)
+          const imgData = canvas.toDataURL('image/jpeg', 0.88);
 
-        pdf.addImage(imgData, 'PNG', margin, position, printW, printH);
-        heightLeft -= (pageH - (margin * 2));
+          if (i > 0) {
+            pdf.addPage([pageW_mm, pageH_mm], orientation);
+          }
 
-        while (heightLeft > 0) {
-          position = margin - (printH - heightLeft);
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', margin, position, printW, printH);
-          heightLeft -= (pageH - (margin * 2));
+          pdf.addImage(imgData, 'JPEG', 0, 0, pageW_mm, pageH_mm, undefined, 'FAST');
         }
 
         const t = window.currentExportTask || {};
         const safeTitle = sanitizeFileName(t.title || 'تاسك');
         const modeLabel = window.currentExportShowAnswers ? 'نموذج_إجابة' : 'ورقة_اختبار';
         pdf.save(`${safeTitle}_أسئلة_${modeLabel}.pdf`);
-        showToast('تم حفظ ملف PDF بنجاح 📄', 'ok');
+        showToast(`تم حفظ ملف PDF بنجاح (${totalPages} صفحات) 📄`, 'ok');
       } catch (e) {
         console.error(e);
         showToast('حدث خطأ أثناء إنشاء PDF: ' + (e.message || ''), 'err');
@@ -22271,25 +22514,73 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
     }
 
     async function exportQuestionsImage() {
+      const pageElements = document.querySelectorAll('#tqPaperExport .tq-page-sheet');
+      if (!pageElements || !pageElements.length) {
+        showToast('لا توجد بيانات لتصديرها', 'err');
+        return;
+      }
+
       showToast('جاري تجهيز الصورة...', 'info');
       try {
         const orientation = document.getElementById('tqOrientation')?.value || 'portrait';
-        const canvas = await getQuestionsExportCanvas(orientation);
-        if (!canvas) { showToast('فشل إنشاء الصورة', 'err'); return; }
-
+        const isLandscape = (orientation === 'landscape');
         const t = window.currentExportTask || {};
         const safeTitle = sanitizeFileName(t.title || 'تاسك');
         const modeLabel = window.currentExportShowAnswers ? 'نموذج_إجابة' : 'ورقة_اختبار';
 
-        const link = document.createElement('a');
-        link.download = `${safeTitle}_أسئلة_${modeLabel}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        showToast('تم حفظ الصورة بنجاح 🖼️', 'ok');
+        if (pageElements.length === 1) {
+          const canvas = await renderPageToCanvas(pageElements[0], isLandscape);
+          if (!canvas) throw new Error('فشل إنشاء Canvas');
+          const link = document.createElement('a');
+          link.download = `${safeTitle}_أسئلة_${modeLabel}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          showToast('تم حفظ الصورة بنجاح 🖼️', 'ok');
+        } else {
+          const canvases = [];
+          for (let i = 0; i < pageElements.length; i++) {
+            const c = await renderPageToCanvas(pageElements[i], isLandscape);
+            if (c) canvases.push(c);
+          }
+          if (!canvases.length) throw new Error('فشل إنشاء Canvas');
+
+          const totalW = canvases[0].width;
+          const gap = 36;
+          let totalH = (canvases.length - 1) * gap;
+          canvases.forEach(c => totalH += c.height);
+
+          const combined = document.createElement('canvas');
+          combined.width = totalW;
+          combined.height = totalH;
+          const ctx = combined.getContext('2d');
+          ctx.fillStyle = '#f1f5f9';
+          ctx.fillRect(0, 0, totalW, totalH);
+
+          let currentY = 0;
+          for (let i = 0; i < canvases.length; i++) {
+            ctx.drawImage(canvases[i], 0, currentY);
+            currentY += canvases[i].height + gap;
+          }
+
+          const link = document.createElement('a');
+          link.download = `${safeTitle}_أسئلة_${modeLabel}_كامل.png`;
+          link.href = combined.toDataURL('image/png');
+          link.click();
+          showToast(`تم حفظ الصورة المجمعة (${pageElements.length} صفحات) بنجاح 🖼️`, 'ok');
+        }
       } catch (e) {
         console.error(e);
         showToast('فشل تصدير الصورة: ' + (e.message || ''), 'err');
       }
+    }
+
+    function printQuestionsExam() {
+      const pageElements = document.querySelectorAll('#tqPaperExport .tq-page-sheet');
+      if (!pageElements || !pageElements.length) {
+        showToast('لا توجد بيانات للطباعة', 'err');
+        return;
+      }
+      window.print();
     }
 
     function exportQuestionsExcel() {
