@@ -7,12 +7,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
+    <link rel="canonical" href="/user/login/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sunday School">
-    <meta property="og:title" content="تسجيل الدخول - بوابة الطفل">
+    <meta property="og:title" content="تسجيل الدخول - مدارس الأحد">
     <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
-    <meta property="og:url" content="https://sunday-school.online/kids/login/">
+    <meta property="og:url" content="https://sunday-school.online/user/login/">
     <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
     <meta property="og:image:width" content="1000">
     <meta property="og:image:height" content="1000">
@@ -20,141 +23,124 @@
     <meta property="og:image:alt" content="Sunday School">
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="تسجيل الدخول - بوابة الطفل">
+    <meta name="twitter:title" content="تسجيل الدخول - مدارس الأحد">
     <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
 
-    <title>تسجيل الدخول - بوابة الطفل</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>تسجيل الدخول - مدارس الأحد</title>
+
+    <!-- Google Fonts: Baloo Bhaijaan 2 & Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
             --primary: #4f46e5;
-            --primary-light: #e0e7ff;
+            --primary-light: #eef2ff;
             --primary-dark: #4338ca;
+            --primary-glow: rgba(79, 70, 229, 0.18);
             --secondary: #64748b;
             --success: #10b981;
+            --success-bg: #ecfdf5;
             --danger: #ef4444;
+            --danger-bg: #fef2f2;
             --warning: #f59e0b;
+            --warning-bg: #fffbeb;
             --light: #f8fafc;
-            --dark: #1e293b;
-            --card-bg: #ffffff;
+            --dark: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.96);
             --border: #e2e8f0;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.12);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
-            --radius-sm: 8px;
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --radius-xl: 32px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-hover: #cbd5e1;
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px -4px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 20px 48px -8px rgba(15, 23, 42, 0.12);
+            --shadow-brand: 0 8px 24px -4px rgba(79, 70, 229, 0.35);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Baloo Bhaijaan 2', 'Cairo', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 50%, #e0e7ff 100%);
+            background: linear-gradient(135deg, #f8faff 0%, #eef2ff 45%, #f1f5f9 100%);
             color: var(--dark);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px 16px;
             position: relative;
             overflow-x: hidden;
         }
 
-        /* Background Pattern */
+        /* Ambient Background Pattern */
         .background-pattern {
             position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.03) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 20%),
-                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.02) 0%, transparent 30%);
-            z-index: -1;
+                radial-gradient(circle at 12% 15%, rgba(79, 70, 229, 0.09) 0%, transparent 45%),
+                radial-gradient(circle at 88% 85%, rgba(124, 58, 237, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        @keyframes pulseWa {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-        }
-
-        .wa-btn {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
-            color: #ffffff !important;
-            text-decoration: none !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 1.05rem;
-            font-weight: 700;
-            padding: 14px 18px;
-            border-radius: var(--radius-md);
-            box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .wa-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.45);
-            color: #ffffff !important;
-        }
-
-        /* Login Container */
+        /* Login Container / Card */
         .login-container {
             background: var(--card-bg);
-            border-radius: var(--radius-lg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-lg);
-            padding: 40px;
+            padding: 38px 32px;
             width: 100%;
             max-width: 440px;
             position: relative;
             overflow: hidden;
-            border: 1px solid var(--border);
-            animation: slideUp 0.5s ease;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(24px) scale(0.98);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
-        /* Decorative Top Border */
+        /* Decorative Top Accent Bar */
         .login-container::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            height: 5px;
             background: linear-gradient(90deg, 
-                var(--primary) 0%, 
-                var(--success) 25%, 
-                var(--warning) 50%, 
-                var(--primary) 100%);
+                #4f46e5 0%, 
+                #7c3aed 35%, 
+                #06b6d4 70%, 
+                #10b981 100%);
             background-size: 200% 100%;
-            animation: shimmer 3s ease-in-out infinite;
+            animation: shimmer 4s ease-in-out infinite;
         }
 
         @keyframes shimmer {
@@ -165,84 +151,76 @@
         /* Logo Section */
         .logo-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 26px;
         }
 
-        .logo {
-            width: 60px;
-            height: 60px;
+        .logo-wrapper {
+            width: 82px;
+            height: 82px;
+            margin: 0 auto 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .brand-logo-img {
+            width: 82px;
+            height: 82px;
+            object-fit: contain;
+            border-radius: 22px;
+            background: #ffffff;
+            padding: 6px;
+            box-shadow: 0 10px 25px -4px rgba(79, 70, 229, 0.25), 0 2px 6px rgba(0, 0, 0, 0.04);
+            border: 1.5px solid rgba(79, 70, 229, 0.15);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
+        }
+
+        .brand-logo-img:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 14px 30px -4px rgba(79, 70, 229, 0.38), 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo-fallback {
+            width: 82px;
+            height: 82px;
+            border-radius: 22px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 28px;
-            margin: 0 auto 15px;
+            font-size: 34px;
             box-shadow: var(--shadow-md);
         }
 
         .login-title {
-            font-size: 1.8rem;
+            font-size: 1.75rem;
             font-weight: 800;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: var(--dark);
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
         }
 
         .login-subtitle {
             color: var(--secondary);
-            font-size: 0.95rem;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-
-        /* Login Type Selector */
-        .login-type-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 24px;
-            background: var(--light);
-            padding: 6px;
-            border-radius: var(--radius-md);
-        }
-
-        .login-type-btn {
-            flex: 1;
-            padding: 12px;
-            background: transparent;
-            color: var(--secondary);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 600;
-            transition: var(--transition);
-        }
-
-        .login-type-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .login-type-btn:hover:not(.active) {
-            background: rgba(79, 70, 229, 0.1);
-            color: var(--primary);
+            line-height: 1.5;
         }
 
         /* Form Styles */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+            margin-bottom: 7px;
+            font-weight: 700;
             color: var(--dark);
-            font-size: 0.9rem;
+            font-size: 0.92rem;
         }
 
         .input-container {
@@ -254,71 +232,104 @@
             right: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--secondary);
-            font-size: 18px;
+            color: #94a3b8;
+            font-size: 17px;
+            pointer-events: none;
+            transition: color 0.2s ease;
         }
 
         .form-input {
             width: 100%;
-            padding: 14px 50px 14px 16px;
-            border: 2px solid var(--border);
+            padding: 13px 48px 13px 16px;
+            border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
-            font-size: 1rem;
-            font-family: 'Cairo', sans-serif;
+            font-size: 0.96rem;
+            font-family: inherit;
+            font-weight: 600;
             transition: var(--transition);
             background: var(--light);
+            color: var(--dark);
+        }
+
+        .form-input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
         }
 
         .form-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
-            background: white;
-            transform: translateY(-2px);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            background: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .input-container:focus-within .input-icon {
+            color: var(--primary);
         }
 
         .password-toggle {
             position: absolute;
-            left: 10px;
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--light);
+            background: transparent;
             border: none;
             color: var(--secondary);
             cursor: pointer;
-            padding: 15px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
             transition: var(--transition);
-            border-radius: var(--radius-sm);
-            font-size: 17px;
+            font-size: 16px;
         }
 
         .password-toggle:hover {
             color: var(--primary);
-            background: rgb(226 225 255);
+            background: var(--primary-light);
         }
 
-        /* Remember Me - Hidden */
-        .remember-me {
-            display: none;
+        .forgot-password {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            color: #059669;
+            font-size: 0.84rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.2s;
         }
 
-        /* Login Button */
+        .forgot-password:hover {
+            color: #047857;
+            text-decoration: underline;
+        }
+
+        /* Buttons */
         .login-btn {
             width: 100%;
-            padding: 11px 16px;
-            background: var(--primary);
+            padding: 13px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            font-weight: 700;
+            border-radius: var(--radius-md);
+            font-size: 0.98rem;
+            font-weight: 800;
             cursor: pointer;
             transition: var(--transition);
-            font-family: 'Cairo', sans-serif;
+            font-family: inherit;
             position: relative;
             overflow: hidden;
             margin-bottom: 12px;
-            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            box-shadow: var(--shadow-brand);
         }
 
         .login-btn::before {
@@ -336,9 +347,9 @@
         }
 
         .login-btn:hover {
-            background: linear-gradient(135deg, var(--primary-dark), #3730a3);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #3730a3 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px -2px rgba(79, 70, 229, 0.42);
         }
 
         .login-btn:hover::before {
@@ -346,49 +357,50 @@
         }
 
         .login-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
         }
 
         .login-btn:disabled {
-            opacity: 0.6;
+            opacity: 0.65;
             cursor: not-allowed;
             transform: none !important;
+            box-shadow: none;
         }
 
-        .login-btn i {
-            margin-left: 8px;
-        }
-
-        /* Error Message */
+        /* Error & Warning Messages */
         .error-message {
-            background: linear-gradient(135deg, #fef2f2, #fee2e2);
-            border: 2px solid #fecaca;
-            color: var(--danger);
-            padding: 16px;
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            color: #b91c1c;
+            padding: 13px 16px;
             border-radius: var(--radius-md);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             display: none;
-            animation: shake 0.5s;
-            font-weight: 600;
+            animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            font-weight: 700;
+            font-size: 0.88rem;
             text-align: center;
         }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
         }
 
-        /* Warning Message */
         .warning-message {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            border: 2px solid #f59e0b;
+            background: #fffbeb;
+            border: 1.5px solid #fde68a;
             color: #92400e;
-            padding: 16px;
+            padding: 13px 16px;
             border-radius: var(--radius-md);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             display: none;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.88rem;
             text-align: center;
         }
 
@@ -400,13 +412,13 @@
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(79, 70, 229, 0.2);
+            width: 44px;
+            height: 44px;
+            border: 3.5px solid rgba(79, 70, 229, 0.15);
             border-radius: 50%;
             border-top-color: var(--primary);
-            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            margin: 0 auto 15px;
+            animation: spin 0.85s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 0 auto 12px;
         }
 
         @keyframes spin {
@@ -416,24 +428,14 @@
 
         .loading-text {
             color: var(--primary);
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-weight: 700;
+            font-size: 0.92rem;
         }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-            color: var(--secondary);
-            font-size: 0.85rem;
-        }
-
-        /* Form Container */
+        /* Form Container Switching */
         .form-container {
             display: none;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.28s ease;
         }
 
         .form-container.active {
@@ -441,86 +443,122 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Password Setup Container */
         .password-setup-container {
             display: none;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.28s ease;
         }
 
         .password-setup-container.active {
             display: block;
         }
 
-        /* Forgot Password Link */
-        .forgot-password-link {
+        /* Footer */
+        .footer {
             text-align: center;
-            margin: var(--spacing-md) 0;
-            display: none;
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .forgot-password-link a {
-            color: var(--primary);
-            text-decoration: none;
+        .footer-reg-box {
+            font-size: 0.88rem;
+            color: var(--secondary);
             font-weight: 600;
-            font-size: 0.9rem;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .footer-reg-link {
+            color: var(--primary);
+            font-weight: 800;
+            text-decoration: none;
             transition: var(--transition);
         }
 
-        .forgot-password-link a:hover {
+        .footer-reg-link:hover {
             color: var(--primary-dark);
             text-decoration: underline;
+        }
+
+        .footer-nav-link {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.86rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .footer-nav-link:hover {
+            color: var(--primary);
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
             .login-container {
                 padding: 30px 24px;
-                margin: 0 10px;
+                max-width: 420px;
             }
 
-            .logo {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
+            .logo-wrapper, .brand-logo-img {
+                width: 74px;
+                height: 74px;
             }
 
             .login-title {
-                font-size: 1.5rem;
+                font-size: 1.55rem;
             }
 
             .login-subtitle {
-                font-size: 0.9rem;
-            }
-
-            .login-type-btn {
-                padding: 10px;
-                font-size: 0.85rem;
+                font-size: 0.88rem;
             }
         }
 
         @media (max-width: 480px) {
             body {
-                padding: 16px;
+                padding: 16px 12px;
             }
 
             .login-container {
-                padding: 24px 20px;
+                padding: 26px 18px;
+                border-radius: var(--radius-lg);
+            }
+
+            .logo-wrapper, .brand-logo-img {
+                width: 68px;
+                height: 68px;
             }
 
             .form-input {
-                padding: 12px 45px 12px 14px;
+                padding: 12px 44px 12px 14px;
+                font-size: 0.93rem;
             }
 
             .login-btn {
-                padding: 14px;
-                font-size: 0.95rem;
+                padding: 13px;
+                font-size: 0.94rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .login-container,
+            .form-input,
+            .login-btn,
+            .password-toggle {
+                animation: none;
+                transition: none;
             }
         }
     </style>
@@ -534,11 +572,13 @@
     <div class="login-container">
         <!-- Logo Section -->
         <div class="logo-section">
-            <div class="logo">
-                <i class="fas fa-child"></i>
+            <div class="logo-wrapper">
+                <a href="/" title="مدارس الأحد" aria-label="مدارس الأحد">
+                    <img src="/logo.png" alt="Sunday School" class="brand-logo-img" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\'logo-fallback\'><i class=\'fas fa-church\'></i></div>'">
+                </a>
             </div>
-            <h1 class="login-title">بوابة الطفل</h1>
-            <p class="login-subtitle">أدخل بيانات الدخول للوصول إلى الملف الشخصي</p>
+            <h1 class="login-title">تسجيل الدخول</h1>
+            <p class="login-subtitle">أهلاً بك! أدخل رقم هاتفك أو اسم المستخدم للمتابعة</p>
         </div>
 
         <!-- Error Message -->
@@ -548,11 +588,9 @@
 
         <!-- Warning Message -->
         <div class="warning-message" id="phonePasswordWarning">
-            <i class="fas fa-key"></i>
+            <i class="fas fa-key" style="margin-left: 6px;"></i>
             لديك كلمة مرور مسجلة، الرجاء إدخالها
         </div>
-
-        <!-- Login Type Selector: hidden, unified input handles both -->
 
         <!-- Phone Login Form -->
         <div class="form-container active" id="phoneLoginForm">
@@ -581,12 +619,12 @@
                                class="form-input" 
                                placeholder="أدخل كلمة المرور"
                                autocomplete="current-password">
-                        <button type="button" class="password-toggle" data-target="phonePasswordInput">
+                        <button type="button" class="password-toggle" data-target="phonePasswordInput" aria-label="إظهار أو إخفاء كلمة المرور">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                     <a href="#" class="forgot-password" id="forgotPasswordLink" style="display: none;" onclick="event.preventDefault(); showPasswordRecovery();">
-                        <i class="fab fa-whatsapp" style="color:#25D366;"></i>
+                        <i class="fab fa-whatsapp" style="color:#25D366; font-size:1.05rem;"></i>
                         نسيت كلمة المرور؟ (إعادة التعيين عبر WhatsApp)
                     </a>
                 </div>
@@ -598,15 +636,15 @@
                 </button>
 
                 <div style="text-align:center; margin-top:14px;">
-                    <a href="#" onclick="event.preventDefault(); showPasswordRecovery();" style="color:var(--primary); font-size:0.85rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fab fa-whatsapp" style="font-size:0.95rem; color:#25D366;"></i>
+                    <a href="#" onclick="event.preventDefault(); showPasswordRecovery();" style="color:var(--primary); font-size:0.87rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fab fa-whatsapp" style="font-size:1rem; color:#25D366;"></i>
                         <span>إعادة تعيين كلمة المرور عبر WhatsApp</span>
                     </a>
                 </div>
             </form>
         </div>
 
-        <!-- Username Login Form -->
+        <!-- Username Login Form (fallback tab if triggered) -->
         <div class="form-container" id="usernameLoginForm">
             <form class="login-form" data-login-type="username">
                 <!-- Username Input -->
@@ -634,7 +672,7 @@
                                required 
                                placeholder="أدخل كلمة المرور"
                                autocomplete="current-password">
-                        <button type="button" class="password-toggle" data-target="passwordInput">
+                        <button type="button" class="password-toggle" data-target="passwordInput" aria-label="إظهار أو إخفاء كلمة المرور">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -656,11 +694,11 @@
         <!-- Phone WhatsApp OTP Verification Container -->
         <div class="password-setup-container" id="otpVerificationContainer">
             <div style="text-align:center; margin-bottom:18px;">
-                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:8px 12px; font-size:0.83rem; color:#166534;">
-                    <i class="fab fa-whatsapp" style="color:#16a34a; margin-left:4px;"></i>
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:10px 14px; font-size:0.86rem; color:#166534; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:600;">
+                    <i class="fab fa-whatsapp" style="color:#16a34a; font-size:1.1rem;"></i>
                     <span id="otpStatusNotice">تم إرسال رمز التحقق إلى WhatsApp. يرجى التحقق من هاتفك.</span>
                 </div>
-                <div style="margin-top:10px; font-weight:700; color:#128C7E; font-size:1.05rem;" dir="ltr">
+                <div style="margin-top:10px; font-weight:800; color:#128C7E; font-size:1.1rem;" dir="ltr">
                     <span id="otpPhoneDisplay"></span>
                 </div>
             </div>
@@ -701,8 +739,8 @@
                 </div>
 
                 <div style="text-align:center; margin-top:14px; padding-top:12px; border-top:1px dashed #e2e8f0;">
-                    <button type="button" onclick="openWhatsAppOtpHelp()" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:9px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s ease;">
-                        <i class="fab fa-whatsapp" style="font-size:1.1rem; color:#25D366;"></i>
+                    <button type="button" onclick="openWhatsAppOtpHelp()" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px 14px; border-radius:var(--radius-md); font-size:0.86rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s ease;">
+                        <i class="fab fa-whatsapp" style="font-size:1.15rem; color:#25D366;"></i>
                         <span>لم يصلك الكود؟ أرسل رسالة عبر واتساب</span>
                     </button>
                 </div>
@@ -717,9 +755,13 @@
 
         <!-- Footer -->
         <div class="footer">
-            <a href="/user/" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+            <div class="footer-reg-box">
+                <span>ليس لديك حساب؟</span>
+                <a href="/user/registration/" class="footer-reg-link">تسجيل حساب جديد</a>
+            </div>
+            <a href="/user/" class="footer-nav-link">
                 <i class="fas fa-arrow-right"></i>
-                العودة للصفحة الرئيسية
+                <span>العودة للصفحة الرئيسية</span>
             </a>
         </div>
     </div>
@@ -1085,7 +1127,7 @@
         }
 
         function attemptPhoneLogin(phone) {
-            showLoading('جاري البحث عن الطفل...');
+            showLoading('جاري التحقق من الحساب...');
             
             const formData = new FormData();
             formData.append('action', 'getStudentByPhone');

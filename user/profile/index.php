@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <!-- ═══ Social Preview Defaults ═══ -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Sunday School">
-  <meta property="og:title" content="بوابة الطفل">
+  <meta property="og:title" content="الملف الشخصي - مدارس الأحد">
   <meta property="og:description"
     content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
   <meta property="og:url" content="https://sunday-school.online/user/profile/">
@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <meta property="og:image:alt" content="Sunday School">
   <meta property="og:locale" content="ar_AR">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="بوابة الطفل">
+  <meta name="twitter:title" content="الملف الشخصي - مدارس الأحد">
   <meta name="twitter:description"
     content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
   <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
@@ -209,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
-  <title id="pageTitle">بوابة الطفل</title>
+  <title id="pageTitle">الملف الشخصي - مدارس الأحد</title>
   <meta name="theme-color" content="#4f46e5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
