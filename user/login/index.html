@@ -34,6 +34,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/search_intelligent.js"></script>
 
     <style>
         :root {
@@ -561,6 +562,286 @@
                 transition: none;
             }
         }
+        /* ══ CHURCH SELECTION MODAL ══ */
+        .footer-reg-link-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .footer-reg-link-btn:hover {
+            color: var(--primary-dark);
+            background: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        .church-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+
+        .church-modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .church-modal-dialog {
+            background: #ffffff;
+            border-radius: var(--radius-xl);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(20px) scale(0.97); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .church-modal-header {
+            padding: 20px 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: #ffffff;
+        }
+
+        .church-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .church-modal-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .church-modal-title h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .church-modal-title p {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .church-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--light);
+            border: 1px solid var(--border);
+            color: var(--secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .church-modal-close:hover {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fecaca;
+        }
+
+        .church-modal-search {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            background: #f8fafc;
+            position: relative;
+        }
+
+        .church-search-input {
+            width: 100%;
+            padding: 11px 44px 11px 40px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--dark);
+            background: #ffffff;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .church-search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .church-search-icon {
+            position: absolute;
+            right: 34px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--dark);
+        }
+
+        .church-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 18px;
+            max-height: 52vh;
+        }
+
+        .church-picker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .church-item-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            color: var(--dark);
+        }
+
+        .church-item-card:hover {
+            border-color: var(--primary);
+            background: #f8faff;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .church-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .church-item-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #eef2ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .church-item-name {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .church-item-arrow {
+            color: #94a3b8;
+            font-size: 0.88rem;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .church-item-card:hover .church-item-arrow {
+            color: var(--primary);
+            transform: translateX(-3px);
+        }
+
+        .church-picker-loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .church-picker-empty {
+            text-align: center;
+            padding: 38px 20px;
+            color: var(--secondary);
+        }
+
+        .church-picker-empty i {
+            font-size: 2.2rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .church-picker-empty p {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0;
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -757,12 +1038,51 @@
         <div class="footer">
             <div class="footer-reg-box">
                 <span>ليس لديك حساب؟</span>
-                <a href="/user/registration/" class="footer-reg-link">تسجيل حساب جديد</a>
+                <button type="button" onclick="openChurchPicker()" class="footer-reg-link-btn" id="regNewAccountBtn">
+                    <i class="fas fa-church" style="font-size: 0.85rem;"></i>
+                    <span>تسجيل حساب جديد</span>
+                </button>
             </div>
             <a href="/user/" class="footer-nav-link">
                 <i class="fas fa-arrow-right"></i>
                 <span>العودة للصفحة الرئيسية</span>
             </a>
+        </div>
+    </div>
+
+    <!-- Church Selection Modal -->
+    <div class="church-modal-overlay" id="churchModalOverlay" onclick="if(event.target===this) closeChurchPicker();">
+        <div class="church-modal-dialog">
+            <div class="church-modal-header">
+                <div class="church-modal-title">
+                    <div class="church-modal-icon"><i class="fas fa-church"></i></div>
+                    <div>
+                        <h3>اختر كنيستك</h3>
+                        <p>اختر الكنيسة التي ترغب بالتسجيل بها للمتابعة</p>
+                    </div>
+                </div>
+                <button type="button" class="church-modal-close" onclick="closeChurchPicker()" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="church-modal-search">
+                <i class="fas fa-search church-search-icon"></i>
+                <input type="text" id="churchPickerSearch" class="church-search-input" placeholder="ابحث باسم الكنيسة أو الكود..." autocomplete="off">
+                <button type="button" id="clearChurchSearchBtn" class="clear-search-btn" style="display:none;" onclick="clearChurchSearch()">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            </div>
+            <div class="church-modal-body">
+                <div id="churchPickerLoading" class="church-picker-loading">
+                    <div class="spinner"></div>
+                    <span>جاري تحميل الكنائس...</span>
+                </div>
+                <div id="churchPickerList" class="church-picker-list" style="display:none;"></div>
+                <div id="churchPickerEmpty" class="church-picker-empty" style="display:none;">
+                    <i class="fas fa-church"></i>
+                    <p>لم يتم العثور على نتائج تطابق بحثك</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1690,6 +2010,159 @@
             });
             elements.phonePasswordWarning.style.display = 'none';
         }
+
+        // ===== CHURCH SELECTION PICKER FOR REGISTRATION =====
+        let churchesCache = null;
+
+        function openChurchPicker() {
+            const modal = document.getElementById('churchModalOverlay');
+            if (!modal) return;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            loadChurchPickerData();
+            setTimeout(() => {
+                const searchInput = document.getElementById('churchPickerSearch');
+                if (searchInput) searchInput.focus();
+            }, 200);
+        }
+
+        function closeChurchPicker() {
+            const modal = document.getElementById('churchModalOverlay');
+            if (!modal) return;
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function clearChurchSearch() {
+            const input = document.getElementById('churchPickerSearch');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            const clearBtn = document.getElementById('clearChurchSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+            if (churchesCache) renderChurchPickerList(churchesCache);
+        }
+
+        async function loadChurchPickerData() {
+            const loading = document.getElementById('churchPickerLoading');
+            const list = document.getElementById('churchPickerList');
+            const empty = document.getElementById('churchPickerEmpty');
+
+            if (churchesCache && churchesCache.length > 0) {
+                if (loading) loading.style.display = 'none';
+                if (list) list.style.display = 'flex';
+                if (empty) empty.style.display = 'none';
+                renderChurchPickerList(churchesCache);
+                return;
+            }
+
+            if (loading) loading.style.display = 'block';
+            if (list) list.style.display = 'none';
+            if (empty) empty.style.display = 'none';
+
+            try {
+                const fd = new FormData();
+                fd.append('action', 'getAllChurches');
+                const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' });
+                const text = await res.text();
+                const jsonStart = text.indexOf('{');
+                const jsonText = jsonStart >= 0 ? text.slice(jsonStart) : text;
+                const data = JSON.parse(jsonText);
+
+                if (loading) loading.style.display = 'none';
+                if (data.success && data.data && data.data.churches && data.data.churches.length > 0) {
+                    churchesCache = data.data.churches;
+                    if (list) list.style.display = 'flex';
+                    renderChurchPickerList(churchesCache);
+                } else if (data.churches && data.churches.length > 0) {
+                    churchesCache = data.churches;
+                    if (list) list.style.display = 'flex';
+                    renderChurchPickerList(churchesCache);
+                } else {
+                    if (empty) empty.style.display = 'block';
+                }
+            } catch (e) {
+                if (loading) loading.style.display = 'none';
+                if (empty) empty.style.display = 'block';
+                console.error('Failed to load churches:', e);
+            }
+        }
+
+        function renderChurchPickerList(churches) {
+            const list = document.getElementById('churchPickerList');
+            const empty = document.getElementById('churchPickerEmpty');
+            if (!list) return;
+            list.innerHTML = '';
+
+            if (!churches || churches.length === 0) {
+                list.style.display = 'none';
+                if (empty) empty.style.display = 'block';
+                return;
+            }
+
+            if (empty) empty.style.display = 'none';
+            list.style.display = 'flex';
+
+            churches.forEach(ch => {
+                const item = document.createElement('a');
+                item.className = 'church-item-card';
+                const code = ch.code || ch.church_code || ch.id;
+                const regPrefix = isTestingEnv ? '/testing/user/registration/' : '/user/registration/';
+                item.href = `${regPrefix}?church=${encodeURIComponent(code)}`;
+                item.innerHTML = `
+                    <div class="church-item-info">
+                        <div class="church-item-badge"><i class="fas fa-church"></i></div>
+                        <div class="church-item-name">${ch.name || ch.church_name || 'الكنيسة'}</div>
+                    </div>
+                    <i class="fas fa-chevron-left church-item-arrow"></i>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Setup intelligent church search & keyboard listeners
+        onDOMReady(function() {
+            const searchInput = document.getElementById('churchPickerSearch');
+            const clearBtn = document.getElementById('clearChurchSearchBtn');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.trim();
+                    if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+                    if (!churchesCache) return;
+
+                    if (!q) {
+                        renderChurchPickerList(churchesCache);
+                        return;
+                    }
+
+                    // Score using intelligent search standard (Rule 1)
+                    const scored = churchesCache.map(ch => {
+                        let score = 0;
+                        if (typeof getMatchScore === 'function') {
+                            score = getMatchScore(ch, q, [
+                                { val: ch.name || ch.church_name || '', weight: 1.0 },
+                                { val: ch.code || ch.church_code || '', weight: 1.1 }
+                            ]);
+                        } else {
+                            const n = (ch.name || ch.church_name || '').toLowerCase();
+                            score = n.includes(q.toLowerCase()) ? 1 : 0;
+                        }
+                        return { ...ch, _score: score };
+                    })
+                    .filter(ch => ch._score > 0)
+                    .sort((a, b) => b._score - a._score);
+
+                    renderChurchPickerList(scored);
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeChurchPicker();
+            });
+        });
     </script>
 </body>
 </html>
