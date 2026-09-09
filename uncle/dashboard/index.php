@@ -28495,6 +28495,14 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             // Navigate to classes view and scroll to pending
                             showClassesView();
                         }
+                    } else if (d.notifType === 'task_submission' || d.notifType === 'task') {
+                        if (d.url) {
+                            window.location.href = d.url;
+                        } else if (d.className) {
+                            window.location.href = `/uncle/dashboard/tasks?class=${encodeURIComponent(d.className)}`;
+                        } else {
+                            window.location.href = '/uncle/dashboard/tasks/';
+                        }
                     } else if (d.notifType === 'whatsapp_otp') {
                         if (typeof showAdminOTPModal === 'function') {
                             showAdminOTPModal();
@@ -29034,6 +29042,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                         apiUrl: (typeof API_URL !== 'undefined' ? API_URL : '/api.php'),
                         uncleId: window.currentUncle?.id || '',
                         uncleName: window.currentUncle?.name || '',
+                        classes: (window.currentUncle?.classes || []).map(c => typeof c === 'string' ? c : (c.class_name || c.arabic_name || c.name || '')).filter(Boolean),
                         lastRegCount: 0   // SW will update this after first check
                     }
                 });

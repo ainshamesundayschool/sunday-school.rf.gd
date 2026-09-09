@@ -44797,29 +44797,71 @@ function submitTaskAnswers()
 
         $conn->commit();
 
-        // Push notification to church dashboard
-        $stuRow = $conn->query("SELECT name FROM students WHERE id=$studentId LIMIT 1")->fetch_assoc();
+        // Push notification to church dashboard — targeted ONLY to uncles of that class
+        $stuRow = $conn->query("
+            SELECT s.name, s.class_id, s.class, 
+                   COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class_name 
+            FROM students s 
+            LEFT JOIN church_classes cc ON s.class_id = cc.id AND cc.church_id = s.church_id 
+            LEFT JOIN classes cl ON s.class_id = cl.id 
+            WHERE s.id = $studentId LIMIT 1
+        ")->fetch_assoc();
         $stuName = $stuRow['name'] ?? 'طفل';
+        $stuClassName = trim((string)($stuRow['class_name'] ?? $stuRow['class'] ?? ''));
+        $stuClassId = !empty($stuRow['class_id']) ? (int)$stuRow['class_id'] : (int)($task['class_id'] ?? 0);
+
+        // Resolve task class names if student class name is missing
+        $taskResolved = _resolveTaskClassNames($conn, $churchId, $task['class_id'] ?? 0, $task['class_ids'] ?? '', '');
+        $classNames = [];
+        if (!empty($stuClassName)) {
+            $classNames[] = $stuClassName;
+        }
+        if (!empty($stuRow['class']) && !in_array($stuRow['class'], $classNames)) {
+            $classNames[] = $stuRow['class'];
+        }
+        if (empty($classNames) && !empty($taskResolved['names']) && !in_array('كل الفصول', $taskResolved['names'])) {
+            $classNames = $taskResolved['names'];
+            $stuClassName = $taskResolved['label'];
+        }
+
+        $classSuffix = !empty($stuClassName) ? " — فصل {$stuClassName}" : "";
         $notifBody = $hasOpenQuestions
-            ? "{$stuName} سلّم تاسك «{$task['title']}» (في انتظار التصحيح)"
-            : "{$stuName} سلّم تاسك «{$task['title']}» بدرجة {$score} من {$task['total_degree']}";
+            ? "{$stuName} سلّم تاسك «{$task['title']}»{$classSuffix} (في انتظار التصحيح)"
+            : "{$stuName} سلّم تاسك «{$task['title']}»{$classSuffix} بدرجة {$score} من {$task['total_degree']}";
 
         pushNotification(
             $conn,
             $churchId,
             'task_submission',
-            'تسليم تاسك جديد',
+            'تسليم تاسك جديد 📝',
             $notifBody,
             'task',
-            $taskId
+            $taskId,
+            $stuClassId
         );
+
+        $taskUrl = !empty($stuClassName)
+            ? '/uncle/dashboard/tasks?class=' . urlencode($stuClassName)
+            : '/uncle/dashboard/tasks/';
 
         _sendWebPushToChurch(
             $conn,
             $churchId,
             'تسليم تاسك جديد 📝',
             $notifBody,
-            ['notifType' => 'task_submission', 'url' => '/uncle/dashboard/']
+            [
+                'notifType' => 'task_submission',
+                'url' => $taskUrl,
+                'redirect_url' => $taskUrl,
+                'className' => $stuClassName,
+                'class_name' => $stuClassName,
+                'class_names' => $classNames,
+                'class_id' => $stuClassId,
+                'class_ids' => !empty($task['class_ids']) ? $task['class_ids'] : (string)$stuClassId,
+                'task_id' => $taskId,
+                'student_id' => $studentId,
+                'tag' => 'task_sub_' . $taskId . '_' . $studentId
+            ]
         );
 
         $result = [
@@ -46065,7 +46107,52 @@ function getNotifications()
             $countStmt->execute();
             $unread = (int) $countStmt->get_result()->fetch_assoc()['c'];
 
-            sendJSON(['success' => true, 'notifications' => $rows, 'unread_count' => $unread]);
+            // If uncle is a servant (not admin) with assigned classes, filter task_submission by their classes
+            $uRoleRow = $conn->query("SELECT role FROM uncles WHERE id = " . intval($uncleId) . " LIMIT 1")->fetch_assoc();
+            $uncleRole = strtolower(trim($uRoleRow['role'] ?? ''));
+            if (!in_array($uncleRole, ['admin', 'superadmin', 'developer', 'dev'])) {
+                $uClasses = [];
+                $uClsRes = $conn->query("SELECT class_name FROM uncle_class_assignments WHERE uncle_id = " . intval($uncleId));
+                if ($uClsRes) {
+                    while ($cr = $uClsRes->fetch_assoc()) {
+                        $uClasses[] = trim($cr['class_name']);
+                    }
+                }
+                if (!empty($uClasses)) {
+                    $uClassIds = [];
+                    $escCls = array_map(function($c) use ($conn) { return "'" . $conn->real_escape_string($c) . "'"; }, $uClasses);
+                    $cQ = $conn->query("
+                        SELECT id FROM church_classes 
+                        WHERE church_id = " . intval($churchId) . " AND (arabic_name IN (" . implode(',', $escCls) . ") OR code IN (" . implode(',', $escCls) . ")) 
+                        UNION 
+                        SELECT id FROM classes 
+                        WHERE (arabic_name IN (" . implode(',', $escCls) . ") OR code IN (" . implode(',', $escCls) . "))
+                    ");
+                    if ($cQ) {
+                        while ($cqRow = $cQ->fetch_assoc()) {
+                            $uClassIds[] = (int)$cqRow['id'];
+                        }
+                    }
+
+                    $filteredRows = [];
+                    foreach ($rows as $r) {
+                        if ($r['type'] === 'task_submission') {
+                            $routeSep = strpos($r['body'] ?? '', '|||class_id:');
+                            if ($routeSep !== -1 && $routeSep !== false) {
+                                $cId = (int)substr($r['body'], $routeSep + 12);
+                                if ($cId > 0 && !in_array($cId, $uClassIds)) {
+                                    if ($r['is_read'] == 0 && $unread > 0) $unread--;
+                                    continue;
+                                }
+                            }
+                        }
+                        $filteredRows[] = $r;
+                    }
+                    $rows = $filteredRows;
+                }
+            }
+
+            sendJSON(['success' => true, 'notifications' => $rows, 'unread_count' => max(0, $unread)]);
         }
 
     } catch (Exception $e) {
@@ -46615,79 +46702,181 @@ function getDeveloperMessages()
 
 
 
-// Helper: send web push to all devices subscribed for a church
-
+// Helper: send web push to devices subscribed for a church (supports filtering by class or uncle)
 function _sendWebPushToChurch($conn, $churchId, $title, $body, $extra = [])
-
 {
-
     try {
-
         // Requires push_subscriptions table and VAPID key
-
         $vapid = defined('VAPID_PRIVATE_KEY') ? VAPID_PRIVATE_KEY : (getenv('VAPID_PRIVATE_KEY') ?: '');
-
         $vapidPub = defined('VAPID_PUBLIC_KEY') ? VAPID_PUBLIC_KEY : (getenv('VAPID_PUBLIC_KEY') ?: '');
-
         if (!$vapid || !$vapidPub)
-
             return;
-
-
 
         $tbl = $conn->query("SHOW TABLES LIKE 'push_subscriptions'")->fetch_assoc();
-
         if (!$tbl)
-
             return;
 
+        // Determine if targeting specific uncles or classes
+        $targetUncleIds = null;
 
+        // 1. Direct uncle IDs provided
+        if (!empty($extra['uncle_ids'])) {
+            $rawUncleIds = is_array($extra['uncle_ids']) ? $extra['uncle_ids'] : explode(',', (string)$extra['uncle_ids']);
+            $targetUncleIds = array_values(array_unique(array_filter(array_map('intval', $rawUncleIds))));
+        }
 
-        $stmt = $conn->prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE church_id=? AND uncle_id IS NOT NULL LIMIT 50");
+        // 2. Class targeting provided (class_names, class_name, className, class_id, class_ids)
+        $targetClassNames = [];
+        if (!empty($extra['class_names']) && is_array($extra['class_names'])) {
+            $targetClassNames = array_merge($targetClassNames, $extra['class_names']);
+        }
+        if (!empty($extra['class_name'])) {
+            $targetClassNames[] = $extra['class_name'];
+        }
+        if (!empty($extra['className'])) {
+            $targetClassNames[] = $extra['className'];
+        }
 
-        $stmt->bind_param('i', $churchId);
+        $targetClassIds = [];
+        if (!empty($extra['class_id'])) {
+            $targetClassIds[] = (int)$extra['class_id'];
+        }
+        if (!empty($extra['class_ids'])) {
+            if (is_array($extra['class_ids'])) {
+                $targetClassIds = array_merge($targetClassIds, array_map('intval', $extra['class_ids']));
+            } else {
+                $targetClassIds = array_merge($targetClassIds, array_map('intval', explode(',', (string)$extra['class_ids'])));
+            }
+        }
 
-        $stmt->execute();
+        // If class IDs provided, resolve arabic names and codes from church_classes / classes
+        $cleanClassIds = array_values(array_unique(array_filter($targetClassIds, function($id) { return $id > 0; })));
+        if (!empty($cleanClassIds)) {
+            $idsList = implode(',', $cleanClassIds);
+            $cRes = $conn->query("
+                SELECT arabic_name, code 
+                FROM church_classes 
+                WHERE church_id = " . intval($churchId) . " AND id IN ($idsList)
+                UNION
+                SELECT arabic_name, code 
+                FROM classes 
+                WHERE id IN ($idsList)
+            ");
+            if ($cRes) {
+                while ($cRow = $cRes->fetch_assoc()) {
+                    if (!empty($cRow['arabic_name'])) $targetClassNames[] = $cRow['arabic_name'];
+                    if (!empty($cRow['code'])) $targetClassNames[] = $cRow['code'];
+                }
+            }
+        }
 
-        $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        // Filter out 'كل الفصول' and '0' from specific class names
+        $specificClassNames = array_values(array_unique(array_filter(array_map('trim', $targetClassNames), function($v) {
+            return $v !== '' && $v !== 'كل الفصول' && $v !== '0';
+        })));
 
-        if (!$subs)
-
-            return;
-
-
-
-        // Use the same sendPushToSubscription helper if it exists
-
-        if (function_exists('_pushToEndpoint')) {
-
-            foreach ($subs as $sub) {
-
-                _pushToEndpoint(
-
-                    $sub['endpoint'],
-
-                    $sub['p256dh'],
-
-                    $sub['auth'],
-
-                    json_encode(array_merge([
-                        'title' => $title,
-                        'body' => $body,
-                        'type' => $extra['notifType'] ?? 'general',
-                        'notifType' => $extra['notifType'] ?? 'general',
-                        'icon' => '/logo.png',
-                        'badge' => '/badge.png'
-                    ], $extra)),
-
-                    $vapid,
-
-                    $vapidPub
-
-                );
-
+        // If specific class names exist, find uncles assigned to those classes in this church
+        if (!empty($specificClassNames)) {
+            // Also fetch any aliases/codes for these names from church_classes / classes
+            $escNames = array_map(function($n) use ($conn) { return "'" . $conn->real_escape_string($n) . "'"; }, $specificClassNames);
+            $namesIn = implode(',', $escNames);
+            $aliasRes = $conn->query("
+                SELECT arabic_name, code 
+                FROM church_classes 
+                WHERE church_id = " . intval($churchId) . " 
+                  AND (arabic_name IN ($namesIn) OR code IN ($namesIn))
+                UNION
+                SELECT arabic_name, code 
+                FROM classes 
+                WHERE (arabic_name IN ($namesIn) OR code IN ($namesIn))
+            ");
+            if ($aliasRes) {
+                while ($ar = $aliasRes->fetch_assoc()) {
+                    if (!empty($ar['arabic_name']) && !in_array($ar['arabic_name'], $specificClassNames)) {
+                        $specificClassNames[] = $ar['arabic_name'];
+                    }
+                    if (!empty($ar['code']) && !in_array($ar['code'], $specificClassNames)) {
+                        $specificClassNames[] = $ar['code'];
+                    }
+                }
             }
 
+            $placeholders = implode(',', array_fill(0, count($specificClassNames), '?'));
+            $types = 'i' . str_repeat('s', count($specificClassNames));
+            $params = array_merge([$churchId], $specificClassNames);
+
+            $uStmt = $conn->prepare("
+                SELECT DISTINCT a.uncle_id 
+                FROM uncle_class_assignments a
+                JOIN uncles u ON a.uncle_id = u.id
+                WHERE a.church_id = ? 
+                  AND (u.deleted IS NULL OR u.deleted = 0)
+                  AND (a.class_name IN ($placeholders) OR TRIM(a.class_name) IN ($placeholders))
+            ");
+
+            $classUncleIds = [];
+            if ($uStmt) {
+                $uStmt->bind_param($types, ...$params);
+                $uStmt->execute();
+                $uRes = $uStmt->get_result();
+                while ($uRow = $uRes->fetch_assoc()) {
+                    $classUncleIds[] = (int)$uRow['uncle_id'];
+                }
+                $uStmt->close();
+            }
+
+            if ($targetUncleIds === null) {
+                $targetUncleIds = $classUncleIds;
+            } else {
+                $targetUncleIds = array_values(array_unique(array_merge($targetUncleIds, $classUncleIds)));
+            }
+        }
+
+        // Query subscriptions: targeted or all church uncles
+        if ($targetUncleIds !== null) {
+            if (empty($targetUncleIds)) {
+                // Class was specified but no uncles assigned to that class
+                error_log("_sendWebPushToChurch: No uncles assigned to targeted class(es) in church $churchId");
+                return;
+            }
+            $cleanUncleIds = implode(',', array_map('intval', $targetUncleIds));
+            $stmt = $conn->prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE (church_id=? OR church_id=0) AND uncle_id IN ($cleanUncleIds) LIMIT 50");
+            $stmt->bind_param('i', $churchId);
+        } else {
+            // General notification to all uncles in the church
+            $stmt = $conn->prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE (church_id=? OR church_id=0) AND uncle_id IS NOT NULL LIMIT 50");
+            $stmt->bind_param('i', $churchId);
+        }
+
+        $stmt->execute();
+        $subs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        if (!$subs)
+            return;
+
+        // Use the same sendPushToSubscription helper if it exists
+        if (function_exists('_pushToEndpoint')) {
+            $payload = json_encode(array_merge([
+                'title' => $title,
+                'body' => $body,
+                'type' => $extra['notifType'] ?? 'general',
+                'notifType' => $extra['notifType'] ?? 'general',
+                'className' => $extra['className'] ?? $extra['class_name'] ?? null,
+                'icon' => '/logo.png',
+                'badge' => '/badge.png'
+            ], $extra));
+
+            foreach ($subs as $sub) {
+                _pushToEndpoint(
+                    $sub['endpoint'],
+                    $sub['p256dh'],
+                    $sub['auth'],
+                    $payload,
+                    $vapid,
+                    $vapidPub
+                );
+            }
         }
 
         // Ensure in-app notification exists so it appears in the notifications modal
@@ -46709,11 +46898,8 @@ function _sendWebPushToChurch($conn, $churchId, $title, $body, $extra = [])
         }
 
     } catch (Exception $e) {
-
         error_log("_sendWebPushToChurch error: " . $e->getMessage());
-
     }
-
 }
 
 

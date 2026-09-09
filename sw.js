@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v43                     ║
+// ║  Sunday School PWA — Service Worker v44                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v43';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v44';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -491,21 +491,27 @@ self.addEventListener('push', e => {
     const isReg = d.type === 'registration';
     const isDevMsg = d.type === 'developer_message';
     const isOtp = d.type === 'whatsapp_otp' || d.notifType === 'whatsapp_otp';
-    const targetUrl = d.redirect_url || d.url || (isOtp ? '/uncle/dashboard/?open_otp=1' : '/uncle/dashboard/');
+    const isTask = d.type === 'task_submission' || d.notifType === 'task_submission' || d.type === 'task';
+    const targetUrl = d.redirect_url || d.url || (isOtp ? '/uncle/dashboard/?open_otp=1' : (isTask && d.className ? `/uncle/dashboard/tasks?class=${encodeURIComponent(d.className)}` : '/uncle/dashboard/'));
 
     const options = {
         body: d.body || '',
         icon: d.icon || '/logo.png',
         badge: '/logo.png',
         dir: 'rtl', lang: 'ar',
-        tag: d.type || 'general',
+        tag: d.tag || d.type || 'general',
         renotify: true,
-        requireInteraction: isReg || (isDevMsg && !!d.button_text) || isOtp,
-        data: { url: targetUrl, type: d.type, className: d.className, otp: d.otp_code }
+        requireInteraction: isReg || (isDevMsg && !!d.button_text) || isOtp || isTask,
+        data: { url: targetUrl, type: d.type || d.notifType, className: d.className || d.class_name, otp: d.otp_code }
     };
     if (isReg) {
         options.actions = [
             { action: 'open', title: 'عرض الطلب' },
+            { action: 'dismiss', title: 'إغلاق' }
+        ];
+    } else if (isTask) {
+        options.actions = [
+            { action: 'open', title: 'فتح التاسك' },
             { action: 'dismiss', title: 'إغلاق' }
         ];
     } else if (isDevMsg && d.button_text) {
@@ -538,15 +544,19 @@ self.addEventListener('notificationclick', e => {
     const isUserPath = url && url.includes('/user/');
     const targetSubstring = isUserPath ? '/user/' : '/uncle/';
     const defaultUrl = isUserPath ? '/user/' : '/uncle/dashboard/';
+    const finalUrl = url || defaultUrl;
 
     e.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
             const open = list.find(c => c.url.includes(targetSubstring));
             if (open) { 
                 open.focus(); 
-                open.postMessage({ type: 'NOTIFICATION_CLICK', notifType: type, className, url }); 
+                if (finalUrl && (type === 'task_submission' || type === 'task')) {
+                    try { open.navigate(finalUrl); } catch (_) { }
+                }
+                open.postMessage({ type: 'NOTIFICATION_CLICK', notifType: type, className, url: finalUrl }); 
             } else {
-                self.clients.openWindow(url || defaultUrl);
+                self.clients.openWindow(finalUrl);
             }
         })
     );
