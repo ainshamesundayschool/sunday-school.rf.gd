@@ -1735,7 +1735,8 @@ document.addEventListener('DOMContentLoaded', () => {
       loop: true
     },
     transitionConfig: (savedMediaConfig.transitionConfig && savedMediaConfig.transitionConfig.type && (savedMediaConfig.transitionConfig.userSelected || savedMediaConfig.transitionConfig.type !== 'stinger')) ? savedMediaConfig.transitionConfig : {
-      type: 'fade',
+      type: 'luma_sinus9',
+      duration: 800,
       stingerUrl: (savedMediaConfig.transitionConfig && savedMediaConfig.transitionConfig.stingerUrl) || 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
       cutPointMs: (savedMediaConfig.transitionConfig && savedMediaConfig.transitionConfig.cutPointMs) || 1200
     },
@@ -1746,6 +1747,45 @@ document.addEventListener('DOMContentLoaded', () => {
       rotation: 0
     },
     availableTemplates: [
+      {
+        id: 'tmpl-default-black',
+        name: 'الافتراضي - شريحة أساسية (خلفية سوداء ومسح ناعم)',
+        category: 'عام',
+        categoryKey: 'general',
+        desc: 'القالب الافتراضي لعرض الترانيم: خلفية سوداء نقية (#000000)، تقسيم شريحة أساسية (التقسيم الأصلي) متناسق مع الشاشة، وانتقال مسح ناعم (Luma Sinus).',
+        thumbnailType: 'image',
+        thumbnailUrl: 'Templates/SlidesBg/Chroma/black.png',
+        standby: '',
+        slidesBg: '',
+        chromaKey: 'black',
+        showLogo: true,
+        selectedFont: "'Alexandria', sans-serif",
+        fontSize: 75,
+        presentationMode: 'fullslide',
+        transitionConfig: {
+          type: 'luma_sinus9',
+          duration: 800
+        },
+        styleOptions: {
+          textColor: '#FFFFFF',
+          strokeColor: '#000000',
+          strokeWidth: 0,
+          strokeEnabled: false,
+          shadowColor: 'transparent',
+          shadowBlur: 0,
+          shadowDistance: 0,
+          shadowEnabled: false,
+          textAlign: 'center',
+          lineHeight: 1.35
+        },
+        textTransform: {
+          scale: 100,
+          posX: 0,
+          posY: 0,
+          rotation: 0
+        },
+        is_default: true
+      },
       {
         id: 'tmpl-shabahak-akon-2026',
         name: 'Shabahak Akon 2026',
@@ -1802,7 +1842,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedFont: savedSettings.selectedFont || "'Alexandria', sans-serif",
     fontSize: savedSettings.fontSize || 105,
     chromaKey: savedSettings.chromaKey || "black",
-    presentationMode: savedSettings.presentationMode || "oneline",
+    presentationMode: savedSettings.presentationMode || localStorage.getItem('sunday_school_slide_splitting_mode') || "fullslide",
+    slideSplittingMode: localStorage.getItem('sunday_school_slide_splitting_mode') || savedSettings.presentationMode || "fullslide",
     splitLongLines: savedSettings.splitLongLines !== undefined ? savedSettings.splitLongLines : true,
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
     textAnimation: savedSettings.textAnimation || "none",
@@ -6371,7 +6412,10 @@ document.addEventListener('DOMContentLoaded', () => {
       isApplyingDefaultTemplate = true;
       try {
         const key = isItemBible ? 'sunday_school_default_tmpl_bible' : 'sunday_school_default_tmpl_taranim';
-        const assignedId = localStorage.getItem(key);
+        let assignedId = localStorage.getItem(key);
+        if (!assignedId && !isItemBible) {
+          assignedId = 'builtin_tmpl-default-black';
+        }
         if (!assignedId) return;
 
         if (assignedId.startsWith('builtin_')) {
@@ -6382,13 +6426,31 @@ document.addEventListener('DOMContentLoaded', () => {
           const tmpl = allTmpls.find(t => (t.id && t.id === identifier) || (t.name && (t.name === identifier || t.name.trim() === identifier)));
           if (tmpl) {
             // 1. Media Backgrounds & Standby
-            if (tmpl.standby) { 
-              state.standbyConfig.type = 'template'; 
-              state.standbyConfig.url = tmpl.standby; 
-              state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026');
+            if (tmpl.standby !== undefined) { 
+              state.standbyConfig.type = tmpl.standby ? 'template' : 'logo'; 
+              state.standbyConfig.url = tmpl.standby || ''; 
+              state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : true;
             }
-            if (tmpl.slidesBg) { state.slidesBgConfig.type = 'template'; state.slidesBgConfig.url = tmpl.slidesBg; }
-            if (tmpl.stringer) { state.transitionConfig.type = 'stinger'; state.transitionConfig.stingerUrl = tmpl.stringer; }
+            if (tmpl.slidesBg !== undefined) { 
+              state.slidesBgConfig.type = tmpl.slidesBg ? 'template' : 'none'; 
+              state.slidesBgConfig.url = tmpl.slidesBg || ''; 
+            }
+            if (tmpl.stringer) { 
+              state.transitionConfig.type = 'stinger'; 
+              state.transitionConfig.stingerUrl = tmpl.stringer; 
+            } else if (tmpl.transitionConfig) {
+              state.transitionConfig = { ...state.transitionConfig, ...tmpl.transitionConfig };
+            }
+
+            if (tmpl.chromaKey) {
+              state.chromaKey = tmpl.chromaKey;
+              if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', tmpl.chromaKey);
+            }
+
+            if (tmpl.presentationMode) {
+              state.presentationMode = tmpl.presentationMode;
+              state.slideSplittingMode = tmpl.presentationMode;
+            }
 
             // 2. Fonts, Font Size & Style Options if template provides them
             if (tmpl.selectedFont) {
@@ -15647,25 +15709,26 @@ document.addEventListener('DOMContentLoaded', () => {
           const boxW = Math.max(320, containerW);
           const boxH = isPortrait ? (boxW * 9 / 16) : Math.max(240, containerH);
 
-          const safeW = boxW * 0.90;
-          const safeH = boxH * 0.84;
+          const safeW = isPortrait ? (boxW * 0.94) : (boxW * 0.90);
+          const safeH = isPortrait ? (boxH * 0.88) : (boxH * 0.82);
 
-          const songMaxLines = Math.max(1, (targetSong && targetSong._maxSlideLines) || 2);
+          const isFullSlide = (state.presentationMode === 'fullslide' || state.slideSplittingMode === 'fullslide');
+          const songMaxLines = Math.max(1, (targetSong && targetSong._maxSlideLines) || (isFullSlide ? 4 : 2));
           const songMaxChars = Math.max(16, (targetSong && targetSong._maxSlideChars) || 28);
 
           const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
-          const effectiveLH = isJomhuria ? 0.95 : (state.styleOptions.lineHeight || 1.35);
+          const effectiveLH = isJomhuria ? 0.95 : (state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : (isFullSlide ? 1.35 : 1.45));
           const maxFontH = safeH / (songMaxLines * effectiveLH);
-          const charWidthFactor = isJomhuria ? 0.36 : 0.52;
+          const charWidthFactor = isJomhuria ? 0.36 : 0.60;
           const maxFontW = safeW / (songMaxChars * charWidthFactor);
 
           let uniformFitSize = Math.min(maxFontH, maxFontW);
 
-          const userScaleRatio = state.fontSize ? (state.fontSize / 105) : 1.0;
-          const scaledFontSize = Math.max(16, Math.min(155, Math.round(uniformFitSize * userScaleRatio)));
+          const userScaleRatio = (!isFullSlide && state.fontSize) ? (state.fontSize / 105) : 1.0;
+          const scaledFontSize = Math.max(16, Math.min(145, Math.round(uniformFitSize * userScaleRatio)));
           els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
-          const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
+          const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : (isFullSlide ? 1.35 : 1.45);
           els.obsLineText.style.lineHeight = `${fixedLH}`;
 
           const isAllInOneMode = state.presentationMode === 'allinone' || Boolean(snapText && snapText.includes('allinone-slide-group'));
@@ -15674,8 +15737,8 @@ document.addEventListener('DOMContentLoaded', () => {
             s.style.display = 'inline-block';
             s.style.width = 'auto';
             s.style.maxWidth = '100%';
-            s.style.whiteSpace = 'pre-wrap';
-            s.style.wordBreak = 'break-word';
+            s.style.whiteSpace = 'normal';
+            s.style.wordBreak = 'normal';
             s.style.overflowWrap = 'break-word';
             s.style.wordSpacing = 'normal';
             s.style.textAlign = state.styleOptions.textAlign === 'justify' ? 'justify' : (state.styleOptions.textAlign || 'center');
@@ -15686,8 +15749,34 @@ document.addEventListener('DOMContentLoaded', () => {
           const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
           wrapper.style.transform = 'none';
           wrapper.style.display = 'inline-block';
-          wrapper.style.maxWidth = '100%';
-          wrapper.style.width = 'auto';
+          wrapper.style.maxWidth = `${safeW}px`;
+          wrapper.style.width = '100%';
+          wrapper.style.boxSizing = 'border-box';
+
+          // Robust shrink-to-fit loop: guarantees text never overflows viewport boundaries
+          let appliedFontSize = scaledFontSize;
+          let fitIter = 0;
+          while (appliedFontSize > 14 && fitIter < 30) {
+            const curH = Math.max(els.obsLineText.offsetHeight || 0, els.obsLineText.scrollHeight || 0, wrapper.offsetHeight || 0, wrapper.scrollHeight || 0);
+            const curW = Math.max(els.obsLineText.offsetWidth || 0, wrapper.offsetWidth || 0);
+            let segOverflow = false;
+            for (let i = 0; i < segments.length; i++) {
+              const seg = segments[i];
+              if ((seg.scrollWidth || 0) > safeW + 2 || (seg.offsetWidth || 0) > safeW + 2) {
+                segOverflow = true;
+                break;
+              }
+            }
+
+            if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+              break;
+            }
+
+            const step = Math.max(1, Math.ceil(appliedFontSize * 0.05));
+            appliedFontSize -= step;
+            els.obsLineText.style.fontSize = `${appliedFontSize}px`;
+            fitIter++;
+          }
           
           // Re-apply highlights after formatting
           const hColor = state.highlightColor || '#ef4444';
@@ -15728,7 +15817,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const previewContainerW = obsPreviewCanvas.clientWidth || 400;
             const fontScaleFactor = previewContainerW / containerW;
-            const previewFontSize = Math.max(12, Math.round(fontToApply * fontScaleFactor));
+            const previewFontSize = Math.max(12, Math.round(appliedFontSize * fontScaleFactor));
             obsPreviewText.style.fontSize = `${previewFontSize}px`;
             obsPreviewText.style.lineHeight = els.obsLineText.style.lineHeight;
 

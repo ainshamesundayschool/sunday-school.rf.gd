@@ -2,6 +2,46 @@
   "status": "success",
   "templates": [
     {
+      "id": "tmpl-default-black",
+      "version": 1,
+      "name": "الافتراضي - شريحة أساسية (خلفية سوداء ومسح ناعم)",
+      "category": "عام",
+      "categoryKey": "general",
+      "desc": "القالب الافتراضي لعرض الترانيم: خلفية سوداء نقية (#000000)، تقسيم شريحة أساسية (التقسيم الأصلي) متناسق مع الشاشة، وانتقال مسح ناعم (Luma Sinus).",
+      "thumbnailType": "image",
+      "thumbnailUrl": "Templates/SlidesBg/Chroma/black.png",
+      "standby": "",
+      "slidesBg": "",
+      "chromaKey": "black",
+      "showLogo": true,
+      "selectedFont": "'Alexandria', sans-serif",
+      "fontSize": 75,
+      "presentationMode": "fullslide",
+      "transitionConfig": {
+        "type": "luma_sinus9",
+        "duration": 800
+      },
+      "styleOptions": {
+        "textColor": "#FFFFFF",
+        "strokeColor": "#000000",
+        "strokeWidth": 0,
+        "strokeEnabled": false,
+        "shadowColor": "transparent",
+        "shadowBlur": 0,
+        "shadowDistance": 0,
+        "shadowEnabled": false,
+        "textAlign": "center",
+        "lineHeight": 1.35
+      },
+      "textTransform": {
+        "scale": 100,
+        "posX": 0,
+        "posY": 0,
+        "rotation": 0
+      },
+      "is_default": true
+    },
+    {
       "id": "tmpl-shabahak-akon-2026",
       "version": 3,
       "name": "Shabahak Akon 2026",

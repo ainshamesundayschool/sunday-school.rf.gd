@@ -1533,8 +1533,9 @@
       // Ample margins so text NEVER touches outer edges or gets cut out:
       // Width: 92% (leaves 4% on each side)
       // Height: 86% (leaves 7% on top and bottom)
-      const safeW = isPortrait ? (boxW * 0.94) : (boxW * 0.92);
-      const safeH = isPortrait ? (boxH * 0.88) : (boxH * 0.86);
+      const isFullSlide = (lastStyleData && (lastStyleData.presentationMode === 'fullslide' || lastStyleData.mode === 'fullslide'));
+      const safeW = isPortrait ? (boxW * 0.94) : (boxW * 0.90);
+      const safeH = isPortrait ? (boxH * 0.88) : (boxH * 0.82);
 
       const box = document.getElementById('presenter-box') || document.querySelector('.lower-third-container');
       if (box && !isPortrait) {
@@ -1563,17 +1564,19 @@
       const minFont = isPortrait ? 12 : 20;
       const maxFont = isPortrait 
         ? Math.max(minFont + 1, Math.floor(safeH * 0.45)) 
-        : Math.max(minFont + 1, Math.min(240, Math.floor(safeH * 0.50)));
+        : Math.max(minFont + 1, Math.min(isFullSlide ? 145 : 200, Math.floor(safeH * 0.50)));
 
       const checkFitsElement = (el, size) => {
         el.style.fontSize = `${size}px`;
         const elWrap = el.querySelector('.obs-slide-wrapper') || el;
-        const currentH = Math.max(el.scrollHeight || 0, elWrap.scrollHeight || 0);
-        if (currentH > safeH + 1) return false;
+        const currentH = Math.max(el.offsetHeight || 0, el.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+        if (currentH > safeH) return false;
+        const currentW = Math.max(el.offsetWidth || 0, elWrap.offsetWidth || 0);
+        if (currentW > safeW + 2) return false;
         const elSegs = Array.from(el.querySelectorAll('.obs-line-segment'));
         for (let i = 0; i < elSegs.length; i++) {
           const seg = elSegs[i];
-          if (seg.scrollWidth > safeW + 2 || seg.offsetWidth > safeW + 2) return false;
+          if ((seg.scrollWidth || 0) > safeW + 2 || (seg.offsetWidth || 0) > safeW + 2) return false;
           const badge = seg.querySelector('.slide-badge-layer');
           if (badge) {
             const segRect = seg.getBoundingClientRect();
@@ -1586,18 +1589,22 @@
       };
 
       const computeFitForHtml = (htmlContent, targetEl) => {
+        targetEl.className = 'line-text';
         targetEl.innerHTML = htmlContent;
         targetEl.style.maxWidth = `${safeW}px`;
-        targetEl.style.width = '100%';
+        targetEl.style.width = `${safeW}px`;
         targetEl.style.boxSizing = 'border-box';
-        targetEl.style.fontFamily = textEl.style.fontFamily;
-        targetEl.style.letterSpacing = textEl.style.letterSpacing;
-        targetEl.style.wordSpacing = textEl.style.wordSpacing;
-        targetEl.style.fontWeight = textEl.style.fontWeight;
+        targetEl.style.fontFamily = currentFont || textEl.style.fontFamily || "'Alexandria', sans-serif";
+        targetEl.style.letterSpacing = `${lSpacing}px`;
+        targetEl.style.wordSpacing = isJomhuria ? '6px' : 'normal';
+        targetEl.style.fontWeight = isJomhuria ? '400' : fWeight;
         targetEl.style.lineHeight = `${finalLineHeight}`;
-        targetEl.style.textAlign = textEl.style.textAlign;
+        targetEl.style.textAlign = textEl.style.textAlign || 'center';
         targetEl.style.fontStyle = fStyle;
         targetEl.style.textDecoration = tDeco;
+        targetEl.style.whiteSpace = 'normal';
+        targetEl.style.wordBreak = 'normal';
+        targetEl.style.overflowWrap = 'break-word';
 
         const w = targetEl.querySelector('.obs-slide-wrapper') || targetEl;
         w.style.transform = 'none';
@@ -1641,23 +1648,38 @@
 
       // UNIFORM TARNIMA FONT SIZE ENGINE
       // Guarantees all slides of the same tarnima share the exact same uniform font size!
-      const currentSongKey = (lastStyleData && (lastStyleData.songKey || lastStyleData.songTitle)) || '';
+      const currentMode = (lastStyleData && (lastStyleData.presentationMode || lastStyleData.mode)) || 'fullslide';
+      const currentSongKey = `${(lastStyleData && (lastStyleData.songKey || lastStyleData.songTitle)) || ''}__mode_${currentMode}__font_${currentFont}__${curW}x${curH}`;
 
       if (currentSongKey && !isBible) {
         // If uniform size is already known for this song, reuse it!
         if (_uniformSongKey === currentSongKey && _uniformFontSize !== null) {
-          if (checkFitsElement(textEl, _uniformFontSize)) {
-            textEl.style.fontSize = `${_uniformFontSize}px`;
-            applyDynamicShadow();
-            return;
-          } else {
-            // Slide is longer than previously measured; adjust uniform size down so it fits
-            const curFit = computeFitForHtml(textEl.innerHTML, textEl);
-            _uniformFontSize = Math.min(_uniformFontSize, curFit);
-            textEl.style.fontSize = `${_uniformFontSize}px`;
-            applyDynamicShadow();
-            return;
+          textEl.style.fontSize = `${_uniformFontSize}px`;
+          // Run safety step-down check on textEl
+          let safetyIter = 0;
+          let curS = _uniformFontSize;
+          const elWrap = textEl.querySelector('.obs-slide-wrapper') || textEl;
+          while (curS > 14 && safetyIter < 30) {
+            const curH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+            const curW = Math.max(textEl.offsetWidth || 0, elWrap.offsetWidth || 0);
+            let segOverflow = false;
+            const segs = textEl.querySelectorAll('.obs-line-segment');
+            for (let i = 0; i < segs.length; i++) {
+              if ((segs[i].scrollWidth || 0) > safeW + 2 || (segs[i].offsetWidth || 0) > safeW + 2) {
+                segOverflow = true;
+                break;
+              }
+            }
+            if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+              break;
+            }
+            const step = Math.max(1, Math.ceil(curS * 0.05));
+            curS -= step;
+            textEl.style.fontSize = `${curS}px`;
+            safetyIter++;
           }
+          applyDynamicShadow();
+          return;
         }
 
         // New song! Evaluate all slides to determine the uniform bottleneck size
@@ -1694,8 +1716,8 @@
           uniformSize = computeFitForHtml(textEl.innerHTML, textEl);
         }
 
-        // Apply user scale slider if customized
-        if (userScaleRatio !== 1.0) {
+        // Apply user scale slider if customized and not in fullslide mode
+        if (!isFullSlide && userScaleRatio !== 1.0) {
           uniformSize = Math.max(minFont, Math.round(uniformSize * userScaleRatio));
         }
 
@@ -1703,16 +1725,61 @@
         _uniformSongKey = currentSongKey;
 
         textEl.style.fontSize = `${_uniformFontSize}px`;
+        // Safety verification on textEl
+        let safetyIter = 0;
+        let curS = _uniformFontSize;
+        const elWrap = textEl.querySelector('.obs-slide-wrapper') || textEl;
+        while (curS > 14 && safetyIter < 30) {
+          const curH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+          const curW = Math.max(textEl.offsetWidth || 0, elWrap.offsetWidth || 0);
+          let segOverflow = false;
+          const segs = textEl.querySelectorAll('.obs-line-segment');
+          for (let i = 0; i < segs.length; i++) {
+            if ((segs[i].scrollWidth || 0) > safeW + 2 || (segs[i].offsetWidth || 0) > safeW + 2) {
+              segOverflow = true;
+              break;
+            }
+          }
+          if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+            break;
+          }
+          const step = Math.max(1, Math.ceil(curS * 0.05));
+          curS -= step;
+          textEl.style.fontSize = `${curS}px`;
+          safetyIter++;
+        }
         applyDynamicShadow();
         return;
       }
 
       // Standalone / Bible / Default Fallback
       let bestSize = computeFitForHtml(textEl.innerHTML, textEl);
-      if (userScaleRatio !== 1.0) {
+      if (!isFullSlide && userScaleRatio !== 1.0) {
         bestSize = Math.max(minFont, Math.round(bestSize * userScaleRatio));
       }
       textEl.style.fontSize = `${bestSize}px`;
+      let safetyIter = 0;
+      let curS = bestSize;
+      const elWrap = textEl.querySelector('.obs-slide-wrapper') || textEl;
+      while (curS > 14 && safetyIter < 30) {
+        const curH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+        const curW = Math.max(textEl.offsetWidth || 0, elWrap.offsetWidth || 0);
+        let segOverflow = false;
+        const segs = textEl.querySelectorAll('.obs-line-segment');
+        for (let i = 0; i < segs.length; i++) {
+          if ((segs[i].scrollWidth || 0) > safeW + 2 || (segs[i].offsetWidth || 0) > safeW + 2) {
+            segOverflow = true;
+            break;
+          }
+        }
+        if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+          break;
+        }
+        const step = Math.max(1, Math.ceil(curS * 0.05));
+        curS -= step;
+        textEl.style.fontSize = `${curS}px`;
+        safetyIter++;
+      }
       applyDynamicShadow();
     }
 
