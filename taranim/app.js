@@ -4886,7 +4886,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { url: './playlists.json', size: 100 },
         { url: './song_scales_map.json', size: 48060 },
         { url: './song_scales_map.js', size: 20411 },
-        { url: './bible_books_data.json', size: 8064 }
+        { url: './bible_books_data.json', size: 8064 },
+        { url: './Templates/SlidesBg/Chroma/black.png', size: 6109 }
       ];
 
       const TOTAL_BYTES = ASSETS_TO_CACHE.reduce((acc, item) => acc + item.size, 0);
@@ -4896,7 +4897,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let appCache = null;
         let dataCache = null;
         if ('caches' in window) {
-          appCache = await caches.open('taranim-pwa-v39');
+          appCache = await caches.open('taranim-pwa-v40');
           dataCache = await caches.open('taranim-data-v1');
         }
 
@@ -7987,6 +7988,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // TEMPLATE PRE-RENDER & CACHE DOWNLOAD ENGINE
   // ----------------------------------------------------
   const TEMPLATE_KNOWN_SIZES = {
+    'tmpl-default-black': 0,
     'tmpl-shabahak-akon-2026': 64.84, // 29.63 MB (Loop) + 29.60 MB (Empty) + 5.61 MB (Stringer)
     'tmpl-paint-sweeps': 37.40, // 25 backgrounds total
     'tmpl-paint-sweeps-animated': 328.5,
@@ -8043,6 +8045,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function isTemplatePrerendered(tmplId) {
+    if (tmplId === 'tmpl-default-black') return true;
     try {
       return localStorage.getItem(PRERENDER_STORAGE_KEY_PREFIX + tmplId) === 'true';
     } catch(e) {
@@ -8059,7 +8062,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function isTemplateUpdateAvailable(tmpl) {
-    if (!tmpl || tmpl.isCustom) return false;
+    if (!tmpl || tmpl.isCustom || tmpl.id === 'tmpl-default-black') return false;
     if (!isTemplatePrerendered(tmpl.id)) return false;
     const currentVer = getTemplateVersion(tmpl);
     const downloadedVer = getDownloadedTemplateVersion(tmpl.id);
@@ -8115,7 +8118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       let cache = null;
       if ('caches' in window) {
-        cache = await caches.open('taranim-pwa-v39');
+        cache = await caches.open('taranim-pwa-v40');
       }
 
       const isVid = /\.(mp4|webm|mov)$/i.test(url);
@@ -8254,7 +8257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cache = null;
     try {
       if ('caches' in window) {
-        cache = await caches.open('taranim-pwa-v39');
+        cache = await caches.open('taranim-pwa-v40');
       }
     } catch(e) {}
 
@@ -8600,8 +8603,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="template-thumb-container">
               <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(t.thumbnailUrl)}" alt="${escapeHtml(t.name)}" loading="lazy">
               ${updateBadgeHtml}
-              <span class="template-badge-pill"><i class="fa-solid fa-users" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
+              <span class="template-badge-pill">${t.is_default || t.id === 'tmpl-default-black' ? '<i class="fa-solid fa-star" style="color:#fbbf24; margin-left:3px;"></i> رئيسي' : `<i class="fa-solid fa-users" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}`}</span>
               <div class="template-components-chips">
+                ${t.is_default || t.id === 'tmpl-default-black' ? '<span class="template-comp-chip" style="background:rgba(16, 185, 129, 0.15); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-circle-check"></i> محمل تلقائياً (الأساسي)</span>' : ''}
                 ${t.standby ? '<span class="template-comp-chip"><i class="fa-solid fa-photo-film"></i> شاشة انتظار</span>' : ''}
                 ${t.slidesBg ? '<span class="template-comp-chip"><i class="fa-solid fa-image"></i> خلفية شرائح</span>' : ''}
                 ${t.stringer ? '<span class="template-comp-chip"><i class="fa-solid fa-bolt"></i> انتقال ستنجر</span>' : ''}
@@ -9393,6 +9397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (data && (data.status === 'success' || Array.isArray(data.templates)) && Array.isArray(data.templates) && data.templates.length > 0) {
+          try { localStorage.setItem(PRERENDER_STORAGE_KEY_PREFIX + 'tmpl-default-black', 'true'); } catch(e) {}
           state.availableTemplates = sanitizeAndGroupTemplates(data.templates);
 
           const bgSelect = document.getElementById('slides-bg-template-select');
@@ -15713,19 +15718,39 @@ document.addEventListener('DOMContentLoaded', () => {
           const safeH = isPortrait ? (boxH * 0.88) : (boxH * 0.82);
 
           const isFullSlide = (state.presentationMode === 'fullslide' || state.slideSplittingMode === 'fullslide');
-          const songMaxLines = Math.max(1, (targetSong && targetSong._maxSlideLines) || (isFullSlide ? 4 : 2));
-          const songMaxChars = Math.max(16, (targetSong && targetSong._maxSlideChars) || 28);
+          
+          // Count lines and chars in CURRENT slide
+          const slideLines = (currentSlideItem && currentSlideItem.lines) ? currentSlideItem.lines : (snapText ? snapText.split('\n') : []);
+          const slideLineCount = Math.max(1, slideLines.length);
+          let slideMaxChars = 1;
+          slideLines.forEach(l => {
+            if (l.length > slideMaxChars) slideMaxChars = l.length;
+          });
+
+          // In Bible mode, each verse is an independent slide so we size by the verse itself!
+          // In hymn mode, we balance between song bottleneck and current slide so hymns are uniform without being tiny:
+          const effLines = isBible 
+            ? slideLineCount 
+            : Math.max(1, Math.min((targetSong && targetSong._maxSlideLines) || (isFullSlide ? 4 : 2), slideLineCount + 1));
+          const effChars = isBible 
+            ? Math.max(16, slideMaxChars) 
+            : Math.max(16, Math.min((targetSong && targetSong._maxSlideChars) || 28, slideMaxChars + 8));
 
           const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
           const effectiveLH = isJomhuria ? 0.95 : (state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : (isFullSlide ? 1.35 : 1.45));
-          const maxFontH = safeH / (songMaxLines * effectiveLH);
-          const charWidthFactor = isJomhuria ? 0.36 : 0.60;
-          const maxFontW = safeW / (songMaxChars * charWidthFactor);
+          const maxFontH = safeH / (effLines * effectiveLH);
+          const charWidthFactor = isJomhuria ? 0.36 : 0.58;
+          const maxFontW = safeW / (effChars * charWidthFactor);
 
           let uniformFitSize = Math.min(maxFontH, maxFontW);
 
-          const userScaleRatio = (!isFullSlide && state.fontSize) ? (state.fontSize / 105) : 1.0;
-          const scaledFontSize = Math.max(16, Math.min(145, Math.round(uniformFitSize * userScaleRatio)));
+          const userScaleRatio = state.fontSize ? (state.fontSize / 105) : 1.0;
+          let scaledFontSize = Math.round(uniformFitSize * userScaleRatio);
+
+          // Apply clean bounds:
+          // In fullslide mode with 1-3 lines, font should be comfortable, bold, and fill the screen nicely (e.g. 65-90px)
+          const maxAllowedFont = isPortrait ? 85 : (isFullSlide ? 110 : 145);
+          scaledFontSize = Math.max(24, Math.min(maxAllowedFont, scaledFontSize));
           els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : (isFullSlide ? 1.35 : 1.45);
@@ -15753,22 +15778,28 @@ document.addEventListener('DOMContentLoaded', () => {
           wrapper.style.width = '100%';
           wrapper.style.boxSizing = 'border-box';
 
-          // Robust shrink-to-fit loop: guarantees text never overflows viewport boundaries
+          // Robust shrink-to-fit loop: checks text rows height and segments width (never full-width block container)
           let appliedFontSize = scaledFontSize;
           let fitIter = 0;
-          while (appliedFontSize > 14 && fitIter < 30) {
-            const curH = Math.max(els.obsLineText.offsetHeight || 0, els.obsLineText.scrollHeight || 0, wrapper.offsetHeight || 0, wrapper.scrollHeight || 0);
-            const curW = Math.max(els.obsLineText.offsetWidth || 0, wrapper.offsetWidth || 0);
+          while (appliedFontSize > 22 && fitIter < 25) {
             let segOverflow = false;
             for (let i = 0; i < segments.length; i++) {
               const seg = segments[i];
-              if ((seg.scrollWidth || 0) > safeW + 2 || (seg.offsetWidth || 0) > safeW + 2) {
+              if ((seg.scrollWidth || 0) > safeW + 4 || (seg.offsetWidth || 0) > safeW + 4) {
                 segOverflow = true;
                 break;
               }
             }
 
-            if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+            let textH = 0;
+            const rows = els.obsLineText.querySelectorAll('.obs-line-row, .slide-line-row');
+            if (rows.length > 0) {
+              rows.forEach(r => { textH += (r.offsetHeight || r.scrollHeight || 0); });
+            } else {
+              textH = els.obsLineText.scrollHeight || 0;
+            }
+
+            if (textH <= safeH && !segOverflow) {
               break;
             }
 

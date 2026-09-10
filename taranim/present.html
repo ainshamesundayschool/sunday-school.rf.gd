@@ -1569,20 +1569,24 @@
       const checkFitsElement = (el, size) => {
         el.style.fontSize = `${size}px`;
         const elWrap = el.querySelector('.obs-slide-wrapper') || el;
-        const currentH = Math.max(el.offsetHeight || 0, el.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
-        if (currentH > safeH) return false;
-        const currentW = Math.max(el.offsetWidth || 0, elWrap.offsetWidth || 0);
-        if (currentW > safeW + 2) return false;
+        let totalH = 0;
+        const rows = el.querySelectorAll('.obs-line-row, .slide-line-row');
+        if (rows.length > 0) {
+          rows.forEach(r => { totalH += (r.offsetHeight || r.scrollHeight || 0); });
+        } else {
+          totalH = Math.max(el.offsetHeight || 0, el.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+        }
+        if (totalH > safeH) return false;
         const elSegs = Array.from(el.querySelectorAll('.obs-line-segment'));
         for (let i = 0; i < elSegs.length; i++) {
           const seg = elSegs[i];
-          if ((seg.scrollWidth || 0) > safeW + 2 || (seg.offsetWidth || 0) > safeW + 2) return false;
+          if ((seg.scrollWidth || 0) > safeW + 4 || (seg.offsetWidth || 0) > safeW + 4) return false;
           const badge = seg.querySelector('.slide-badge-layer');
           if (badge) {
             const segRect = seg.getBoundingClientRect();
             const badgeRect = badge.getBoundingClientRect();
             const totalSpan = Math.max(segRect.right, badgeRect.right) - Math.min(segRect.left, badgeRect.left);
-            if (totalSpan > safeW + 4) return false;
+            if (totalSpan > safeW + 6) return false;
           }
         }
         return true;
@@ -1659,18 +1663,23 @@
           let safetyIter = 0;
           let curS = _uniformFontSize;
           const elWrap = textEl.querySelector('.obs-slide-wrapper') || textEl;
-          while (curS > 14 && safetyIter < 30) {
-            const curH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
-            const curW = Math.max(textEl.offsetWidth || 0, elWrap.offsetWidth || 0);
+          while (curS > 22 && safetyIter < 20) {
             let segOverflow = false;
             const segs = textEl.querySelectorAll('.obs-line-segment');
             for (let i = 0; i < segs.length; i++) {
-              if ((segs[i].scrollWidth || 0) > safeW + 2 || (segs[i].offsetWidth || 0) > safeW + 2) {
+              if ((segs[i].scrollWidth || 0) > safeW + 4 || (segs[i].offsetWidth || 0) > safeW + 4) {
                 segOverflow = true;
                 break;
               }
             }
-            if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+            let totalH = 0;
+            const rows = textEl.querySelectorAll('.obs-line-row, .slide-line-row');
+            if (rows.length > 0) {
+              rows.forEach(r => { totalH += (r.offsetHeight || r.scrollHeight || 0); });
+            } else {
+              totalH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+            }
+            if (totalH <= safeH && !segOverflow) {
               break;
             }
             const step = Math.max(1, Math.ceil(curS * 0.05));
@@ -1716,8 +1725,8 @@
           uniformSize = computeFitForHtml(textEl.innerHTML, textEl);
         }
 
-        // Apply user scale slider if customized and not in fullslide mode
-        if (!isFullSlide && userScaleRatio !== 1.0) {
+        // Apply user scale slider if customized
+        if (userScaleRatio !== 1.0) {
           uniformSize = Math.max(minFont, Math.round(uniformSize * userScaleRatio));
         }
 
@@ -1729,18 +1738,23 @@
         let safetyIter = 0;
         let curS = _uniformFontSize;
         const elWrap = textEl.querySelector('.obs-slide-wrapper') || textEl;
-        while (curS > 14 && safetyIter < 30) {
-          const curH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
-          const curW = Math.max(textEl.offsetWidth || 0, elWrap.offsetWidth || 0);
+        while (curS > 22 && safetyIter < 20) {
           let segOverflow = false;
           const segs = textEl.querySelectorAll('.obs-line-segment');
           for (let i = 0; i < segs.length; i++) {
-            if ((segs[i].scrollWidth || 0) > safeW + 2 || (segs[i].offsetWidth || 0) > safeW + 2) {
+            if ((segs[i].scrollWidth || 0) > safeW + 4 || (segs[i].offsetWidth || 0) > safeW + 4) {
               segOverflow = true;
               break;
             }
           }
-          if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+          let totalH = 0;
+          const rows = textEl.querySelectorAll('.obs-line-row, .slide-line-row');
+          if (rows.length > 0) {
+            rows.forEach(r => { totalH += (r.offsetHeight || r.scrollHeight || 0); });
+          } else {
+            totalH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+          }
+          if (totalH <= safeH && !segOverflow) {
             break;
           }
           const step = Math.max(1, Math.ceil(curS * 0.05));
@@ -1754,25 +1768,30 @@
 
       // Standalone / Bible / Default Fallback
       let bestSize = computeFitForHtml(textEl.innerHTML, textEl);
-      if (!isFullSlide && userScaleRatio !== 1.0) {
+      if (userScaleRatio !== 1.0) {
         bestSize = Math.max(minFont, Math.round(bestSize * userScaleRatio));
       }
       textEl.style.fontSize = `${bestSize}px`;
       let safetyIter = 0;
       let curS = bestSize;
       const elWrap = textEl.querySelector('.obs-slide-wrapper') || textEl;
-      while (curS > 14 && safetyIter < 30) {
-        const curH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
-        const curW = Math.max(textEl.offsetWidth || 0, elWrap.offsetWidth || 0);
+      while (curS > 22 && safetyIter < 20) {
         let segOverflow = false;
         const segs = textEl.querySelectorAll('.obs-line-segment');
         for (let i = 0; i < segs.length; i++) {
-          if ((segs[i].scrollWidth || 0) > safeW + 2 || (segs[i].offsetWidth || 0) > safeW + 2) {
+          if ((segs[i].scrollWidth || 0) > safeW + 4 || (segs[i].offsetWidth || 0) > safeW + 4) {
             segOverflow = true;
             break;
           }
         }
-        if (curH <= safeH && curW <= safeW + 2 && !segOverflow) {
+        let totalH = 0;
+        const rows = textEl.querySelectorAll('.obs-line-row, .slide-line-row');
+        if (rows.length > 0) {
+          rows.forEach(r => { totalH += (r.offsetHeight || r.scrollHeight || 0); });
+        } else {
+          totalH = Math.max(textEl.offsetHeight || 0, textEl.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+        }
+        if (totalH <= safeH && !segOverflow) {
           break;
         }
         const step = Math.max(1, Math.ceil(curS * 0.05));

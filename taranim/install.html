@@ -373,7 +373,8 @@
       './playlists.json',
       './song_scales_map.json',
       './song_scales_map.js',
-      './bible_books_data.json'
+      './bible_books_data.json',
+      './Templates/SlidesBg/Chroma/black.png'
     ];
 
     btnPrecacheData.addEventListener('click', async () => {
@@ -385,7 +386,7 @@
       const total = ASSETS_TO_CACHE.length;
 
       try {
-        const appCache = await caches.open('taranim-pwa-v38');
+        const appCache = await caches.open('taranim-pwa-v40');
         const dataCache = await caches.open('taranim-data-v1');
 
         // Setup IndexedDB

@@ -1,5 +1,5 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (LOW DATA CONSUMING & OFFLINE FIRST)
-const CACHE_NAME = 'taranim-pwa-v39';
+const CACHE_NAME = 'taranim-pwa-v40';
 const DATA_CACHE_NAME = 'taranim-data-v1';
 
 // Core App Shell Only (Lightweight assets < 1MB)
@@ -23,6 +23,7 @@ const PRECACHE_ASSETS = [
   './arabic_dictionary.json',
   './templates.json',
   './playlists.json',
+  './Templates/SlidesBg/Chroma/black.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
   'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js',
