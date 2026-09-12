@@ -12825,13 +12825,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         <!-- Actions (Left) -->
         <div class="header-actions-box" style="display: flex; gap: 8px; align-items: center;">
-          <button onclick="triggerRetroactiveCouponSync()" id="btnRetroSyncHeader" title="فحص ومزامنة كوبونات الطلاب بأثر رجعي لضمان وصول الكوبونات لجميع الطلاب"
-            style="background:var(--cou-bg); color:var(--cou); border:1.5px solid #c4b5fd; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:0 12px; height: 38px; border-radius: var(--r-md); transition: all 0.2s; font-family:'Cairo',sans-serif; font-size:0.8rem; white-space:nowrap; flex-shrink: 0;"
-            onmouseover="this.style.background='var(--cou)'; this.style.color='#fff';"
-            onmouseout="this.style.background='var(--cou-bg)'; this.style.color='var(--cou)';">
-            <i class="fas fa-coins" style="color:var(--cou-l);"></i>
-            <span>مزامنة الكوبونات</span>
-          </button>
           <button onclick="openTasksOverviewModal()" title="تصدير نظرة عامة"
             style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width: 38px; height: 38px; border-radius: var(--r-md); transition: all 0.2s; flex-shrink: 0;"
             onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';"
@@ -12844,16 +12837,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       </div>
     </header>
 
-    <!-- Discrepancy Alert Banner -->
-    <div id="couponDiscrepancyBanner" style="display:none; margin: 12px 16px 0; padding: 12px 16px; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 12px; color: #9f1239; font-size: 0.82rem; font-weight: 700; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(225,29,72,0.08);">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <i class="fas fa-exclamation-triangle" style="font-size:1.2rem; color:#e11d48; flex-shrink:0;"></i>
-        <span id="couponDiscrepancyText">تم رصد طلاب حصلوا على درجات ولم تُمنح لهم كوبونات!</span>
-      </div>
-      <button onclick="triggerRetroactiveCouponSync()" style="background:#e11d48; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:0.75rem; cursor:pointer; font-family:'Cairo',sans-serif; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; white-space:nowrap; transition:0.2s;" onmouseover="this.style.background='#be123c';" onmouseout="this.style.background='#e11d48';">
-        <i class="fas fa-sync-alt"></i> إصلاح ومزامنة فورية باثر رجعي
-      </button>
-    </div>
+
 
 
 
@@ -13694,6 +13678,26 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         color: var(--t2);
       }
 
+      .ov-progress-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        background: #f1f3f5;
+        color: #495057;
+      }
+      .ov-progress-pill.completed {
+        background: #d3f9d8;
+        color: #2b8a3e;
+      }
+      .ov-progress-pill.empty {
+        background: #ffe3e3;
+        color: #c92a2a;
+      }
+
       /* Premium unified export buttons */
       .btn-export {
         display: inline-flex;
@@ -13735,7 +13739,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         color: #10b981;
         border-color: rgba(16, 185, 129, 0.2);
       }
-
       .btn-export.btn-msg:hover {
         background: #10b981;
         color: #fff;
@@ -13748,7 +13751,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         color: #3b82f6;
         border-color: rgba(59, 130, 246, 0.2);
       }
-
       .btn-export.btn-csv:hover {
         background: #3b82f6;
         color: #fff;
@@ -13761,7 +13763,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         color: #ec4899;
         border-color: rgba(236, 72, 153, 0.2);
       }
-
       .btn-export.btn-pdf:hover {
         background: #ec4899;
         color: #fff;
@@ -13774,7 +13775,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         color: #8b5cf6;
         border-color: rgba(139, 92, 246, 0.2);
       }
-
       .btn-export.btn-img:hover {
         background: #8b5cf6;
         color: #fff;
@@ -13782,20 +13782,203 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         transform: translateY(-1px);
       }
 
-      .btn-export.btn-excel {
-        background: rgba(16, 185, 129, 0.08);
-        color: #059669;
-        border-color: rgba(16, 185, 129, 0.25);
+      /* Control cards styling */
+      .ov-controls-panel {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        background: var(--bg);
+        border: 1px solid var(--bdr);
+        padding: 12px;
+        border-radius: 12px;
+        transition: all 0.25s ease;
       }
-
-      .btn-export.btn-excel:hover {
-        background: #059669;
+      .ov-card {
+        background: #fff;
+        border: 1px solid var(--bdr);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      }
+      .ov-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--bdr);
+        padding-bottom: 6px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--t1);
+      }
+      .ov-badge {
+        font-size: 0.7rem;
+        padding: 1px 6px;
+        background: var(--brand-bg);
+        color: var(--brand);
+        border-radius: 10px;
+        font-weight: 700;
+      }
+      .ov-btn-mini {
+        background: var(--bg);
+        border: 1px solid var(--bdr);
+        color: var(--t2);
+        padding: 2px 7px;
+        font-size: 0.72rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.15s;
+        font-family: inherit;
+      }
+      .ov-btn-mini:hover {
+        background: var(--brand);
         color: #fff;
-        border-color: #059669;
-        transform: translateY(-1px);
+        border-color: var(--brand);
+      }
+      .ov-list-scroll {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        max-height: 95px;
+        overflow-y: auto;
+        padding: 6px;
+        border: 1px solid var(--bdr);
+        border-radius: 8px;
+        background: var(--bg);
+      }
+      .ov-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        background: #fff;
+        padding: 3px 7px;
+        border-radius: 6px;
+        border: 1px solid var(--bdr);
+        transition: all 0.15s;
+        user-select: none;
+      }
+      .ov-chip:hover {
+        border-color: var(--brand-l);
+        background: var(--brand-bg);
+      }
+      .ov-chip input[type="checkbox"] {
+        accent-color: var(--brand);
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+        margin: 0;
+      }
+      .ov-label {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--t1);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 2px;
+      }
+      .ov-select, .ov-input {
+        padding: 6px 10px;
+        border: 1px solid var(--bdr);
+        border-radius: 7px;
+        background: #fff;
+        font-size: 0.82rem;
+        outline: none;
+        color: var(--t1);
+        font-family: inherit;
+        transition: border-color 0.2s;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .ov-select:focus, .ov-input:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 2px var(--brand-bg);
+      }
+      .ov-toggle-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+      .ov-toggle-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-size: 0.76rem;
+        color: var(--t1);
+        padding: 4px 6px;
+        border-radius: 6px;
+        border: 1px solid var(--bdr);
+        background: var(--bg);
+        transition: all 0.15s;
+      }
+      .ov-toggle-item:hover {
+        background: var(--brand-bg);
+        border-color: var(--brand-l);
+      }
+      .ov-toggle-item input[type="checkbox"] {
+        accent-color: var(--brand);
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+        margin: 0;
+      }
+      .ov-summary-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 8px 12px;
+        background: var(--bg);
+        border: 1px solid var(--bdr);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        color: var(--t1);
+      }
+      .ov-summary-pills-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .ov-summary-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 700;
+        background: #fff;
+        border: 1px solid var(--bdr);
+        padding: 3px 8px;
+        border-radius: 8px;
+        font-size: 0.76rem;
+      }
+      .ov-summary-pill i {
+        color: var(--brand);
+      }
+      .ov-task-sub {
+        font-size: 0.68rem;
+        font-weight: normal;
+        opacity: 0.75;
       }
 
       /* Responsive overrides for tasks overview */
+      @media (max-width: 960px) {
+        .ov-controls-panel {
+          grid-template-columns: 1fr !important;
+          gap: 10px !important;
+          padding: 10px !important;
+        }
+        .ov-toggle-grid {
+          grid-template-columns: 1fr 1fr !important;
+        }
+      }
+
       @media (max-width: 768px) {
         #overviewOv .mhdr {
           padding: 12px 16px !important;
@@ -13813,17 +13996,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         #overviewOv .mbody {
           padding: 12px !important;
           gap: 12px !important;
-        }
-
-        .overview-filters-box {
-          grid-template-columns: 1fr !important;
-          gap: 12px !important;
-          padding: 12px !important;
-          border-radius: 8px !important;
-        }
-
-        #ovClassesList {
-          max-height: 80px !important;
         }
 
         .ov-table {
@@ -13887,84 +14059,226 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         </div>
         <div>
           <div class="mhdr-title">تصدير نظرة عامة للتاسكات</div>
-          <div class="mhdr-sub">تصدير نتائج وحلول التاسكات بصيغ مختلفة (صورة، PDF، CSV، أو نسخ رسالة)</div>
+          <div class="mhdr-sub">تخصيص كامل للفلاتر والترتيب وإظهار وإخفاء الأعمدة والبيانات قبل التصدير والطباعة</div>
         </div>
         <div class="mclose" onclick="closeOv('overviewOv')"><i class="fas fa-times"></i></div>
       </div>
 
       <div class="mbody"
-        style="flex:1 1 auto; min-height:0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px;">
-        <!-- Filters and Options Box -->
-        <div class="overview-filters-box"
-          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px; background:var(--bg); border:1px solid var(--bdr); padding:15px; border-radius:12px;">
-          <!-- Class Filter -->
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-users"></i> الفصول
-              المستهدفة:</label>
-            <div id="ovClassesList"
-              style="display:flex; flex-wrap:wrap; gap:8px; max-height:100px; overflow-y:auto; padding:5px; border:1px solid var(--bdr); border-radius:8px; background:#fff;">
-              <!-- Loaded dynamically in JS -->
-            </div>
-          </div>
-
-          <!-- Answer Status Filter -->
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <label style="font-weight:700; font-size:.9rem; color:var(--t1);">حالة الحل:</label>
-            <select id="ovAnswerStatus" onchange="renderOverviewTable()"
-              style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
-              <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
-              <option value="answered">الذين أجابوا فقط (على الأقل تاسك واحد)</option>
-              <option value="unanswered">الذين لم يجيبوا على أي تاسك</option>
-              <option value="missing">الذين لديهم تاسكات لم يتم حلها</option>
-            </select>
-          </div>
-
-          <!-- Search and Toggles -->
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-search"></i> بحث
-              بالاسم:</label>
+        style="flex:1 1 auto; min-height:0; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px;">
+        
+        <!-- Top Toolbar -->
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <!-- Smart Search -->
+          <div style="flex:1; min-width:240px; position:relative;">
+            <i class="fas fa-search" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--t3); font-size:0.85rem; pointer-events:none;"></i>
             <input type="text" id="ovStudentSearch" oninput="renderOverviewTable()"
-              placeholder="ابحث بالاسم (إدخال ذكي)..."
-              style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; font-size:.87rem; outline:none;">
+              placeholder="بحث ذكي بالاسم أو الفصل..."
+              class="ov-input" style="padding-right:34px; padding-left:30px; height:38px; border-radius:8px;">
+            <button type="button" onclick="clearOverviewSearch()" title="مسح البحث"
+              style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--t3); cursor:pointer; font-size:0.85rem; display:flex; align-items:center;">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
 
-          <!-- Export Page Orientation -->
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-file-pdf"></i> اتجاه
-              الصفحة للتصدير:</label>
-            <select id="ovOrientation"
-              style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
-              <option value="landscape" selected>عرضي (Landscape)</option>
-              <option value="portrait">طولي (Portrait)</option>
-            </select>
-          </div>
-
-          <!-- Toggle Checkboxes -->
-          <div style="display:flex; flex-direction:column; justify-content:center; gap:10px;">
-            <label
-              style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
-              <input type="checkbox" id="ovShowGrades" onchange="renderOverviewTable()" checked
-                style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
-              <span>عرض الدرجات والتقييم</span>
-            </label>
-            <label
-              style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
-              <input type="checkbox" id="ovShowTime" onchange="renderOverviewTable()" checked
-                style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
-              <span>عرض وقت تسليم التاسك</span>
-            </label>
-            <label
-              style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
-              <input type="checkbox" id="ovOnlyResList" onchange="renderOverviewTable()"
-                style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
-              <span>عرض قائمة المجيبين لكل تاسك فقط</span>
-            </label>
+          <!-- Quick Action Buttons -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn btn-sm" id="ovTogglePanelBtn" onclick="toggleOverviewControlsPanel()"
+              style="display:inline-flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--bdr); font-weight:700; height:38px; padding:0 12px; border-radius:8px; cursor:pointer;">
+              <i class="fas fa-sliders-h" style="color:var(--brand);"></i>
+              <span id="ovTogglePanelText">إخفاء خيارات التخصيص</span>
+            </button>
+            <button type="button" class="btn btn-sm" onclick="resetOverviewAllSettings()"
+              style="display:inline-flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--bdr); font-weight:700; height:38px; padding:0 12px; border-radius:8px; cursor:pointer;"
+              title="استعادة الإعدادات الافتراضية">
+              <i class="fas fa-redo" style="color:var(--t2);"></i>
+              <span>استعادة الافتراضي</span>
+            </button>
           </div>
         </div>
 
+        <!-- Customizable Controls Panel -->
+        <div class="ov-controls-panel" id="ovControlsPanel">
+          <!-- Card 1: الفلاتر واستهداف البيانات -->
+          <div class="ov-card">
+            <!-- Classes Selection -->
+            <div class="ov-card-head">
+              <span><i class="fas fa-users" style="color:var(--brand);"></i> الفصول المستهدفة <span class="ov-badge" id="ovClassesCountBadge">0</span></span>
+              <div style="display:inline-flex; gap:4px;">
+                <button type="button" class="ov-btn-mini" onclick="selectOverviewAllClasses(true)">الكل</button>
+                <button type="button" class="ov-btn-mini" onclick="selectOverviewAllClasses(false)">إلغاء</button>
+              </div>
+            </div>
+            <div id="ovClassesList" class="ov-list-scroll">
+              <!-- Loaded dynamically in JS -->
+            </div>
+
+            <!-- Tasks Selection -->
+            <div class="ov-card-head" style="margin-top:2px;">
+              <span><i class="fas fa-tasks" style="color:var(--brand);"></i> التاسكات المحددة <span class="ov-badge" id="ovTasksCountBadge">0</span></span>
+              <div style="display:inline-flex; gap:4px;">
+                <button type="button" class="ov-btn-mini" onclick="selectOverviewAllTasks(true)">الكل</button>
+                <button type="button" class="ov-btn-mini" onclick="selectOverviewRecentTasks(5)">أحدث 5</button>
+                <button type="button" class="ov-btn-mini" onclick="selectOverviewAllTasks(false)">إلغاء</button>
+              </div>
+            </div>
+            <input type="text" id="ovTaskFilterInput" oninput="filterOverviewTasksList()" placeholder="فلترة قائمة التاسكات..." class="ov-input" style="padding:4px 8px; font-size:0.75rem; height:28px;">
+            <div id="ovTasksList" class="ov-list-scroll">
+              <!-- Loaded dynamically in JS -->
+            </div>
+
+            <!-- Solution Status Filter -->
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
+              <label class="ov-label"><i class="fas fa-check-double"></i> حالة حل التاسكات:</label>
+              <select id="ovAnswerStatus" class="ov-select" onchange="renderOverviewTable()">
+                <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
+                <option value="completed_all">أتموا جميع التاسكات المحددة (100% مكتمل)</option>
+                <option value="partial">حل جزئي (أنجزوا بعض التاسكات ولديهم متبقي)</option>
+                <option value="at_least_one">حلوا تاسك واحد على الأقل</option>
+                <option value="missing">لديهم تاسكات لم تُحل بعد</option>
+                <option value="unanswered">لم يحلوا أي تاسك نهائياً (0%)</option>
+              </select>
+            </div>
+
+            <!-- Grade / Performance Filter -->
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label class="ov-label"><i class="fas fa-award"></i> مستوى التقييم والدرجات:</label>
+              <select id="ovGradeFilter" class="ov-select" onchange="renderOverviewTable()">
+                <option value="all">كل المستويات والدرجات</option>
+                <option value="excellent">ممتاز / متفوق (85% فأعلى)</option>
+                <option value="very_good">جيد جداً فأعلى (75% فأعلى)</option>
+                <option value="pass">ناجح (50% فأعلى)</option>
+                <option value="fail">دون المستوى / راسب (أقل من 50%)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Card 2: الترتيب والفرز -->
+          <div class="ov-card">
+            <div class="ov-card-head">
+              <span><i class="fas fa-sort-amount-down" style="color:var(--brand);"></i> خيارات الترتيب والفرز</span>
+            </div>
+
+            <!-- Student Sort By -->
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label class="ov-label"><i class="fas fa-user-graduate"></i> ترتيب الطلاب حسب:</label>
+              <select id="ovSortBy" class="ov-select" onchange="renderOverviewTable()">
+                <option value="name" selected>اسم الطالب (أبجدياً)</option>
+                <option value="class">الفصل ثم اسم الطالب</option>
+                <option value="solved_count">عدد التاسكات المكتملة</option>
+                <option value="total_score">إجمالي الدرجات المحصلة</option>
+                <option value="score_pct">النسبة المئوية للدرجات (%)</option>
+                <option value="last_submitted">وقت وتاريخ آخر تسليم</option>
+              </select>
+            </div>
+
+            <!-- Student Sort Direction -->
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <label class="ov-label"><i class="fas fa-exchange-alt"></i> اتجاه ترتيب الطلاب:</label>
+              <select id="ovSortDir" class="ov-select" onchange="renderOverviewTable()">
+                <option value="asc" selected>تصاعدي (أ - ي / من الأقل للأعلى)</option>
+                <option value="desc">تنازلي (ي - أ / من الأعلى للأقل)</option>
+              </select>
+            </div>
+
+            <!-- Task Sort Order -->
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+              <label class="ov-label"><i class="fas fa-calendar-alt"></i> ترتيب أعمدة التاسكات:</label>
+              <select id="ovTaskSort" class="ov-select" onchange="handleOverviewTaskSortChange()">
+                <option value="created_asc" selected>تاريخ إضافة التاسك (الأقدم أولاً - زمني)</option>
+                <option value="created_desc">تاريخ إضافة التاسك (الأحدث أولاً)</option>
+                <option value="title_asc">أبجدياً حسب عنوان التاسك</option>
+              </select>
+            </div>
+
+            <!-- View Mode -->
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+              <label class="ov-label"><i class="fas fa-table"></i> طريقة العرض والتصدير:</label>
+              <select id="ovViewMode" class="ov-select" onchange="renderOverviewTable()">
+                <option value="matrix" selected>جدول الطلاب والتاسكات الشامل (Matrix)</option>
+                <option value="by_task">قائمة المجيبين المفصلة لكل تاسك</option>
+              </select>
+            </div>
+
+            <!-- Page Orientation -->
+            <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+              <label class="ov-label"><i class="fas fa-file-pdf"></i> اتجاه الصفحة للطباعة والتصدير:</label>
+              <select id="ovOrientation" class="ov-select">
+                <option value="landscape" selected>عرضي (Landscape) - موصى به</option>
+                <option value="portrait">طولي (Portrait)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Card 3: إظهار وإخفاء الأعمدة والبيانات -->
+          <div class="ov-card">
+            <div class="ov-card-head">
+              <span><i class="fas fa-eye" style="color:var(--brand);"></i> إظهار وإخفاء الأعمدة والبيانات</span>
+              <button type="button" class="ov-btn-mini" onclick="resetOverviewDisplayToggles()">افتراضي</button>
+            </div>
+
+            <div class="ov-toggle-grid">
+              <label class="ov-toggle-item" title="إظهار أو إخفاء رقم الصف التسلسلي">
+                <input type="checkbox" id="ovShowRowIndex" onchange="renderOverviewTable()" checked>
+                <span># المسلسل</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار أو إخفاء صورة الطالب الشخصية">
+                <input type="checkbox" id="ovShowAvatar" onchange="renderOverviewTable()" checked>
+                <span>صورة الطالب</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار أو إخفاء عمود الفصل">
+                <input type="checkbox" id="ovShowClassName" onchange="renderOverviewTable()" checked>
+                <span>عمود الفصل</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار أو إخفاء عمود عدد التاسكات المنجزة">
+                <input type="checkbox" id="ovShowSolvedCount" onchange="renderOverviewTable()" checked>
+                <span>عمود الإنجاز</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار أو إخفاء عمود المجموع والنسبة المئوية">
+                <input type="checkbox" id="ovShowTotalScore" onchange="renderOverviewTable()" checked>
+                <span>المجموع والنسبة %</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار الدرجات والتقييم العددي داخل كل تاسك">
+                <input type="checkbox" id="ovShowGrades" onchange="renderOverviewTable()" checked>
+                <span>تفاصيل الدرجات</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار وقت وتاريخ تسليم كل تاسك">
+                <input type="checkbox" id="ovShowTime" onchange="renderOverviewTable()" checked>
+                <span>وقت التسليم</span>
+              </label>
+
+              <label class="ov-toggle-item" title="إظهار شريط الملخص والإحصائيات في رأس التقرير">
+                <input type="checkbox" id="ovShowStatsHeader" onchange="renderOverviewTable()" checked>
+                <span>إحصائيات الرأس</span>
+              </label>
+            </div>
+
+            <!-- Quick Hint / Instructions -->
+            <div style="font-size:0.74rem; color:var(--t3); line-height:1.4; margin-top:auto; background:var(--bg); border:1px dashed var(--bdr); padding:8px 10px; border-radius:8px;">
+              💡 <strong>نصيحة:</strong> يمكنك إلغاء تحديد بعض الأعمدة أو التاسكات للتركيز على نتائج محددة فقط وتسهيل طباعتها كـ PDF أو صورة.
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Summary Strip -->
+        <div class="ov-summary-strip" id="ovSummaryStrip">
+          <div class="ov-summary-pills-wrap">
+            <div class="ov-summary-pill"><i class="fas fa-user-friends"></i> الطلاب: <span id="ovStatStudents">0</span></div>
+            <div class="ov-summary-pill"><i class="fas fa-file-alt"></i> التاسكات: <span id="ovStatTasks">0</span></div>
+            <div class="ov-summary-pill"><i class="fas fa-check-circle" style="color:#10b981;"></i> نسبة الحل: <span id="ovStatSolveRate">0%</span></div>
+            <div class="ov-summary-pill"><i class="fas fa-chart-line" style="color:#8b5cf6;"></i> متوسط الدرجات: <span id="ovStatAvgScore">0%</span></div>
+          </div>
+          <div style="font-size:0.75rem; color:var(--t2);" id="ovActiveFiltersSummary"></div>
+        </div>
+
         <!-- Table Wrapper -->
-        <div
-          style="flex:1; border:1px solid var(--bdr); border-radius:12px; background:#fff; padding:0; overflow:auto; position:relative; min-height:250px;">
+        <div style="flex:1; border:1px solid var(--bdr); border-radius:12px; background:#fff; padding:0; overflow:auto; position:relative; min-height:280px;">
           <div id="ovTableContainer">
             <!-- Dynamically Rendered Table -->
           </div>
@@ -13975,12 +14289,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         <div style="font-size:.8rem; color:var(--t2);" id="ovStatsText">جاري معالجة البيانات...</div>
         <div class="ov-mfoot-btns" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
           <button class="btn btn-g" onclick="closeOv('overviewOv')" style="order:99;">إلغاء</button>
-          <button class="btn-export btn-msg" onclick="copyOverviewMessage()"><i class="fas fa-copy"></i> نسخ
-            كرسالة</button>
+          <button class="btn-export btn-msg" onclick="copyOverviewMessage()"><i class="fas fa-copy"></i> نسخ كرسالة</button>
           <button class="btn-export btn-csv" onclick="exportOverviewCSV()"><i class="fas fa-file-csv"></i> CSV</button>
           <button class="btn-export btn-pdf" onclick="exportOverviewPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-          <button class="btn-export btn-img" onclick="exportOverviewImage()"><i class="fas fa-file-image"></i>
-            صورة</button>
+          <button class="btn-export btn-img" onclick="exportOverviewImage()"><i class="fas fa-file-image"></i> صورة</button>
         </div>
       </div>
     </div>
@@ -15678,34 +15990,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       setVal('stTotalIframe', total);
       setVal('stDraftIframe', drafts);
 
-      // Check for troubled submissions (score > 0 but 0 coupons awarded)
-      const troubledStudents = [];
-      tasks.forEach(t => {
-        const hasOpenQs = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open' && (parseInt(q.degree) || 0) > 0);
-        (t.submissions || []).forEach(sub => {
-          const sScore = parseInt(sub.score || 0);
-          const sCoupons = parseInt(sub.coupons_awarded || 0);
-          const isGraded = (parseInt(sub.is_graded || 0) === 1) || !hasOpenQs;
-          if (isGraded && sScore > 0 && sCoupons === 0) {
-            troubledStudents.push(sub.student_name || 'طالب');
-          }
-        });
-      });
 
-      const banner = document.getElementById('couponDiscrepancyBanner');
-      if (banner) {
-        if (troubledStudents.length > 0) {
-          banner.style.display = 'flex';
-          const namesPreview = esc(troubledStudents.slice(0, 3).join('، '));
-          const moreTxt = troubledStudents.length > 3 ? ` و ${troubledStudents.length - 3} آخرين` : '';
-          const textEl = document.getElementById('couponDiscrepancyText');
-          if (textEl) {
-            textEl.innerHTML = `تم رصد <strong>${troubledStudents.length}</strong> إجابة حصلت على درجات ولم تُمنح كوبونات (مثل: <strong>${namesPreview}${moreTxt}</strong>). اضغط الزر للمزامنة والتصحيح الفوري لجميع الطلاب!`;
-          }
-        } else {
-          banner.style.display = 'none';
-        }
-      }
     }
 
 
@@ -17151,8 +17436,13 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
     function convertMilestonesToTiers(milestones) {
       const sorted = [...milestones].sort((a, b) => a.pct - b.pct);
-      if (sorted.length === 0 || sorted[0].pct > 0) {
-        sorted.unshift({ pct: 0, coupons: 0 });
+      if (sorted.length === 0) {
+        return [];
+      }
+      // The lowest milestone applies to that percentage and anything under it (down to 0)
+      const lowestCoupons = sorted[0].coupons;
+      if (sorted[0].pct > 0) {
+        sorted.unshift({ pct: 0, coupons: lowestCoupons });
       }
 
       const tiers = [];
@@ -19610,26 +19900,18 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
             const isGraded = (parseInt(s.is_graded || 0) === 1) || !hasOpenQs;
             const scoreVal = parseInt(s.score || 0);
             const couponsAwarded = parseInt(s.coupons_awarded || 0);
-            const studentTaskCoupons = s.student_task_coupons !== undefined ? parseInt(s.student_task_coupons) : (stud?.task_coupons || couponsAwarded);
-            const hasProblem = isGraded && (scoreVal > 0) && (couponsAwarded === 0);
 
             const scoreBadge = isGraded
               ? `<span style="font-size:.68rem;background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;">${scoreVal}/${t.total_degree}</span>`
               : `<span style="font-size:.68rem;background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;"><i class="fas fa-clock"></i> لم يتم التقييم</span>`;
 
-            let couponBadge = '';
-            if (hasProblem) {
-              couponBadge = `<span style="font-size:.68rem;background:var(--err-bg);color:var(--err);border:1px solid #fca5a5;border-radius:var(--r-full);padding:2px 7px;font-weight:800;flex-shrink:0;display:inline-flex;align-items:center;gap:3px;" title="تنبيه: حصل على ${scoreVal}/${t.total_degree} ولكن الكوبونات 0!"><i class="fas fa-exclamation-triangle"></i> 0 كوبون</span>`;
-            } else if (isGraded) {
-              couponBadge = `<span style="font-size:.68rem;background:var(--cou-bg);color:var(--cou);border:1px solid #c4b5fd;border-radius:var(--r-full);padding:2px 7px;font-weight:800;flex-shrink:0;display:inline-flex;align-items:center;gap:3px;" title="الكوبونات المكتسبة لهذا التاسك: ${couponsAwarded} (نفس المعروض في بروفايل الطفل)"><i class="fas fa-star" style="color:var(--cou-l);"></i> ${couponsAwarded} كوبون</span>`;
-            }
+            const couponBadge = isGraded
+              ? `<span style="font-size:.68rem;background:var(--cou-bg);color:var(--cou);border:1px solid #c4b5fd;border-radius:var(--r-full);padding:2px 7px;font-weight:800;flex-shrink:0;display:inline-flex;align-items:center;gap:3px;"><i class="fas fa-star" style="color:var(--cou-l);"></i> ${couponsAwarded} كوبون</span>`
+              : '';
 
             return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
                 ${avatar}
-                <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
-                  <span style="font-size:.8rem;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name || '—')}</span>
-                  <span style="font-size:.64rem;color:var(--t3);"><i class="fas fa-id-badge"></i> بروفايل: <strong style="color:var(--t1);">${studentTaskCoupons}</strong> كوبون تاسكات</span>
-                </div>
+                <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name || '—')}</span>
                 ${scoreBadge}
                 ${couponBadge}
                 ${hasOpenQs ? `<button onclick="event.stopPropagation();closeDetail();openGradePanel(${t.id},${s.id},true)"
@@ -19823,16 +20105,11 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-          <div class="fsec-title" style="margin-bottom:0;"><i class="fas fa-users"></i>${PEOPLE} الذين أجابوا (${subs.length}) — ${tc} كوبون ممنوح</div>
-          <button onclick="syncSingleTaskCoupons(${t.id})" style="background:var(--cou-bg);border:1px solid #c4b5fd;color:var(--cou);font-weight:800;font-size:.74rem;padding:5px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'Cairo',sans-serif;" title="إعادة فحص ومزامنة كوبونات هذا التاسك بأثر رجعي">
-            <i class="fas fa-sync-alt"></i> مزامنة كوبونات التاسك
-          </button>
-        </div>
+        <div class="fsec-title"><i class="fas fa-users"></i>${PEOPLE} الذين أجابوا (${subs.length}) — ${tc} كوبون ممنوح</div>
 
         ${subs.length ? `<div style="overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--r-md);">
 
-          <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات الممنوحة</th><th>رصيد بروفايل الطالب</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
+          <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
           <tbody>${subs.map(s => {
           const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
           const photo = stud ? stud.photo : '';
@@ -19840,8 +20117,6 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           const isGraded = (parseInt(s.is_graded || 0) === 1) || !hasOpenQs;
           const scoreVal = parseInt(s.score || 0);
           const couponsAwarded = parseInt(s.coupons_awarded || 0);
-          const studentTaskCoupons = s.student_task_coupons !== undefined ? parseInt(s.student_task_coupons) : (stud?.task_coupons || couponsAwarded);
-          const hasProblem = isGraded && (scoreVal > 0) && (couponsAwarded === 0);
 
           return `<tr>
               <td data-label="${PEOPLE}">
@@ -19852,24 +20127,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
               </td>
               <td data-label="الدرجة"><span style="font-weight:700;">${scoreVal}/${t.total_degree}</span></td>
               <td data-label="النسبة">${t.total_degree ? Math.round(scoreVal / t.total_degree * 100) : 0}%</td>
-              <td data-label="الكوبونات الممنوحة">
-                ${hasProblem ? `
-                  <div style="display:inline-flex;flex-direction:column;gap:3px;">
-                    <span style="display:inline-flex;align-items:center;gap:4px;background:var(--err-bg);color:var(--err);border:1px solid #fca5a5;padding:2px 8px;border-radius:6px;font-weight:800;font-size:.74rem;">
-                      <i class="fas fa-exclamation-triangle"></i> 0 كوبون (مشكلة)
-                    </span>
-                    <button onclick="event.stopPropagation();syncSingleTaskCoupons(${t.id})" style="background:var(--err);color:#fff;border:none;border-radius:4px;padding:2px 6px;font-size:.65rem;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><i class="fas fa-sync-alt"></i> إصلاح فوري</button>
-                  </div>
-                ` : `
-                  <span style="color:var(--cou);font-weight:800;font-size:.82rem;display:inline-flex;align-items:center;gap:4px;">
-                    <i class="fas fa-star" style="color:var(--cou-l);"></i>
-                    <strong>${couponsAwarded}</strong> كوبون
-                  </span>
-                `}
-              </td>
-              <td data-label="رصيد بروفايل الطالب">
-                <span style="font-size:.78rem;font-weight:700;color:var(--t1);display:inline-flex;align-items:center;gap:4px;" title="إجمالي رصيد كوبونات التاسكات كما يراه الطالب في بروفايله"><i class="fas fa-wallet" style="color:var(--brand);font-size:.75rem;"></i> ${studentTaskCoupons} كوبون</span>
-              </td>
+              <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${couponsAwarded} <i class="fas fa-star"></i></span></td>
               <td data-label="التوقيت" style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
               <td>
                 <div style="display:flex;gap:4px;">
@@ -19899,10 +20157,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
           <span>قواعد توزيع الكوبونات</span>
         </div>
         <div class="detail-milestones-grid" style="grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px;">
-          ${convertTiersToMilestones(matrix).map(m => `
+          ${convertTiersToMilestones(matrix).map((m, idx) => `
             <div class="detail-milestone-card" style="padding:6px 8px; border-radius:8px; gap:2px; border:1.5px solid var(--brand-l); background:var(--bg-card); text-align:center; display:flex; flex-direction:column; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
               <div style="font-size:0.65rem; font-weight:700; color:var(--t3);">عند الحصول على</div>
-              <div style="font-size:0.9rem; font-weight:900; color:var(--brand);">${m.pct}% أو أكثر</div>
+              <div style="font-size:0.9rem; font-weight:900; color:var(--brand);">${idx === 0 ? `${m.pct}% أو أقل` : `${m.pct}% أو أكثر`}</div>
               <div style="font-size:0.65rem; font-weight:800; color:var(--brand); display:inline-flex; align-items:center; justify-content:center; gap:4px; margin-top:2px; background:var(--brand-bg); padding:2px 6px; border-radius:12px; border:1px solid var(--brand-l);">
                 <i class="fas fa-star" style="color:var(--brand); font-size:0.6rem;"></i>
                 <span>${m.coupons} كوبون</span>
@@ -21003,21 +21261,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const hasOpenQuestions = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open' && (parseInt(q.degree) || 0) > 0);
 
       const subCoupons = parseInt(sub.coupons_awarded || 0);
-      const subStudentTaskCoupons = sub.student_task_coupons !== undefined ? parseInt(sub.student_task_coupons) : (stud?.task_coupons || subCoupons);
-      const subScoreVal = parseInt(score || 0);
-      const subHasProblem = isSubGraded && (subScoreVal > 0) && (subCoupons === 0);
-
       const couponsHeaderHtml = isSubGraded
-        ? (subHasProblem
-            ? `<div style="text-align:center;flex-shrink:0;background:var(--err-bg);border:1.5px solid #fca5a5;border-radius:10px;padding:6px 12px;">
-                 <div style="font-size:1.05rem;font-weight:900;color:var(--err);line-height:1.1;"><i class="fas fa-exclamation-triangle"></i> 0 كوبون</div>
-                 <div style="font-size:.65rem;color:var(--err);margin-top:2px;">(مشكلة: رُصدت درجة بدون كوبونات)</div>
-                 <button onclick="syncSingleTaskCoupons(${t.id})" style="margin-top:4px;background:var(--err);color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:.65rem;cursor:pointer;font-weight:700;"><i class="fas fa-sync-alt"></i> إصلاح فوري</button>
-               </div>`
-            : `<div style="text-align:center;flex-shrink:0;background:var(--cou-bg);border:1.5px solid #c4b5fd;border-radius:10px;padding:6px 12px;">
-                 <div style="font-size:1.15rem;font-weight:900;color:var(--cou);line-height:1.1;"><i class="fas fa-star" style="color:var(--cou-l);"></i> ${subCoupons} <span style="font-size:.75rem;font-weight:700;">كوبون</span></div>
-                 <div style="font-size:.66rem;color:var(--t3);margin-top:3px;"><i class="fas fa-wallet" style="font-size:.6rem;"></i> بروفايل الطفل: <strong style="color:var(--t1);">${subStudentTaskCoupons}</strong></div>
-               </div>`)
+        ? `<div style="text-align:center;flex-shrink:0;background:var(--cou-bg);border:1.5px solid #c4b5fd;border-radius:10px;padding:6px 12px;">
+             <div style="font-size:1.15rem;font-weight:900;color:var(--cou);line-height:1.1;"><i class="fas fa-star" style="color:var(--cou-l);"></i> ${subCoupons} <span style="font-size:.75rem;font-weight:700;">كوبون</span></div>
+           </div>`
         : '';
 
       const scoreHeaderHtml = isSubGraded
@@ -21549,56 +21796,28 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, dur);
     }
 
-    async function triggerRetroactiveCouponSync() {
-      showToast('جاري فحص ومزامنة كوبونات جميع الطلاب بأثر رجعي...', 'info');
-      try {
-        const d = await api('retroactiveFixTaskCoupons');
-        if (d && d.success) {
-          showToast('تم فحص وتحديث كوبونات الطلاب بأثر رجعي بنجاح ✓', 'ok');
-          await loadTasks();
-          if (typeof detailTask !== 'undefined' && detailTask && detailTask.id) {
-            openDetail(detailTask.id);
-          }
-        } else {
-          showToast(d.message || 'حدث خطأ أثناء المزامنة', 'err');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'err');
-      }
-    }
-    window.triggerRetroactiveCouponSync = triggerRetroactiveCouponSync;
 
-    async function syncSingleTaskCoupons(taskId) {
-      showToast('جاري فحص وتحديث كوبونات هذا التاسك بأثر رجعي...', 'info');
-      try {
-        const d = await api('retroactiveFixTaskCoupons', { task_id: taskId });
-        if (d && d.success) {
-          showToast('تم تحديث كوبونات التاسك بنجاح ✓', 'ok');
-          await loadTasks();
-          if (typeof detailTask !== 'undefined' && detailTask && detailTask.id == taskId) {
-            openDetail(taskId);
-          }
-        } else {
-          showToast(d.message || 'فشل التحديث', 'err');
-        }
-      } catch (e) {
-        showToast('خطأ في الاتصال بالخادم', 'err');
-      }
-    }
-    window.syncSingleTaskCoupons = syncSingleTaskCoupons;
 
     // ─── Tasks Overview and Export Logic ──────────────────────────────────────────
+
+    let overviewSelectedTaskIds = new Set();
+    let overviewAvailableTasks = [];
 
     async function openTasksOverviewModal() {
       showToast('جاري جلب البيانات...', 'info');
       try {
+        const d = await api('getTasks', {});
+        if (d && d.success && Array.isArray(d.tasks)) {
+          tasks = d.tasks;
+        }
         await loadStudents('كل الفصول');
       } catch (e) {
-        console.error(e);
+        console.error('Error loading data for overview modal:', e);
       }
 
       openOv('overviewOv');
       buildOverviewClassesList();
+      buildOverviewTasksList();
       renderOverviewTable();
     }
 
@@ -21609,64 +21828,57 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
       allClasses.forEach(cl => {
         const wrap = document.createElement('label');
-        wrap.className = 'ov-class-label';
-        wrap.style = "display:flex; align-items:center; gap:6px; cursor:pointer; font-size:.8rem; background:var(--bg-card); padding:4px 8px; border-radius:6px; border:1px solid var(--bdr); transition:all 0.2s;";
+        wrap.className = 'ov-chip';
 
         const chk = document.createElement('input');
         chk.type = 'checkbox';
         chk.value = cl.arabic_name;
         chk.className = 'ov-class-checkbox';
-        chk.style.accentColor = 'var(--brand)';
-        chk.style.width = '14px';
-        chk.style.height = '14px';
-        chk.style.cursor = 'pointer';
 
         if (!CFG.activeClass || CFG.activeClass === 'كل الفصول' || cl.arabic_name === CFG.activeClass) {
           chk.checked = true;
         }
 
-        chk.onchange = renderOverviewTable;
+        chk.onchange = () => {
+          updateOverviewClassesCountBadge();
+          buildOverviewTasksList();
+          renderOverviewTable();
+        };
 
         wrap.appendChild(chk);
         wrap.appendChild(document.createTextNode(' ' + cl.arabic_name));
         container.appendChild(wrap);
       });
+
+      updateOverviewClassesCountBadge();
     }
 
-    function renderOverviewTable() {
-      const tableContainer = document.getElementById('ovTableContainer');
-      const statsText = document.getElementById('ovStatsText');
-      if (!tableContainer) return;
+    function updateOverviewClassesCountBadge() {
+      const checked = document.querySelectorAll('.ov-class-checkbox:checked').length;
+      const total = document.querySelectorAll('.ov-class-checkbox').length;
+      const badge = document.getElementById('ovClassesCountBadge');
+      if (badge) badge.textContent = `${checked}/${total}`;
+    }
 
-      const showGrades = document.getElementById('ovShowGrades').checked;
-      const showTime = document.getElementById('ovShowTime').checked;
-      const statusFilter = document.getElementById('ovAnswerStatus').value;
-      const searchVal = document.getElementById('ovStudentSearch').value.trim();
+    function selectOverviewAllClasses(checked) {
+      document.querySelectorAll('.ov-class-checkbox').forEach(cb => { cb.checked = checked; });
+      updateOverviewClassesCountBadge();
+      buildOverviewTasksList();
+      renderOverviewTable();
+    }
+
+    function buildOverviewTasksList() {
+      const container = document.getElementById('ovTasksList');
+      if (!container) return;
 
       const checkedClassNames = Array.from(document.querySelectorAll('.ov-class-checkbox:checked')).map(cb => cb.value);
-
-      if (checkedClassNames.length === 0) {
-        tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">برجاء تحديد فصل واحد على الأقل للعرض.</div>';
-        statsText.textContent = 'العدد: 0 | عدد التاسكات: 0';
-        return;
-      }
-
-      let targetStudents = [];
-      checkedClassNames.forEach(cn => {
-        const list = classStuCache[cn] || [];
-        list.forEach(s => {
-          if (!targetStudents.some(item => item.id === s.id)) {
-            targetStudents.push({ ...s, className: cn });
-          }
-        });
-      });
-
       const checkedClassIds = checkedClassNames.map(cn => {
         const found = allClasses.find(c => c.arabic_name === cn);
         return found ? String(found.id) : null;
       }).filter(Boolean);
 
-      const targetTasks = tasks.filter(t => {
+      // Filter tasks matching checked classes
+      overviewAvailableTasks = tasks.filter(t => {
         if (t.status === 'draft') return false;
         const tClasses = getTaskClassNames(t);
         if (t.class_id === 0 || tClasses.includes('كل الفصول')) return true;
@@ -21678,8 +21890,219 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         return false;
       });
 
-      targetTasks.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      // Sort available tasks according to ovTaskSort
+      sortOverviewTasksArray(overviewAvailableTasks);
 
+      container.innerHTML = '';
+      if (overviewAvailableTasks.length === 0) {
+        container.innerHTML = '<div style="font-size:0.75rem; color:var(--t3); padding:8px 4px;">لا توجد تاسكات لهذه الفصول.</div>';
+        updateOverviewTasksCountBadge();
+        return;
+      }
+
+      // If overviewSelectedTaskIds is empty, default to checking all available tasks
+      const isFirstInit = overviewSelectedTaskIds.size === 0;
+
+      overviewAvailableTasks.forEach(t => {
+        const wrap = document.createElement('label');
+        wrap.className = 'ov-chip ov-task-chip';
+        wrap.setAttribute('data-task-title', (t.title || '').toLowerCase());
+
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.value = String(t.id);
+        chk.className = 'ov-task-checkbox';
+
+        if (isFirstInit || overviewSelectedTaskIds.has(String(t.id))) {
+          chk.checked = true;
+          overviewSelectedTaskIds.add(String(t.id));
+        } else {
+          chk.checked = false;
+        }
+
+        chk.onchange = () => {
+          if (chk.checked) {
+            overviewSelectedTaskIds.add(String(t.id));
+          } else {
+            overviewSelectedTaskIds.delete(String(t.id));
+          }
+          updateOverviewTasksCountBadge();
+          renderOverviewTable();
+        };
+
+        wrap.appendChild(chk);
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = t.title + (t.total_degree ? ` (${t.total_degree}د)` : '');
+        wrap.appendChild(titleSpan);
+        container.appendChild(wrap);
+      });
+
+      updateOverviewTasksCountBadge();
+    }
+
+    function sortOverviewTasksArray(arr) {
+      const sortMode = document.getElementById('ovTaskSort') ? document.getElementById('ovTaskSort').value : 'created_asc';
+      if (sortMode === 'created_desc') {
+        arr.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      } else if (sortMode === 'title_asc') {
+        arr.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ar'));
+      } else { // created_asc
+        arr.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+      }
+    }
+
+    function handleOverviewTaskSortChange() {
+      buildOverviewTasksList();
+      renderOverviewTable();
+    }
+
+    function filterOverviewTasksList() {
+      const q = (document.getElementById('ovTaskFilterInput')?.value || '').trim().toLowerCase();
+      const chips = document.querySelectorAll('.ov-task-chip');
+      chips.forEach(chip => {
+        const title = chip.getAttribute('data-task-title') || '';
+        if (!q || title.includes(q)) {
+          chip.style.display = 'inline-flex';
+        } else {
+          chip.style.display = 'none';
+        }
+      });
+    }
+
+    function updateOverviewTasksCountBadge() {
+      const checked = document.querySelectorAll('.ov-task-checkbox:checked').length;
+      const total = document.querySelectorAll('.ov-task-checkbox').length;
+      const badge = document.getElementById('ovTasksCountBadge');
+      if (badge) badge.textContent = `${checked}/${total}`;
+    }
+
+    function selectOverviewAllTasks(checked) {
+      document.querySelectorAll('.ov-task-checkbox').forEach(cb => {
+        cb.checked = checked;
+        if (checked) overviewSelectedTaskIds.add(cb.value);
+        else overviewSelectedTaskIds.delete(cb.value);
+      });
+      updateOverviewTasksCountBadge();
+      renderOverviewTable();
+    }
+
+    function selectOverviewRecentTasks(count) {
+      const sorted = [...overviewAvailableTasks].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      const recentIds = new Set(sorted.slice(0, count).map(t => String(t.id)));
+
+      overviewSelectedTaskIds.clear();
+      document.querySelectorAll('.ov-task-checkbox').forEach(cb => {
+        if (recentIds.has(cb.value)) {
+          cb.checked = true;
+          overviewSelectedTaskIds.add(cb.value);
+        } else {
+          cb.checked = false;
+        }
+      });
+
+      updateOverviewTasksCountBadge();
+      renderOverviewTable();
+    }
+
+    function toggleOverviewControlsPanel() {
+      const panel = document.getElementById('ovControlsPanel');
+      const text = document.getElementById('ovTogglePanelText');
+      if (!panel) return;
+      if (panel.style.display === 'none') {
+        panel.style.display = 'grid';
+        if (text) text.textContent = 'إخفاء خيارات التخصيص';
+      } else {
+        panel.style.display = 'none';
+        if (text) text.textContent = 'إظهار خيارات التخصيص';
+      }
+    }
+
+    function clearOverviewSearch() {
+      const input = document.getElementById('ovStudentSearch');
+      if (input) {
+        input.value = '';
+        renderOverviewTable();
+      }
+    }
+
+    function resetOverviewDisplayToggles() {
+      const ids = ['ovShowRowIndex', 'ovShowAvatar', 'ovShowClassName', 'ovShowSolvedCount', 'ovShowTotalScore', 'ovShowGrades', 'ovShowTime', 'ovShowStatsHeader'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = true;
+      });
+      const ori = document.getElementById('ovOrientation');
+      if (ori) ori.value = 'landscape';
+      renderOverviewTable();
+    }
+
+    function resetOverviewAllSettings() {
+      if (document.getElementById('ovStudentSearch')) document.getElementById('ovStudentSearch').value = '';
+      if (document.getElementById('ovTaskFilterInput')) document.getElementById('ovTaskFilterInput').value = '';
+      if (document.getElementById('ovAnswerStatus')) document.getElementById('ovAnswerStatus').value = 'both';
+      if (document.getElementById('ovGradeFilter')) document.getElementById('ovGradeFilter').value = 'all';
+      if (document.getElementById('ovSortBy')) document.getElementById('ovSortBy').value = 'name';
+      if (document.getElementById('ovSortDir')) document.getElementById('ovSortDir').value = 'asc';
+      if (document.getElementById('ovTaskSort')) document.getElementById('ovTaskSort').value = 'created_asc';
+      if (document.getElementById('ovViewMode')) document.getElementById('ovViewMode').value = 'matrix';
+      resetOverviewDisplayToggles();
+      selectOverviewAllClasses(true);
+      selectOverviewAllTasks(true);
+    }
+
+    function renderOverviewTable() {
+      const tableContainer = document.getElementById('ovTableContainer');
+      const statsText = document.getElementById('ovStatsText');
+      if (!tableContainer) return;
+
+      // Visibility toggles
+      const showRowIndex = document.getElementById('ovShowRowIndex')?.checked ?? true;
+      const showAvatar = document.getElementById('ovShowAvatar')?.checked ?? true;
+      const showClassName = document.getElementById('ovShowClassName')?.checked ?? true;
+      const showSolvedCount = document.getElementById('ovShowSolvedCount')?.checked ?? true;
+      const showTotalScore = document.getElementById('ovShowTotalScore')?.checked ?? true;
+      const showGrades = document.getElementById('ovShowGrades')?.checked ?? true;
+      const showTime = document.getElementById('ovShowTime')?.checked ?? true;
+      const viewMode = document.getElementById('ovViewMode')?.value || 'matrix';
+
+      // Filters & Sorts
+      const answerStatus = document.getElementById('ovAnswerStatus')?.value || 'both';
+      const gradeFilter = document.getElementById('ovGradeFilter')?.value || 'all';
+      const sortBy = document.getElementById('ovSortBy')?.value || 'name';
+      const sortDir = document.getElementById('ovSortDir')?.value || 'asc';
+      const searchVal = (document.getElementById('ovStudentSearch')?.value || '').trim();
+
+      // Selected classes
+      const checkedClassNames = Array.from(document.querySelectorAll('.ov-class-checkbox:checked')).map(cb => cb.value);
+      if (checkedClassNames.length === 0) {
+        tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);"><i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px; display:block; color:var(--warn);"></i>برجاء تحديد فصل واحد على الأقل للعرض.</div>';
+        updateOverviewStats(0, 0, 0, 0, []);
+        return;
+      }
+
+      // Collect target students
+      let targetStudents = [];
+      checkedClassNames.forEach(cn => {
+        const list = classStuCache[cn] || [];
+        list.forEach(s => {
+          if (!targetStudents.some(item => item.id === s.id)) {
+            targetStudents.push({ ...s, className: cn });
+          }
+        });
+      });
+
+      // Target tasks
+      const checkedTaskIds = new Set(Array.from(document.querySelectorAll('.ov-task-checkbox:checked')).map(cb => cb.value));
+      let targetTasks = overviewAvailableTasks.filter(t => checkedTaskIds.has(String(t.id)));
+      sortOverviewTasksArray(targetTasks);
+
+      if (targetTasks.length === 0) {
+        tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);"><i class="fas fa-tasks" style="font-size:2rem; margin-bottom:10px; display:block; color:var(--warn);"></i>برجاء تحديد تاسك واحد على الأقل للعرض.</div>';
+        updateOverviewStats(targetStudents.length, 0, 0, 0, []);
+        return;
+      }
+
+      // Build submission lookup map
       const subMap = {};
       targetTasks.forEach(t => {
         const subs = t.submissions || [];
@@ -21688,105 +22111,188 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         });
       });
 
+      // Calculate per-student metrics
+      const totalPossibleMax = targetTasks.reduce((acc, t) => acc + (parseInt(t.total_degree) || 0), 0);
+
+      targetStudents.forEach(s => {
+        let solved = 0;
+        let totalScore = 0;
+        let latestTime = null;
+
+        targetTasks.forEach(t => {
+          const sub = subMap[s.id + '_' + t.id];
+          if (sub) {
+            solved++;
+            totalScore += (parseFloat(sub.score) || 0);
+            if (sub.submitted_at) {
+              const d = new Date(sub.submitted_at);
+              if (!latestTime || d > latestTime) latestTime = d;
+            }
+          }
+        });
+
+        s.solvedCount = solved;
+        s.totalScore = totalScore;
+        s.maxPossibleScore = totalPossibleMax;
+        s.scorePct = totalPossibleMax > 0 ? (totalScore / totalPossibleMax) * 100 : (targetTasks.length > 0 ? (solved / targetTasks.length) * 100 : 0);
+        s.latestSubmittedAt = latestTime;
+      });
+
+      // Track active filter labels for summary
+      const activeFilterLabels = [];
+
+      // Filter by answer status
+      if (answerStatus !== 'both') {
+        if (answerStatus === 'completed_all') activeFilterLabels.push('أتموا جميع التاسكات (100%)');
+        else if (answerStatus === 'partial') activeFilterLabels.push('حل جزئي');
+        else if (answerStatus === 'at_least_one') activeFilterLabels.push('حلوا تاسك واحد على الأقل');
+        else if (answerStatus === 'missing') activeFilterLabels.push('لديهم تاسكات متبقية');
+        else if (answerStatus === 'unanswered') activeFilterLabels.push('لم يحلوا أي تاسك (0%)');
+
+        targetStudents = targetStudents.filter(s => {
+          if (answerStatus === 'completed_all') return s.solvedCount === targetTasks.length && targetTasks.length > 0;
+          if (answerStatus === 'partial') return s.solvedCount > 0 && s.solvedCount < targetTasks.length;
+          if (answerStatus === 'at_least_one') return s.solvedCount > 0;
+          if (answerStatus === 'missing') return s.solvedCount < targetTasks.length;
+          if (answerStatus === 'unanswered') return s.solvedCount === 0;
+          return true;
+        });
+      }
+
+      // Filter by grade / performance
+      if (gradeFilter !== 'all') {
+        if (gradeFilter === 'excellent') activeFilterLabels.push('ممتاز (≥85%)');
+        else if (gradeFilter === 'very_good') activeFilterLabels.push('جيد جداً (≥75%)');
+        else if (gradeFilter === 'pass') activeFilterLabels.push('ناجح (≥50%)');
+        else if (gradeFilter === 'fail') activeFilterLabels.push('راسب (<50%)');
+
+        targetStudents = targetStudents.filter(s => {
+          if (gradeFilter === 'excellent') return s.scorePct >= 85;
+          if (gradeFilter === 'very_good') return s.scorePct >= 75;
+          if (gradeFilter === 'pass') return s.scorePct >= 50;
+          if (gradeFilter === 'fail') return s.scorePct < 50;
+          return true;
+        });
+      }
+
+      // Intelligent Search (per Rule #1)
       if (searchVal && targetStudents.length > 0 && typeof getMatchScore === 'function') {
+        activeFilterLabels.push(`بحث: "${searchVal}"`);
         targetStudents = targetStudents.map(s => {
           const score = getMatchScore(s, searchVal, [
             { val: s.name, weight: 1.0 },
             { val: s.className, weight: 0.5 }
           ]);
           return { ...s, _score: score };
-        }).filter(s => s._score > 0)
-          .sort((a, b) => b._score - a._score);
+        }).filter(s => s._score > 0);
+      }
+
+      // Sort Students
+      targetStudents.sort((a, b) => {
+        if (searchVal && a._score !== undefined && b._score !== undefined && sortBy === 'name') {
+          return b._score - a._score;
+        }
+
+        let res = 0;
+        if (sortBy === 'name') {
+          res = a.name.localeCompare(b.name, 'ar');
+        } else if (sortBy === 'class') {
+          res = a.className.localeCompare(b.className, 'ar') || a.name.localeCompare(b.name, 'ar');
+        } else if (sortBy === 'solved_count') {
+          res = a.solvedCount - b.solvedCount;
+        } else if (sortBy === 'total_score') {
+          res = a.totalScore - b.totalScore;
+        } else if (sortBy === 'score_pct') {
+          res = a.scorePct - b.scorePct;
+        } else if (sortBy === 'last_submitted') {
+          const tA = a.latestSubmittedAt ? a.latestSubmittedAt.getTime() : 0;
+          const tB = b.latestSubmittedAt ? b.latestSubmittedAt.getTime() : 0;
+          res = tA - tB;
+        }
+
+        return sortDir === 'desc' ? -res : res;
+      });
+
+      // Calculate global summary stats
+      const totalPossibleSubmissions = targetStudents.length * targetTasks.length;
+      const actualSubmissions = targetStudents.reduce((acc, s) => acc + s.solvedCount, 0);
+      const overallSolveRate = totalPossibleSubmissions > 0 ? Math.round((actualSubmissions / totalPossibleSubmissions) * 100) : 0;
+      const avgScore = targetStudents.length > 0 ? Math.round(targetStudents.reduce((acc, s) => acc + s.scorePct, 0) / targetStudents.length) : 0;
+
+      updateOverviewStats(targetStudents.length, targetTasks.length, overallSolveRate, avgScore, activeFilterLabels);
+
+      // Render Table based on View Mode
+      if (viewMode === 'by_task') {
+        renderPerTaskView(tableContainer, targetTasks, targetStudents, subMap, {
+          showRowIndex,
+          showClassName,
+          showGrades,
+          showTime
+        });
       } else {
-        targetStudents.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-      }
-
-      if (targetTasks.length > 0) {
-        targetStudents = targetStudents.filter(s => {
-          const solvedCount = targetTasks.filter(t => subMap[s.id + '_' + t.id]).length;
-          if (statusFilter === 'answered') {
-            return solvedCount > 0;
-          } else if (statusFilter === 'unanswered') {
-            return solvedCount === 0;
-          } else if (statusFilter === 'missing') {
-            return solvedCount < targetTasks.length;
-          }
-          return true;
+        renderMatrixView(tableContainer, targetTasks, targetStudents, subMap, {
+          showRowIndex,
+          showAvatar,
+          showClassName,
+          showSolvedCount,
+          showTotalScore,
+          showGrades,
+          showTime
         });
       }
+    }
 
-      if (targetTasks.length === 0) {
-        tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">لا توجد تاسكات منشورة لهذه الفصول بعد.</div>';
-        statsText.textContent = `العدد: ${targetStudents.length} | عدد التاسكات: 0`;
-        return;
-      }
-
-      const onlyResList = document.getElementById('ovOnlyResList') && document.getElementById('ovOnlyResList').checked;
-      if (onlyResList) {
-        let html = `<table class="ov-table" id="ovExportTable">`;
-        html += `<thead><tr>`;
-        html += `<th style="width:30%;">اسم التاسك</th>`;
-        html += `<th style="width:15%; text-align:center;">الفصل</th>`;
-        html += `<th style="width:15%; text-align:center;">عدد المجيبين</th>`;
-        html += `<th style="width:40%;">الذين أجابوا</th>`;
-        html += `</tr></thead><tbody>`;
-
-        targetTasks.forEach(t => {
-          const respondents = targetStudents.filter(s => subMap[s.id + '_' + t.id]);
-          let namesText = respondents.map((s, idx) => {
-            const avatar = getStudentAvatarHtml(s.photo, s.name, '20px');
-            if (showGrades) {
-              const sub = subMap[s.id + '_' + t.id];
-              const scoreVal = parseInt(sub.score);
-              const totalVal = parseInt(t.total_degree || sub.total_degree || 0);
-              return `<span style="display:inline-flex; align-items:center; gap:5px; margin:2px 4px; padding:4px 8px; background:var(--brand-bg); color:var(--brand); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${avatar} ${esc(s.name)} (${scoreVal}/${totalVal})</span>`;
-            } else {
-              return `<span style="display:inline-flex; align-items:center; gap:5px; margin:2px 4px; padding:4px 8px; background:var(--bg-card); color:var(--t1); border:1px solid var(--bdr); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${avatar} ${esc(s.name)}</span>`;
-            }
-          }).join(' ');
-
-          if (respondents.length === 0) {
-            namesText = `<span style="color:var(--t3); font-style:italic;">لا يوجد مجيبين بعد</span>`;
-          }
-
-          html += `<tr>`;
-          html += `<td><strong>${esc(t.title)}</strong></td>`;
-          html += `<td style="text-align:center;"><span class="ov-class-badge">${esc(getTaskClassNames(t).join('، ') || 'كل الفصول')}</span></td>`;
-          html += `<td style="text-align:center;"><strong style="color:var(--brand);">${respondents.length}</strong> / ${targetStudents.length}</td>`;
-          html += `<td>${namesText}</td>`;
-          html += `</tr>`;
-        });
-
-        html += `</tbody></table>`;
-        tableContainer.innerHTML = html;
-        statsText.textContent = `العدد: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
-        return;
-      }
-
+    function renderMatrixView(container, targetTasks, targetStudents, subMap, options) {
       let html = `<table class="ov-table" id="ovExportTable">`;
       html += `<thead><tr>`;
-      html += `<th style="min-width:180px;">الاسم</th>`;
-      html += `<th style="min-width:100px;">الفصل</th>`;
+      if (options.showRowIndex) html += `<th style="width:45px; text-align:center;">#</th>`;
+      html += `<th style="min-width:180px;">اسم الطالب</th>`;
+      if (options.showClassName) html += `<th style="min-width:100px; text-align:center;">الفصل</th>`;
+      if (options.showSolvedCount) html += `<th style="min-width:90px; text-align:center;">المنجز</th>`;
+      if (options.showTotalScore) html += `<th style="min-width:120px; text-align:center;">المجموع والنسبة</th>`;
 
       targetTasks.forEach(t => {
-        html += `<th style="min-width:120px; text-align:center;" title="${esc(t.title)}">${esc(t.title)}</th>`;
+        const degText = t.total_degree ? `<div class="ov-task-sub">(${t.total_degree} درجات)</div>` : '';
+        html += `<th style="min-width:120px; text-align:center;" title="${esc(t.title)}">
+          <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; margin:0 auto;">${esc(t.title)}</div>
+          ${degText}
+        </th>`;
       });
       html += `</tr></thead><tbody>`;
 
       if (targetStudents.length === 0) {
-        html += `<tr><td colspan="${targetTasks.length + 2}" style="text-align:center; padding:30px; color:var(--t3);">لا توجد نتائج تطابق خيارات البحث والترشيح.</td></tr>`;
+        const colCount = (options.showRowIndex ? 1 : 0) + 1 + (options.showClassName ? 1 : 0) + (options.showSolvedCount ? 1 : 0) + (options.showTotalScore ? 1 : 0) + targetTasks.length;
+        html += `<tr><td colspan="${colCount}" style="text-align:center; padding:35px; color:var(--t3);">لا توجد نتائج تطابق خيارات البحث والترشيح المحددة.</td></tr>`;
       } else {
-        targetStudents.forEach(s => {
+        targetStudents.forEach((s, idx) => {
           html += `<tr>`;
-          const avatar = getStudentAvatarHtml(s.photo, s.name, '24px');
+          if (options.showRowIndex) {
+            html += `<td style="text-align:center; font-weight:700; color:var(--t3); font-size:0.75rem;">${idx + 1}</td>`;
+          }
+
+          const avatar = options.showAvatar ? getStudentAvatarHtml(s.photo, s.name, '24px') : '';
           html += `<td><div style="display:flex; align-items:center; gap:8px;">${avatar} <strong>${esc(s.name)}</strong></div></td>`;
-          html += `<td><span class="ov-class-badge">${esc(s.className)}</span></td>`;
+
+          if (options.showClassName) {
+            html += `<td style="text-align:center;"><span class="ov-class-badge">${esc(s.className)}</span></td>`;
+          }
+
+          if (options.showSolvedCount) {
+            const isFull = s.solvedCount === targetTasks.length;
+            const isEmpty = s.solvedCount === 0;
+            html += `<td style="text-align:center;"><span class="ov-progress-pill ${isFull ? 'completed' : (isEmpty ? 'empty' : '')}">${s.solvedCount}/${targetTasks.length}</span></td>`;
+          }
+
+          if (options.showTotalScore) {
+            const isPass = s.scorePct >= 50;
+            html += `<td style="text-align:center;"><span class="ov-grade-badge ${isPass ? 'ov-grade-pass' : 'ov-grade-fail'}">${s.totalScore}/${s.maxPossibleScore} (${Math.round(s.scorePct)}%)</span></td>`;
+          }
 
           targetTasks.forEach(t => {
             const sub = subMap[s.id + '_' + t.id];
             html += `<td style="text-align:center;">`;
             if (sub) {
-              if (showGrades) {
+              if (options.showGrades) {
                 const scoreVal = parseInt(sub.score);
                 const totalVal = parseInt(t.total_degree || sub.total_degree || 0);
                 const pct = totalVal > 0 ? (scoreVal / totalVal) : 0;
@@ -21795,7 +22301,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
               } else {
                 html += `<span class="ov-cell-answered"><i class="fas fa-check-circle"></i> أجاب</span>`;
               }
-              if (showTime && sub.submitted_at) {
+              if (options.showTime && sub.submitted_at) {
                 const dateObj = new Date(sub.submitted_at);
                 const dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
                 html += `<span class="ov-time-text">${dateStr}</span>`;
@@ -21805,14 +22311,97 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
             }
             html += `</td>`;
           });
+
           html += `</tr>`;
         });
       }
 
       html += `</tbody></table>`;
-      tableContainer.innerHTML = html;
+      container.innerHTML = html;
+    }
 
-      statsText.textContent = `العدد: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
+    function renderPerTaskView(container, targetTasks, targetStudents, subMap, options) {
+      let html = `<table class="ov-table" id="ovExportTable">`;
+      html += `<thead><tr>`;
+      if (options.showRowIndex) html += `<th style="width:45px; text-align:center;">#</th>`;
+      html += `<th style="width:25%;">اسم التاسك</th>`;
+      if (options.showClassName) html += `<th style="width:12%; text-align:center;">الفصل</th>`;
+      html += `<th style="width:15%; text-align:center;">عدد المجيبين</th>`;
+      if (options.showGrades) html += `<th style="width:12%; text-align:center;">متوسط الدرجات</th>`;
+      html += `<th style="width:36%;">قائمة المجيبين</th>`;
+      html += `</tr></thead><tbody>`;
+
+      targetTasks.forEach((t, idx) => {
+        const respondents = targetStudents.filter(s => subMap[s.id + '_' + t.id]);
+        const totalDeg = parseInt(t.total_degree || 0);
+
+        let sumScores = 0;
+        respondents.forEach(s => {
+          const sub = subMap[s.id + '_' + t.id];
+          sumScores += (parseFloat(sub.score) || 0);
+        });
+        const avgScore = respondents.length > 0 ? (sumScores / respondents.length).toFixed(1) : '-';
+
+        let namesText = respondents.map((s, rIdx) => {
+          const avatar = getStudentAvatarHtml(s.photo, s.name, '20px');
+          const sub = subMap[s.id + '_' + t.id];
+          let subDetails = '';
+          if (options.showGrades) {
+            subDetails = ` (${parseInt(sub.score)}/${totalDeg})`;
+          }
+          let timeText = '';
+          if (options.showTime && sub.submitted_at) {
+            const d = new Date(sub.submitted_at);
+            timeText = ` <span style="font-size:0.65rem; opacity:0.75;">${d.getDate()}/${d.getMonth()+1}</span>`;
+          }
+          return `<span style="display:inline-flex; align-items:center; gap:5px; margin:2px 3px; padding:3px 7px; background:var(--brand-bg); color:var(--brand); border-radius:6px; font-size:0.75rem;">${rIdx + 1}. ${avatar} ${esc(s.name)}${subDetails}${timeText}</span>`;
+        }).join(' ');
+
+        if (respondents.length === 0) {
+          namesText = `<span style="color:var(--t3); font-style:italic;">لا يوجد مجيبين بعد</span>`;
+        }
+
+        const solvePct = targetStudents.length > 0 ? Math.round((respondents.length / targetStudents.length) * 100) : 0;
+
+        html += `<tr>`;
+        if (options.showRowIndex) {
+          html += `<td style="text-align:center; font-weight:700; color:var(--t3); font-size:0.75rem;">${idx + 1}</td>`;
+        }
+        html += `<td><strong>${esc(t.title)}</strong> ${totalDeg ? `<span class="ov-task-sub">(${totalDeg} درجات)</span>` : ''}</td>`;
+        if (options.showClassName) {
+          html += `<td style="text-align:center;"><span class="ov-class-badge">${esc(getTaskClassNames(t).join('، ') || 'كل الفصول')}</span></td>`;
+        }
+        html += `<td style="text-align:center;"><strong style="color:var(--brand);">${respondents.length}</strong> / ${targetStudents.length} <span class="ov-task-sub">(${solvePct}%)</span></td>`;
+        if (options.showGrades) {
+          html += `<td style="text-align:center;"><strong style="color:#0ca678;">${avgScore}</strong> ${totalDeg ? `/ ${totalDeg}` : ''}</td>`;
+        }
+        html += `<td>${namesText}</td>`;
+        html += `</tr>`;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    function updateOverviewStats(studentCount, taskCount, solveRate, avgScore, filterLabels = []) {
+      if (document.getElementById('ovStatStudents')) document.getElementById('ovStatStudents').textContent = studentCount;
+      if (document.getElementById('ovStatTasks')) document.getElementById('ovStatTasks').textContent = taskCount;
+      if (document.getElementById('ovStatSolveRate')) document.getElementById('ovStatSolveRate').textContent = `${solveRate}%`;
+      if (document.getElementById('ovStatAvgScore')) document.getElementById('ovStatAvgScore').textContent = `${avgScore}%`;
+
+      const filterSummary = document.getElementById('ovActiveFiltersSummary');
+      if (filterSummary) {
+        if (filterLabels.length > 0) {
+          filterSummary.innerHTML = `<span style="font-size:0.72rem; color:var(--brand); background:var(--brand-bg); padding:2px 8px; border-radius:10px;"><i class="fas fa-filter"></i> ${filterLabels.join(' | ')}</span>`;
+        } else {
+          filterSummary.innerHTML = '';
+        }
+      }
+
+      const statsText = document.getElementById('ovStatsText');
+      if (statsText) {
+        statsText.textContent = `الطلاب المعروضون: ${studentCount} | التاسكات: ${taskCount} | نسبة التسليم: ${solveRate}% | متوسط الدرجات: ${avgScore}%`;
+      }
     }
 
     function exportOverviewCSV() {
@@ -21849,48 +22438,98 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const table = document.getElementById('ovExportTable');
       if (!table) { showToast('لا توجد بيانات لنسخها', 'err'); return; }
 
-      const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
-      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const viewMode = document.getElementById('ovViewMode')?.value || 'matrix';
+      const statsText = document.getElementById('ovStatsText')?.innerText || '';
 
-      let msg = `📊 *تقرير حل التاسكات والاختبارات*\n`;
-      msg += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
+      let msg = `📊 *تقرير متابعة التاسكات والاختبارات*\n`;
+      msg += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n`;
+      msg += `📌 ${statsText}\n\n`;
 
-      msg += `📋 *التاسكات:* \n`;
-      for (let i = 2; i < headers.length; i++) {
-        msg += ` ${i - 1}- ${headers[i]}\n`;
+      if (viewMode === 'by_task') {
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        rows.forEach((tr, i) => {
+          const cells = tr.querySelectorAll('td');
+          if (cells.length < 3) return;
+          const title = tr.querySelector('td:nth-child(2)')?.innerText.trim() || '';
+          msg += `📝 *${title}*\n`;
+          const details = Array.from(cells).map(c => c.innerText.trim()).filter(Boolean);
+          msg += `   ${details.slice(2).join(' | ')}\n\n`;
+        });
+      } else {
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim().replace(/\n+/g, ' '));
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+        msg += `📋 *التاسكات المضمنة:*\n`;
+        let taskStartIndex = 1;
+        if (document.getElementById('ovShowRowIndex')?.checked) taskStartIndex++;
+        if (document.getElementById('ovShowClassName')?.checked) taskStartIndex++;
+        if (document.getElementById('ovShowSolvedCount')?.checked) taskStartIndex++;
+        if (document.getElementById('ovShowTotalScore')?.checked) taskStartIndex++;
+
+        for (let i = taskStartIndex; i < headers.length; i++) {
+          msg += `  ${i - taskStartIndex + 1}. ${headers[i]}\n`;
+        }
+        msg += `\n👤 *النتائج والدرجات:*\n`;
+
+        rows.forEach((tr, idx) => {
+          const cols = tr.querySelectorAll('td');
+          if (cols.length < 2) return;
+
+          let cIdx = 0;
+          let rowNum = '';
+          if (document.getElementById('ovShowRowIndex')?.checked) {
+            rowNum = cols[cIdx++].innerText.trim() + '. ';
+          } else {
+            rowNum = (idx + 1) + '. ';
+          }
+
+          const studentName = cols[cIdx++].innerText.trim();
+          let clsText = '';
+          if (document.getElementById('ovShowClassName')?.checked) {
+            clsText = ` (${cols[cIdx++].innerText.trim()})`;
+          }
+
+          let solvedText = '';
+          if (document.getElementById('ovShowSolvedCount')?.checked) {
+            solvedText = ` [المنجز: ${cols[cIdx++].innerText.trim()}]`;
+          }
+
+          let scoreText = '';
+          if (document.getElementById('ovShowTotalScore')?.checked) {
+            scoreText = ` [المجموع: ${cols[cIdx++].innerText.trim()}]`;
+          }
+
+          msg += `${rowNum}*${studentName}*${clsText}${solvedText}${scoreText}\n`;
+
+          for (let k = cIdx; k < cols.length; k++) {
+            const tTitle = headers[k] || 'تاسك';
+            const cellVal = cols[k].innerText.trim().replace(/\s+/g, ' ');
+            msg += `    ▫️ ${tTitle}: ${cellVal}\n`;
+          }
+        });
       }
-      msg += `\n`;
 
-      msg += `👤 *الأسماء:*\n`;
-      rows.forEach(tr => {
-        const cols = tr.querySelectorAll('td');
-        if (cols.length < 2) return;
-        const name = cols[0].innerText.trim();
-        const cls = cols[1].innerText.trim();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(msg).then(() => {
+          showToast('تم نسخ التقرير كرسالة بنجاح 📋', 'ok');
+        }).catch(() => fallbackCopyOverviewText(msg));
+      } else {
+        fallbackCopyOverviewText(msg);
+      }
+    }
 
-        msg += `• *${name}* (${cls}):\n`;
-        for (let i = 2; i < cols.length; i++) {
-          const taskTitle = headers[i];
-          const statusText = cols[i].innerText.trim().replace(/\s+/g, ' ');
-          msg += `   - ${taskTitle}: ${statusText}\n`;
-        }
-      });
-
-      navigator.clipboard.writeText(msg).then(() => {
-        showToast('تم نسخ التقرير كرسالة', 'ok');
-      }).catch(() => {
-        const textarea = document.createElement('textarea');
-        textarea.value = msg;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          document.execCommand('copy');
-          showToast('تم نسخ التقرير كرسالة', 'ok');
-        } catch (err) {
-          showToast('فشل نسخ التقرير تلقائياً', 'err');
-        }
-        document.body.removeChild(textarea);
-      });
+    function fallbackCopyOverviewText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('تم نسخ التقرير كرسالة بنجاح 📋', 'ok');
+      } catch (e) {
+        showToast('فشل نسخ التقرير', 'err');
+      }
+      document.body.removeChild(ta);
     }
 
     function copyTaskShareLink(taskId) {
@@ -21928,23 +22567,20 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const container = document.getElementById('ovTableContainer');
       if (!container) return null;
 
-      // Clone the container
       const clone = container.cloneNode(true);
 
-      // Calculate dynamic export width based on orientation and column counts
       const orientationVal = document.getElementById('ovOrientation') ? document.getElementById('ovOrientation').value : 'landscape';
       const ths = clone.querySelectorAll('thead th');
       let exportWidth = 1200;
 
       if (orientationVal === 'portrait') {
-        exportWidth = 850; // Constrain width so chips and cells wrap vertically for portrait printing
+        exportWidth = 880;
       } else {
         if (ths.length > 4) {
-          exportWidth = Math.max(1200, ths.length * 135);
+          exportWidth = Math.max(1200, ths.length * 140);
         }
       }
 
-      // Reset styles for all table components to ensure static, full-size rendering
       clone.style.position = 'absolute';
       clone.style.top = '0';
       clone.style.left = '-9999px';
@@ -21952,7 +22588,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       clone.style.height = 'auto';
       clone.style.overflow = 'visible';
       clone.style.background = '#ffffff';
-      clone.style.padding = '25px 25px 50px 25px'; // Increased bottom padding to prevent bottom row cropping
+      clone.style.padding = '25px 25px 50px 25px';
 
       const tables = clone.querySelectorAll('table');
       tables.forEach(t => {
@@ -22012,43 +22648,42 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         if (el.parentNode) el.parentNode.replaceChild(span, el);
       });
 
-      // Add a beautiful print header at the top of the clone
-      const statsText = document.getElementById('ovStatsText') ? document.getElementById('ovStatsText').innerText : '';
-      const headerDiv = document.createElement('div');
-      headerDiv.style.direction = 'rtl';
-      headerDiv.style.fontFamily = "'Baloo Bhaijaan 2', 'Segoe UI', Tahoma, sans-serif";
-      headerDiv.style.marginBottom = '25px';
-      headerDiv.style.borderBottom = '3px solid var(--brand, #5b6cf5)';
-      headerDiv.style.paddingBottom = '15px';
-      headerDiv.style.display = 'flex';
-      headerDiv.style.justifyContent = 'space-between';
-      headerDiv.style.alignItems = 'center';
+      // Add a header if ovShowStatsHeader is checked
+      const showHeader = document.getElementById('ovShowStatsHeader')?.checked ?? true;
+      if (showHeader) {
+        const statsText = document.getElementById('ovStatsText') ? document.getElementById('ovStatsText').innerText : '';
+        const headerDiv = document.createElement('div');
+        headerDiv.style.direction = 'rtl';
+        headerDiv.style.fontFamily = "'Baloo Bhaijaan 2', 'Segoe UI', Tahoma, sans-serif";
+        headerDiv.style.marginBottom = '25px';
+        headerDiv.style.borderBottom = '3px solid var(--brand, #5b6cf5)';
+        headerDiv.style.paddingBottom = '15px';
+        headerDiv.style.display = 'flex';
+        headerDiv.style.justifyContent = 'space-between';
+        headerDiv.style.alignItems = 'center';
 
-      headerDiv.innerHTML = `
-    <div>
-      <h2 style="margin:0 0 5px 0; color:#1a1d2e; font-size:1.6rem; font-weight:800;">📋 تقرير متابعة التاسكات والاختبارات</h2>
-      <p style="margin:0; color:#4b5068; font-size:0.95rem;">التاريخ: ${new Date().toLocaleDateString('ar-EG')} | ${statsText}</p>
-    </div>
-    <div style="text-align:left; direction: ltr;">
-      <span style="font-size:1.3rem; font-weight:800; color:var(--brand, #5b6cf5); font-family: 'Baloo Bhaijaan 2', sans-serif;">Sunday School</span>
-    </div>
-  `;
+        headerDiv.innerHTML = `
+          <div>
+            <h2 style="margin:0 0 5px 0; color:#1a1d2e; font-size:1.6rem; font-weight:800;">📋 تقرير متابعة التاسكات والاختبارات</h2>
+            <p style="margin:0; color:#4b5068; font-size:0.95rem;">التاريخ: ${new Date().toLocaleDateString('ar-EG')} | ${statsText}</p>
+          </div>
+          <div style="text-align:left; direction: ltr;">
+            <span style="font-size:1.3rem; font-weight:800; color:var(--brand, #5b6cf5); font-family: 'Baloo Bhaijaan 2', sans-serif;">Sunday School</span>
+          </div>
+        `;
+        clone.insertBefore(headerDiv, clone.firstChild);
+      }
 
-      clone.insertBefore(headerDiv, clone.firstChild);
-
-      // Append a spacer at the bottom to guarantee no bottom clipping
       const spacer = document.createElement('div');
       spacer.style.height = '30px';
       clone.appendChild(spacer);
 
       document.body.appendChild(clone);
-
-      // Let the browser lay it out
       await new Promise(r => setTimeout(r, 150));
 
       try {
         const canvas = await html2canvas(clone, {
-          scale: 2, // High DPI capture
+          scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
           logging: false,

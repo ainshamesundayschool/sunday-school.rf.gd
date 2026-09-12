@@ -33028,10 +33028,14 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     allAdminOTPs = [];
                 } else {
                     allAdminOTPs = data.records || [];
-                    const churchName = data.church_name || localStorage.getItem('churchName') || '';
                     const badgeEl = document.getElementById('adminOtpChurchBadge');
                     if (badgeEl) {
-                        badgeEl.textContent = churchName ? `(${churchName})` : '';
+                        if (data.is_developer) {
+                            badgeEl.textContent = '(جميع الكنائس)';
+                        } else {
+                            const churchName = data.church_name || localStorage.getItem('churchName') || '';
+                            badgeEl.textContent = churchName ? `(${churchName})` : '';
+                        }
                     }
 
                     if (forceRefresh) {
@@ -33116,7 +33120,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     const phone = (item.phone || '').toLowerCase();
                     const code = (item.otp_code || '').toLowerCase();
                     const name = (item.owner_name || '').toLowerCase();
-                    return phone.includes(q) || code.includes(q) || name.includes(q);
+                    const church = (item.church_name || '').toLowerCase();
+                    return phone.includes(q) || code.includes(q) || name.includes(q) || church.includes(q);
                 });
             }
 
@@ -33201,6 +33206,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                                     ${item.phone}
                                 </span>
                                 ${item.owner_name ? `<span style="font-size:0.68rem; font-weight:600; color:var(--brand); background:var(--brand-bg, rgba(79,70,229,0.08)); padding:1px 6px; border-radius:var(--r-full); border:1px solid rgba(79,70,229,0.2); line-height:1.2;">${item.owner_name}</span>` : ''}
+                                ${item.church_name ? `<span style="font-size:0.65rem; font-weight:600; color:#b45309; background:rgba(245,158,11,0.1); padding:1px 6px; border-radius:var(--r-full); border:1px solid rgba(245,158,11,0.25); line-height:1.2; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-church" style="font-size:0.6rem;"></i>${item.church_name}</span>` : ''}
                             </div>
                             <div style="display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--text-3);">
                                 <span>${statusHtml}</span>
