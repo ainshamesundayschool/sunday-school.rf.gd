@@ -5977,6 +5977,16 @@ try {
 
 
 
+        case 'syncAllTaskCoupons':
+        case 'retroactiveFixTaskCoupons':
+            checkUncleAuth();
+            $conn = getDBConnection();
+            $churchId = getChurchId();
+            $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
+            $res = retroactiveFixTaskCoupons($conn, $churchId, $uncleId);
+            sendJSON($res);
+            break;
+
         case 'getStudentTasks':
 
             getStudentTasks();
@@ -43239,7 +43249,80 @@ function restoreSubmission()
 }
 
 /**
- * Automatically finalize submissions and award coupons for tasks that have no open/review questions.
+ * Calculate task coupons earned based on score, total degree, and coupon matrix / milestones.
+ * Uses descending-threshold milestone matching to eliminate integer gaps and handles empty matrices.
+ */
+function calculateTaskCoupons($score, $totalDegree, $couponMatrix, $maxCoupons = 0)
+{
+    $totalDegree = (float) $totalDegree;
+    $score = (float) $score;
+    $maxCoupons = (int) $maxCoupons;
+
+    if ($totalDegree <= 0) {
+        $pct = ($score > 0) ? 100.0 : 0.0;
+    } else {
+        $pct = ($score / $totalDegree) * 100.0;
+    }
+    if ($pct > 100.0) $pct = 100.0;
+    if ($pct < 0.0) $pct = 0.0;
+
+    $matrix = [];
+    if (is_array($couponMatrix)) {
+        $matrix = $couponMatrix;
+    } elseif (is_string($couponMatrix) && trim($couponMatrix) !== '') {
+        $decoded = json_decode($couponMatrix, true);
+        if (is_array($decoded)) {
+            $matrix = $decoded;
+        }
+    }
+
+    $effectiveMax = ($maxCoupons > 0) ? $maxCoupons : 100;
+    $standardMilestones = [
+        ['pct' => 95.0, 'val' => $effectiveMax],
+        ['pct' => 85.0, 'val' => (int) round($effectiveMax * 0.50)],
+        ['pct' => 70.0, 'val' => (int) round($effectiveMax * 0.30)],
+        ['pct' => 50.0, 'val' => (int) round($effectiveMax * 0.10)],
+    ];
+
+    $milestones = [];
+    foreach ($matrix as $item) {
+        if (!is_array($item)) continue;
+        $threshold = isset($item['from']) ? (float)$item['from'] : (isset($item['pct']) ? (float)$item['pct'] : 0.0);
+        $val = isset($item['val']) ? (int)$item['val'] : (isset($item['coupons']) ? (int)$item['coupons'] : 0);
+        if ($val > 0) {
+            $milestones[] = [
+                'pct' => $threshold,
+                'val' => $val
+            ];
+        }
+    }
+
+    if (empty($milestones)) {
+        $milestones = $standardMilestones;
+    }
+
+    usort($milestones, function ($a, $b) {
+        if ($b['pct'] == $a['pct']) {
+            return $b['val'] <=> $a['val'];
+        }
+        return ($b['pct'] > $a['pct']) ? 1 : -1;
+    });
+
+    $roundedIntPct = (int) round($pct);
+
+    foreach ($milestones as $m) {
+        // Match if raw percentage >= threshold (with float epsilon) OR rounded integer reaches threshold
+        if ($pct >= ($m['pct'] - 0.001) || $roundedIntPct >= (int)$m['pct']) {
+            return (int) $m['val'];
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * Automatically finalize submissions and award coupons for tasks that have no open/review questions (or already graded).
+ * Ensures students never get 0 coupons for full marks or slight lower marks due to matrix gaps.
  */
 function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
 {
@@ -43260,18 +43343,18 @@ function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
     $qStmt->close();
 
     $hasOpenQuestions = false;
+    $totalQuestionDegrees = 0;
     foreach ($questions as $q) {
-        if (($q['question_type'] ?? 'mcq') === 'open') {
+        $deg = isset($q['degree']) ? (int) $q['degree'] : 1;
+        if ($deg > 0) $totalQuestionDegrees += $deg;
+        // Only open questions with positive degree require manual grading
+        if (($q['question_type'] ?? 'mcq') === 'open' && $deg > 0) {
             $hasOpenQuestions = true;
-            break;
         }
     }
 
-    // If task still has open questions, manual teacher review is still required
-    if ($hasOpenQuestions) return;
-
     // Load task metadata
-    $tStmt = $conn->prepare("SELECT total_degree, coupon_matrix, church_id FROM tasks WHERE id=? LIMIT 1");
+    $tStmt = $conn->prepare("SELECT total_degree, max_coupons, coupon_matrix, church_id FROM tasks WHERE id=? LIMIT 1");
     if (!$tStmt) return;
     $tStmt->bind_param('i', $taskId);
     $tStmt->execute();
@@ -43280,11 +43363,16 @@ function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
     if (!$task) return;
 
     $totalDegree = (int) ($task['total_degree'] ?? 0);
-    $matrix = json_decode($task['coupon_matrix'] ?? '[]', true) ?: [];
+    if ($totalDegree <= 0 && $totalQuestionDegrees > 0) {
+        $totalDegree = $totalQuestionDegrees;
+        $conn->query("UPDATE tasks SET total_degree={$totalDegree} WHERE id={$taskId}");
+    }
+    $maxCoupons = (int) ($task['max_coupons'] ?? 0);
+    $couponMatrix = $task['coupon_matrix'] ?? '[]';
 
     // Find submissions for this task that are not deleted
     $subStmt = $conn->prepare("
-        SELECT id, student_id, answers, score, coupons_awarded, is_graded 
+        SELECT id, student_id, answers, score, coupons_awarded, is_graded, open_scores 
         FROM task_submissions 
         WHERE task_id=? AND (is_deleted IS NULL OR is_deleted = 0)
     ");
@@ -43295,31 +43383,44 @@ function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
     $subStmt->close();
 
     foreach ($subs as $s) {
-        $answers = json_decode($s['answers'] ?? '{}', true) ?: [];
-        $mcqScore = 0;
-        foreach ($questions as $q) {
-            if ($q['correct_index'] === null) continue;
-            $given = $answers[$q['id']] ?? $answers[(string)$q['id']] ?? null;
-            if ($given !== null && (int)$given === (int)$q['correct_index']) {
-                $mcqScore += (int)$q['degree'];
-            }
-        }
-
-        $pct = $totalDegree > 0 ? ($mcqScore / $totalDegree * 100) : 0;
-        $coupons = 0;
-        foreach ($matrix as $tier) {
-            if ($pct >= (float)$tier['from'] && $pct <= (float)$tier['to']) {
-                $coupons = (int)$tier['val'];
-                break;
-            }
-        }
-
         $oldCoupons = (int)($s['coupons_awarded'] ?? 0);
         $oldIsGraded = (int)($s['is_graded'] ?? 0);
         $oldScore = (int)($s['score'] ?? 0);
+
+        // If the task has open questions that require manual review and this submission has not been graded yet,
+        // it must wait for the servant to grade it.
+        if ($hasOpenQuestions && $oldIsGraded !== 1) {
+            continue;
+        }
+
+        $answers = json_decode($s['answers'] ?? '{}', true) ?: [];
+        $mcqScore = 0;
+        foreach ($questions as $q) {
+            $deg = isset($q['degree']) ? (int)$q['degree'] : 1;
+            if ($deg <= 0 || ($q['question_type'] ?? 'mcq') === 'open' || $q['correct_index'] === null) continue;
+            $given = $answers[$q['id']] ?? $answers[(string)$q['id']] ?? null;
+            if ($given !== null && (int)$given === (int)$q['correct_index']) {
+                $mcqScore += $deg;
+            }
+        }
+
+        $openScore = 0;
+        if (!empty($s['open_scores'])) {
+            $openScores = json_decode($s['open_scores'], true) ?: [];
+            foreach ($openScores as $os) {
+                $openScore += (int)$os;
+            }
+        }
+
+        $finalScore = $mcqScore + $openScore;
+        if ($oldIsGraded === 1 && $oldScore > $finalScore && $hasOpenQuestions) {
+            $finalScore = $oldScore;
+        }
+
+        $coupons = calculateTaskCoupons($finalScore, $totalDegree, $couponMatrix, $maxCoupons);
         $couponDiff = $coupons - $oldCoupons;
 
-        if ($oldIsGraded !== 1 || $oldCoupons !== $coupons || $oldScore !== $mcqScore) {
+        if ($oldIsGraded !== 1 || $oldCoupons !== $coupons || $oldScore !== $finalScore) {
             $upd = $conn->prepare("
                 UPDATE task_submissions 
                 SET score=?, coupons_awarded=?, is_graded=1,
@@ -43328,27 +43429,43 @@ function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
                 WHERE id=?
             ");
             if ($upd) {
-                $upd->bind_param('iiiii', $mcqScore, $coupons, $actingUncleId, $actingUncleId, $s['id']);
+                $upd->bind_param('iiiii', $finalScore, $coupons, $actingUncleId, $actingUncleId, $s['id']);
                 $upd->execute();
                 $upd->close();
             }
 
-            if ($couponDiff !== 0) {
-                $stuQ = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
-                if ($stuQ) {
-                    $stuQ->bind_param('i', $s['student_id']);
-                    $stuQ->execute();
-                    $stu = $stuQ->get_result()->fetch_assoc();
-                    $stuQ->close();
-                    if ($stu) {
-                        $newTask = max(0, (int)$stu['task_coupons'] + $couponDiff);
+            // Check student balance and existing logs
+            $stuQ = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+            if ($stuQ) {
+                $stuQ->bind_param('i', $s['student_id']);
+                $stuQ->execute();
+                $stu = $stuQ->get_result()->fetch_assoc();
+                $stuQ->close();
+                if ($stu) {
+                    $logChk = $conn->prepare("SELECT COUNT(*) as c FROM coupon_logs WHERE student_id=? AND change_type='task' AND reason LIKE ?");
+                    $reasonSearch = "%#{$taskId}%";
+                    $logChk->bind_param('is', $s['student_id'], $reasonSearch);
+                    $logChk->execute();
+                    $hasLog = (int)($logChk->get_result()->fetch_assoc()['c'] ?? 0) > 0;
+                    $logChk->close();
+
+                    // Credit missing coupons (either the positive diff or if student never had log and task_coupons < coupons)
+                    $toCredit = 0;
+                    if (!$hasLog && $coupons > 0 && (int)$stu['task_coupons'] < $coupons) {
+                        $toCredit = $coupons;
+                    } elseif ($couponDiff > 0) {
+                        $toCredit = $couponDiff;
+                    }
+
+                    if ($toCredit > 0) {
+                        $newTask = (int)$stu['task_coupons'] + $toCredit;
                         $newTotal = $newTask + (int)$stu['attendance_coupons'] + (int)$stu['commitment_coupons'];
                         $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$s['student_id']}");
                         
-                        $reason = "اعتماد نتيجة تاسك #{$taskId}: {$mcqScore}/{$totalDegree} (+{$couponDiff} كوبون)";
+                        $reason = "اعتماد نتيجة تاسك #{$taskId}: {$finalScore}/{$totalDegree} (+{$toCredit} كوبون)";
                         $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
                         if ($log) {
-                            $log->bind_param('iiiiss', $s['student_id'], $actingUncleId, $stu['task_coupons'], $newTask, $couponDiff, $reason);
+                            $log->bind_param('iiiiss', $s['student_id'], $actingUncleId, $stu['task_coupons'], $newTask, $toCredit, $reason);
                             $log->execute();
                             $log->close();
                         }
@@ -43361,6 +43478,26 @@ function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
             }
         }
     }
+}
+
+/**
+ * Retroactively reconciles all tasks and submissions that do not require manual review.
+ * Fixes 0 coupons awarded for full marks / slight lower marks across the entire church.
+ */
+function retroactiveFixTaskCoupons($conn, $churchId = 0, $actingUncleId = 0)
+{
+    $churchFilter = ($churchId > 0) ? "WHERE church_id = " . (int)$churchId : "";
+    $tRes = $conn->query("SELECT id FROM tasks {$churchFilter} ORDER BY id ASC");
+    if (!$tRes) return ['success' => false, 'fixed_tasks' => 0];
+
+    $fixedCount = 0;
+    while ($tRow = $tRes->fetch_assoc()) {
+        $taskId = (int)$tRow['id'];
+        syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId);
+        $fixedCount++;
+    }
+
+    return ['success' => true, 'fixed_tasks' => $fixedCount];
 }
 
 // ─── updateTask ────────────────────────────────────────────────
@@ -43656,7 +43793,7 @@ function updateTask()
 
         $hasAnyOpenQuestions = false;
         foreach ($newQs as $q) {
-            if (($q['question_type'] ?? 'mcq') === 'open') {
+            if (($q['question_type'] ?? 'mcq') === 'open' && (int)($q['degree'] ?? 1) > 0) {
                 $hasAnyOpenQuestions = true;
                 break;
             }
@@ -43707,6 +43844,7 @@ function updateTask()
 
             foreach ($newQs as $q) {
                 if (($q['question_type'] ?? 'mcq') === 'open') {
+                    if ((int)($q['degree'] ?? 1) <= 0) continue;
                     $qidStr = (string) $q['id'];
                     if (isset($newOpenScores[$q['id']]) && $newOpenScores[$q['id']] !== null && $newOpenScores[$q['id']] !== '') {
                         $openScore += (int) $newOpenScores[$q['id']];
@@ -43739,16 +43877,7 @@ function updateTask()
             }
 
             // Compute new coupons from matrix (only awarded if graded)
-            $pct = $totalDegree > 0 ? ($newScore / $totalDegree * 100) : 0;
-            $newCoupons = 0;
-            if ($isGraded === 1) {
-                foreach ($newMatrix as $tier) {
-                    if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
-                        $newCoupons = (int) $tier['val'];
-                        break;
-                    }
-                }
-            }
+            $newCoupons = ($isGraded === 1) ? calculateTaskCoupons($newScore, $totalDegree, $newMatrix, $maxCoupons) : 0;
 
             $oldScore = (int) $sub['old_score'];
             $oldCoupons = (int) $sub['old_coupons'];
@@ -44534,12 +44663,12 @@ function getStudentTasks()
             if ($subRow) {
                 $hasOpenQsInTask = false;
                 foreach ($qs as $chkQ) {
-                    if (($chkQ['question_type'] ?? 'mcq') === 'open') {
+                    if (($chkQ['question_type'] ?? 'mcq') === 'open' && (int)($chkQ['degree'] ?? 1) > 0) {
                         $hasOpenQsInTask = true;
                         break;
                     }
                 }
-                if (!$hasOpenQsInTask && ((int)($subRow['is_graded'] ?? 0) === 0 || ((int)($subRow['coupons_awarded'] ?? 0) === 0 && (int)($subRow['score'] ?? 0) > 0))) {
+                if (!$hasOpenQsInTask && ((int)($subRow['is_graded'] ?? 0) === 0 || (int)($subRow['coupons_awarded'] ?? 0) === 0)) {
                     syncTaskSubmissionsForTask($conn, $t['id']);
                     // Re-read updated submission
                     $refStmt = $conn->prepare("SELECT score, coupons_awarded, is_graded, submitted_at FROM task_submissions WHERE id=? LIMIT 1");
@@ -44732,16 +44861,11 @@ function submitTaskAnswers()
         // MCQ/TF-only tasks are auto-graded immediately (is_graded = 1) with coupons awarded.
         $isGraded = $hasOpenQuestions ? 0 : 1;
         $coupons = 0;
-        $pct = $task['total_degree'] > 0 ? ($score / $task['total_degree'] * 100) : 0;
+        $totalDeg = (int) ($task['total_degree'] ?? 0);
+        $pct = $totalDeg > 0 ? ($score / $totalDeg * 100) : 0;
 
         if ($isGraded) {
-            $matrix = json_decode($task['coupon_matrix'] ?? '[]', true) ?: [];
-            foreach ($matrix as $tier) {
-                if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
-                    $coupons = (int) $tier['val'];
-                    break;
-                }
-            }
+            $coupons = calculateTaskCoupons($score, $totalDeg, $task['coupon_matrix'] ?? '[]', $task['max_coupons'] ?? 0);
         }
 
         $conn->begin_transaction();
@@ -47822,12 +47946,14 @@ function getPendingOpenSubmissions()
             WHERE ts.is_graded = 0 
               AND NOT EXISTS (
                   SELECT 1 FROM task_questions tq 
-                  WHERE tq.task_id = ts.task_id AND tq.question_type = 'open'
+                  WHERE tq.task_id = ts.task_id AND tq.question_type = 'open' AND tq.degree > 0
               )
         ");
 
         if ($taskId > 0) {
             syncTaskSubmissionsForTask($conn, $taskId);
+        } else {
+            retroactiveFixTaskCoupons($conn, $churchId);
         }
 
         $where = "ts.church_id = ? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)";
@@ -47991,7 +48117,7 @@ function gradeOpenAnswer()
         // Load submission + task
 
         $subStmt = $conn->prepare("
-            SELECT ts.*, t.total_degree, t.coupon_matrix, t.class_id, t.title AS task_title, s.name AS student_name, s.class AS student_class
+            SELECT ts.*, t.total_degree, t.max_coupons, t.coupon_matrix, t.class_id, t.title AS task_title, s.name AS student_name, s.class AS student_class
             FROM task_submissions ts 
             JOIN tasks t ON t.id=ts.task_id 
             LEFT JOIN students s ON s.id=ts.student_id
@@ -47999,88 +48125,43 @@ function gradeOpenAnswer()
         ");
 
         $subStmt->bind_param('ii', $subId, $churchId);
-
         $subStmt->execute();
-
         $sub = $subStmt->get_result()->fetch_assoc();
 
         if (!$sub) {
-
             sendJSON(['success' => false, 'message' => 'السجل غير موجود']);
-
             return;
-
         }
 
-
-
         // Calculate MCQ score from existing answers
-
         $answers = json_decode($sub['answers'] ?? '{}', true) ?: [];
-
         $qStmt = $conn->prepare("SELECT id, question_type, correct_index, degree FROM task_questions WHERE task_id=?");
-
         $qStmt->bind_param('i', $sub['task_id']);
-
         $qStmt->execute();
-
         $questions = $qStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-
-
         $mcqScore = 0;
-
         $openScore = 0;
-
         foreach ($questions as $q) {
-
             if ($q['question_type'] === 'open' || $q['question_type'] === null) {
-
                 $openScore += (int) ($scores[$q['id']] ?? $scores[(string) $q['id']] ?? 0);
-
             } else {
-
                 // tf and mcq — correct_index should be set; skip if null to be safe
-
                 if ($q['correct_index'] === null)
-
                     continue;
 
                 $given = $answers[$q['id']] ?? $answers[(string) $q['id']] ?? null;
-
                 if ($given !== null && (int) $given === (int) $q['correct_index']) {
-
                     $mcqScore += (int) $q['degree'];
-
                 }
-
             }
-
         }
 
         $totalScore = $mcqScore + $openScore;
 
-
-
         // Compute coupons from matrix
-
-        $pct = $sub['total_degree'] > 0 ? ($totalScore / $sub['total_degree'] * 100) : 0;
-
-        $matrix = json_decode($sub['coupon_matrix'] ?? '[]', true) ?: [];
-
-        $coupons = 0;
-
-        foreach ($matrix as $tier) {
-
-            if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
-
-                $coupons = (int) $tier['val'];
-
-                break;
-
-            }
-
-        }
+        $pct = (float)($sub['total_degree'] ?? 0) > 0 ? ($totalScore / (float)$sub['total_degree'] * 100) : 0;
+        $coupons = calculateTaskCoupons($totalScore, $sub['total_degree'], $sub['coupon_matrix'] ?? '[]', $sub['max_coupons'] ?? 0);
 
 
 

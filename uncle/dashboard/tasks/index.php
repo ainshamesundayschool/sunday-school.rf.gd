@@ -17113,7 +17113,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       for (let i = 0; i < sorted.length; i++) {
         const from = sorted[i].pct;
         const val = sorted[i].coupons;
-        const to = (i < sorted.length - 1) ? (sorted[i + 1].pct - 1) : 100;
+        const to = (i < sorted.length - 1) ? sorted[i + 1].pct : 100;
         tiers.push({ from, to, val });
       }
       return tiers;
@@ -18615,42 +18615,10 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
     function addTier(from = 50, to = 100, coupons = 3) {
-
-
-
-      const div = document.createElement('div'); div.className = 'ctier';
-
-
-
-      div.innerHTML = `<div class="ctier-range">من <input type="number" min="0" max="100" value="${from}"> %</div>
-
-
-
-    <div class="ctier-arr"><i class="fas fa-arrow-left"></i></div>
-
-
-
-    <div class="ctier-range">إلى <input type="number" min="0" max="100" value="${to}"> %</div>
-
-
-
-    <div class="crew"><i class="fas fa-star"></i><input type="number" min="0" max="999" value="${coupons}"><span class="crew-l">كوبون</span></div>
-
-
-
-    <div class="ctier-del" onclick="this.closest('.ctier').remove()"><i class="fas fa-times"></i></div>`;
-
-
-
-      document.getElementById('ctierList').appendChild(div);
-
-
-
+      if (typeof addMilestone === 'function') {
+        addMilestone(from, coupons);
+      }
     }
-
-
-
-    function initTiers() { document.getElementById('ctierList').innerHTML = ''; addTier(0, 49, 0); addTier(50, 69, 10); addTier(70, 84, 30); addTier(85, 94, 50); addTier(95, 100, 100); }
 
 
 
@@ -18852,17 +18820,17 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         const pctEl = t.querySelector('.milestone-pct');
         const couponsEl = t.querySelector('.milestone-coupons');
         if (pctEl && couponsEl) {
-          const pct = parseInt(pctEl.value) || 50;
+          const pct = pctEl.value !== '' ? (parseInt(pctEl.value) || 0) : 50;
           const coupons = parseInt(couponsEl.value) || 0;
           milestones.push({ pct, coupons });
         } else {
           const inps = t.querySelectorAll('input[type="number"]');
           if (inps.length >= 3) {
-            const pct = parseInt(inps[0].value) || 50;
+            const pct = inps[0].value !== '' ? (parseInt(inps[0].value) || 0) : 50;
             const coupons = parseInt(inps[2].value) || 0;
             milestones.push({ pct, coupons });
           } else if (inps.length >= 1) {
-            const pct = parseInt(inps[0].value) || 50;
+            const pct = inps[0].value !== '' ? (parseInt(inps[0].value) || 0) : 50;
             const coupons = inps.length > 1 ? (parseInt(inps[1].value) || 0) : 0;
             milestones.push({ pct, coupons });
           }

@@ -15705,58 +15705,200 @@ document.addEventListener('DOMContentLoaded', () => {
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-          const containerW = Math.max(320, container.clientWidth || window.innerWidth);
-          const containerH = Math.max(240, container.clientHeight || window.innerHeight);
+          const curW = Math.max(320, (els.obsOverlay && els.obsOverlay.clientWidth) || window.innerWidth);
+          const curH = Math.max(240, (els.obsOverlay && els.obsOverlay.clientHeight) || window.innerHeight);
 
-          // UNIFORM AUTO-FIT BASED ON SONG'S BOTTLENECK SLIDE
-          const isPortrait = (window.innerHeight > window.innerWidth) || (containerW <= 768 && window.innerHeight >= containerW);
-          const boxW = Math.max(320, containerW);
-          const boxH = isPortrait ? (boxW * 9 / 16) : Math.max(240, containerH);
+          // 16:9 LOCKED BOUNDING BOX COMPUTATION (EXACT MATCH TO present.html)
+          const isPortrait = (window.innerHeight > window.innerWidth) || (curW <= 768 && window.innerHeight >= curW);
+          let boxW, boxH;
 
+          if (isPortrait) {
+            boxW = Math.max(320, curW);
+            boxH = boxW * (9 / 16);
+          } else {
+            const screenAspect = curW / curH;
+            if (screenAspect >= (16 / 9)) {
+              boxH = curH;
+              boxW = curH * (16 / 9);
+            } else {
+              boxW = curW;
+              boxH = curW * (9 / 16);
+            }
+          }
+
+          const isFullSlide = (state.presentationMode === 'fullslide' || state.slideSplittingMode === 'fullslide');
           const safeW = isPortrait ? (boxW * 0.94) : (boxW * 0.90);
           const safeH = isPortrait ? (boxH * 0.88) : (boxH * 0.82);
 
-          const isFullSlide = (state.presentationMode === 'fullslide' || state.slideSplittingMode === 'fullslide');
-          
-          // Count lines and chars in CURRENT slide
-          const slideLines = (currentSlideItem && currentSlideItem.lines) ? currentSlideItem.lines : (snapText ? snapText.split('\n') : []);
-          const slideLineCount = Math.max(1, slideLines.length);
-          let slideMaxChars = 1;
-          slideLines.forEach(l => {
-            if (l.length > slideMaxChars) slideMaxChars = l.length;
+          if (els.obsLowerThirdBox && !isPortrait) {
+            els.obsLowerThirdBox.style.maxWidth = `${boxW}px`;
+            els.obsLowerThirdBox.style.maxHeight = `${boxH}px`;
+          }
+
+          els.obsLineText.style.maxWidth = `${safeW}px`;
+          els.obsLineText.style.width = '100%';
+          els.obsLineText.style.boxSizing = 'border-box';
+
+          const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
+          wrapper.style.transform = 'none';
+          wrapper.style.maxWidth = `${safeW}px`;
+          wrapper.style.width = '100%';
+          wrapper.style.boxSizing = 'border-box';
+
+          const lineRows = els.obsLineText.querySelectorAll('.obs-line-row');
+          lineRows.forEach(r => {
+            r.style.lineHeight = `${finalLineHeight}`;
+            r.style.maxWidth = '100%';
+            r.style.width = '100%';
+            r.style.boxSizing = 'border-box';
           });
 
-          // In Bible mode, each verse is an independent slide so we size by the verse itself!
-          // In hymn mode, we balance between song bottleneck and current slide so hymns are uniform without being tiny:
-          const effLines = isBible 
-            ? slideLineCount 
-            : Math.max(1, Math.min((targetSong && targetSong._maxSlideLines) || (isFullSlide ? 4 : 2), slideLineCount + 1));
-          const effChars = isBible 
-            ? Math.max(16, slideMaxChars) 
-            : Math.max(16, Math.min((targetSong && targetSong._maxSlideChars) || 28, slideMaxChars + 8));
-
-          const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
-          const effectiveLH = isJomhuria ? 0.95 : (state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : (isFullSlide ? 1.35 : 1.45));
-          const maxFontH = safeH / (effLines * effectiveLH);
-          const charWidthFactor = isJomhuria ? 0.36 : 0.58;
-          const maxFontW = safeW / (effChars * charWidthFactor);
-
-          let uniformFitSize = Math.min(maxFontH, maxFontW);
-
           const userScaleRatio = state.fontSize ? (state.fontSize / 105) : 1.0;
-          let scaledFontSize = Math.round(uniformFitSize * userScaleRatio);
+          const minFont = isPortrait ? 12 : 20;
+          const maxFont = isPortrait 
+            ? Math.max(minFont + 1, Math.floor(safeH * 0.45)) 
+            : Math.max(minFont + 1, Math.min(isFullSlide ? 145 : 200, Math.floor(safeH * 0.50)));
 
-          // Apply clean bounds:
-          // In fullslide mode with 1-3 lines, font should be comfortable, bold, and fill the screen nicely (e.g. 65-90px)
-          const maxAllowedFont = isPortrait ? 85 : (isFullSlide ? 110 : 145);
-          scaledFontSize = Math.max(24, Math.min(maxAllowedFont, scaledFontSize));
-          els.obsLineText.style.fontSize = `${scaledFontSize}px`;
+          const checkFitsElement = (el, size) => {
+            el.style.fontSize = `${size}px`;
+            const elWrap = el.querySelector('.obs-slide-wrapper') || el;
+            let totalH = 0;
+            const rows = el.querySelectorAll('.obs-line-row, .slide-line-row');
+            if (rows.length > 0) {
+              rows.forEach(r => { totalH += (r.offsetHeight || r.scrollHeight || 0); });
+            } else {
+              totalH = Math.max(el.offsetHeight || 0, el.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
+            }
+            if (totalH > safeH) return false;
+            const elSegs = Array.from(el.querySelectorAll('.obs-line-segment'));
+            for (let i = 0; i < elSegs.length; i++) {
+              const seg = elSegs[i];
+              if ((seg.scrollWidth || 0) > safeW + 4 || (seg.offsetWidth || 0) > safeW + 4) return false;
+              const badge = seg.querySelector('.slide-badge-layer');
+              if (badge) {
+                const segRect = seg.getBoundingClientRect();
+                const badgeRect = badge.getBoundingClientRect();
+                const totalSpan = Math.max(segRect.right, badgeRect.right) - Math.min(segRect.left, badgeRect.left);
+                if (totalSpan > safeW + 6) return false;
+              }
+            }
+            return true;
+          };
 
-          const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : (isFullSlide ? 1.35 : 1.45);
-          els.obsLineText.style.lineHeight = `${fixedLH}`;
+          const computeFitForHtml = (htmlContent, targetEl) => {
+            targetEl.innerHTML = htmlContent;
+            targetEl.style.maxWidth = `${safeW}px`;
+            targetEl.style.width = `${safeW}px`;
+            targetEl.style.boxSizing = 'border-box';
+            targetEl.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : (state.selectedFont || "'Alexandria', sans-serif");
+            targetEl.style.letterSpacing = `${lSpacing}px`;
+            targetEl.style.wordSpacing = isJomhuria ? '6px' : 'normal';
+            targetEl.style.fontWeight = isJomhuria ? '400' : fWeight;
+            targetEl.style.lineHeight = `${finalLineHeight}`;
+            targetEl.style.textAlign = align === 'justify' ? 'justify' : align;
+            targetEl.style.fontStyle = fStyle;
+            targetEl.style.textDecoration = tDeco;
+            targetEl.style.whiteSpace = 'normal';
+            targetEl.style.wordBreak = 'normal';
+            targetEl.style.overflowWrap = 'break-word';
 
-          const isAllInOneMode = state.presentationMode === 'allinone' || Boolean(snapText && snapText.includes('allinone-slide-group'));
+            const w = targetEl.querySelector('.obs-slide-wrapper') || targetEl;
+            w.style.transform = 'none';
+            w.style.maxWidth = `${safeW}px`;
+            w.style.width = '100%';
+            w.style.boxSizing = 'border-box';
+
+            const rows = targetEl.querySelectorAll('.obs-line-row');
+            rows.forEach(r => {
+              r.style.lineHeight = `${finalLineHeight}`;
+              r.style.maxWidth = '100%';
+              r.style.width = '100%';
+              r.style.boxSizing = 'border-box';
+            });
+
+            const segs = Array.from(targetEl.querySelectorAll('.obs-line-segment'));
+            segs.forEach(s => {
+              s.style.display = 'inline-block';
+              s.style.width = 'auto';
+              s.style.maxWidth = '100%';
+              s.style.whiteSpace = 'normal';
+              s.style.wordBreak = 'normal';
+              s.style.overflowWrap = 'break-word';
+              s.style.lineHeight = `${finalLineHeight}`;
+            });
+
+            let low = minFont;
+            let high = maxFont;
+            let best = minFont;
+            while (low <= high) {
+              const mid = Math.floor((low + high) / 2);
+              if (checkFitsElement(targetEl, mid)) {
+                best = mid;
+                low = mid + 1;
+              } else {
+                high = mid - 1;
+              }
+            }
+            return best;
+          };
+
+          // UNIFORM TARNIMA FONT SIZE ENGINE (EXACT MATCH TO present.html)
+          let appliedFontSize = minFont;
+          const currentMode = state.presentationMode || 'fullslide';
+          const currentSongKey = `${(targetSong && (targetSong.key || targetSong.title)) || ''}__mode_${currentMode}__font_${state.selectedFont}__${curW}x${curH}`;
+
+          if (currentSongKey && !isBible) {
+            if (state._uniformSongKey === currentSongKey && state._uniformFontSize !== null && state._uniformFontSize !== undefined) {
+              appliedFontSize = state._uniformFontSize;
+            } else {
+              let uniformSize = maxFont;
+              const allSlides = (state.presentationLines && Array.isArray(state.presentationLines) && state.presentationLines.length > 0)
+                ? state.presentationLines
+                : (targetSong && targetSong.slides ? targetSong.slides : null);
+
+              if (allSlides && allSlides.length > 0) {
+                let sandbox = document.getElementById('obs-fit-sandbox');
+                if (!sandbox) {
+                  sandbox = document.createElement('div');
+                  sandbox.id = 'obs-fit-sandbox';
+                  sandbox.style.cssText = 'position: fixed; top: -99999px; left: -99999px; visibility: hidden; pointer-events: none; opacity: 0; z-index: -99999;';
+                  document.body.appendChild(sandbox);
+                }
+                for (let i = 0; i < allSlides.length; i++) {
+                  const sItem = allSlides[i];
+                  const sText = (typeof sItem === 'string') ? sItem : (sItem && sItem.text ? sItem.text : '');
+                  const sBadge = (sItem && sItem.badgeText) || '';
+                  const sBadgeCls = (sItem && sItem.badgeClass) || '';
+                  if (!sText || !sText.trim()) continue;
+
+                  const slideHtml = formatPresenterText(sText, isBible, sBadge, sBadgeCls);
+                  const slideFit = computeFitForHtml(slideHtml, sandbox);
+                  if (slideFit < uniformSize) {
+                    uniformSize = slideFit;
+                  }
+                }
+              } else {
+                uniformSize = computeFitForHtml(els.obsLineText.innerHTML, els.obsLineText);
+              }
+
+              if (userScaleRatio !== 1.0) {
+                uniformSize = Math.max(minFont, Math.round(uniformSize * userScaleRatio));
+              }
+              state._uniformFontSize = uniformSize;
+              state._uniformSongKey = currentSongKey;
+              appliedFontSize = uniformSize;
+            }
+          } else {
+            let bestSize = computeFitForHtml(els.obsLineText.innerHTML, els.obsLineText);
+            if (userScaleRatio !== 1.0) {
+              bestSize = Math.max(minFont, Math.round(bestSize * userScaleRatio));
+            }
+            appliedFontSize = bestSize;
+          }
+
+          // Apply font size and restore segment styling on live element
+          els.obsLineText.style.fontSize = `${appliedFontSize}px`;
+
           const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
           segments.forEach(s => {
             s.style.display = 'inline-block';
@@ -15766,48 +15908,39 @@ document.addEventListener('DOMContentLoaded', () => {
             s.style.wordBreak = 'normal';
             s.style.overflowWrap = 'break-word';
             s.style.wordSpacing = 'normal';
-            s.style.textAlign = state.styleOptions.textAlign === 'justify' ? 'justify' : (state.styleOptions.textAlign || 'center');
-            s.style.textJustify = state.styleOptions.textAlign === 'justify' ? 'inter-word' : 'auto';
-            s.style.textAlignLast = state.styleOptions.textAlign === 'justify' ? 'center' : (state.styleOptions.textAlign || 'center');
+            s.style.textAlign = align === 'justify' ? 'justify' : align;
+            s.style.textJustify = align === 'justify' ? 'inter-word' : 'auto';
+            s.style.textAlignLast = align === 'justify' ? 'center' : align;
           });
 
-          const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
-          wrapper.style.transform = 'none';
-          wrapper.style.display = 'inline-block';
-          wrapper.style.maxWidth = `${safeW}px`;
-          wrapper.style.width = '100%';
-          wrapper.style.boxSizing = 'border-box';
-
-          // Robust shrink-to-fit loop: checks text rows height and segments width (never full-width block container)
-          let appliedFontSize = scaledFontSize;
-          let fitIter = 0;
-          while (appliedFontSize > 22 && fitIter < 25) {
+          // Safety step-down loop
+          let safetyIter = 0;
+          let curS = appliedFontSize;
+          const elWrap = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
+          while (curS > 22 && safetyIter < 20) {
             let segOverflow = false;
             for (let i = 0; i < segments.length; i++) {
-              const seg = segments[i];
-              if ((seg.scrollWidth || 0) > safeW + 4 || (seg.offsetWidth || 0) > safeW + 4) {
+              if ((segments[i].scrollWidth || 0) > safeW + 4 || (segments[i].offsetWidth || 0) > safeW + 4) {
                 segOverflow = true;
                 break;
               }
             }
-
-            let textH = 0;
+            let totalH = 0;
             const rows = els.obsLineText.querySelectorAll('.obs-line-row, .slide-line-row');
             if (rows.length > 0) {
-              rows.forEach(r => { textH += (r.offsetHeight || r.scrollHeight || 0); });
+              rows.forEach(r => { totalH += (r.offsetHeight || r.scrollHeight || 0); });
             } else {
-              textH = els.obsLineText.scrollHeight || 0;
+              totalH = Math.max(els.obsLineText.offsetHeight || 0, els.obsLineText.scrollHeight || 0, elWrap.offsetHeight || 0, elWrap.scrollHeight || 0);
             }
-
-            if (textH <= safeH && !segOverflow) {
+            if (totalH <= safeH && !segOverflow) {
               break;
             }
-
-            const step = Math.max(1, Math.ceil(appliedFontSize * 0.05));
-            appliedFontSize -= step;
-            els.obsLineText.style.fontSize = `${appliedFontSize}px`;
-            fitIter++;
+            const step = Math.max(1, Math.ceil(curS * 0.05));
+            curS -= step;
+            els.obsLineText.style.fontSize = `${curS}px`;
+            safetyIter++;
           }
+          appliedFontSize = curS;
           
           // Re-apply highlights after formatting
           const hColor = state.highlightColor || '#ef4444';
@@ -15847,7 +15980,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsPreviewText.style.textAlign = els.obsLineText.style.textAlign;
             
             const previewContainerW = obsPreviewCanvas.clientWidth || 400;
-            const fontScaleFactor = previewContainerW / containerW;
+            const fontScaleFactor = previewContainerW / curW;
             const previewFontSize = Math.max(12, Math.round(appliedFontSize * fontScaleFactor));
             obsPreviewText.style.fontSize = `${previewFontSize}px`;
             obsPreviewText.style.lineHeight = els.obsLineText.style.lineHeight;
