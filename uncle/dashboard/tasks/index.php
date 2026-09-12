@@ -12825,6 +12825,13 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
         <!-- Actions (Left) -->
         <div class="header-actions-box" style="display: flex; gap: 8px; align-items: center;">
+          <button onclick="triggerRetroactiveCouponSync()" id="btnRetroSyncHeader" title="فحص ومزامنة كوبونات الطلاب بأثر رجعي لضمان وصول الكوبونات لجميع الطلاب"
+            style="background:var(--cou-bg); color:var(--cou); border:1.5px solid #c4b5fd; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:0 12px; height: 38px; border-radius: var(--r-md); transition: all 0.2s; font-family:'Cairo',sans-serif; font-size:0.8rem; white-space:nowrap; flex-shrink: 0;"
+            onmouseover="this.style.background='var(--cou)'; this.style.color='#fff';"
+            onmouseout="this.style.background='var(--cou-bg)'; this.style.color='var(--cou)';">
+            <i class="fas fa-coins" style="color:var(--cou-l);"></i>
+            <span>مزامنة الكوبونات</span>
+          </button>
           <button onclick="openTasksOverviewModal()" title="تصدير نظرة عامة"
             style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width: 38px; height: 38px; border-radius: var(--r-md); transition: all 0.2s; flex-shrink: 0;"
             onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';"
@@ -12836,6 +12843,17 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         </div>
       </div>
     </header>
+
+    <!-- Discrepancy Alert Banner -->
+    <div id="couponDiscrepancyBanner" style="display:none; margin: 12px 16px 0; padding: 12px 16px; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 12px; color: #9f1239; font-size: 0.82rem; font-weight: 700; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(225,29,72,0.08);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:1.2rem; color:#e11d48; flex-shrink:0;"></i>
+        <span id="couponDiscrepancyText">تم رصد طلاب حصلوا على درجات ولم تُمنح لهم كوبونات!</span>
+      </div>
+      <button onclick="triggerRetroactiveCouponSync()" style="background:#e11d48; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:0.75rem; cursor:pointer; font-family:'Cairo',sans-serif; display:inline-flex; align-items:center; gap:6px; flex-shrink:0; white-space:nowrap; transition:0.2s;" onmouseover="this.style.background='#be123c';" onmouseout="this.style.background='#e11d48';">
+        <i class="fas fa-sync-alt"></i> إصلاح ومزامنة فورية باثر رجعي
+      </button>
+    </div>
 
 
 
@@ -15658,8 +15676,36 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       setVal('stCoupons', tc);
 
       setVal('stTotalIframe', total);
-
       setVal('stDraftIframe', drafts);
+
+      // Check for troubled submissions (score > 0 but 0 coupons awarded)
+      const troubledStudents = [];
+      tasks.forEach(t => {
+        const hasOpenQs = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open' && (parseInt(q.degree) || 0) > 0);
+        (t.submissions || []).forEach(sub => {
+          const sScore = parseInt(sub.score || 0);
+          const sCoupons = parseInt(sub.coupons_awarded || 0);
+          const isGraded = (parseInt(sub.is_graded || 0) === 1) || !hasOpenQs;
+          if (isGraded && sScore > 0 && sCoupons === 0) {
+            troubledStudents.push(sub.student_name || 'طالب');
+          }
+        });
+      });
+
+      const banner = document.getElementById('couponDiscrepancyBanner');
+      if (banner) {
+        if (troubledStudents.length > 0) {
+          banner.style.display = 'flex';
+          const namesPreview = esc(troubledStudents.slice(0, 3).join('، '));
+          const moreTxt = troubledStudents.length > 3 ? ` و ${troubledStudents.length - 3} آخرين` : '';
+          const textEl = document.getElementById('couponDiscrepancyText');
+          if (textEl) {
+            textEl.innerHTML = `تم رصد <strong>${troubledStudents.length}</strong> إجابة حصلت على درجات ولم تُمنح كوبونات (مثل: <strong>${namesPreview}${moreTxt}</strong>). اضغط الزر للمزامنة والتصحيح الفوري لجميع الطلاب!`;
+          }
+        } else {
+          banner.style.display = 'none';
+        }
+      }
     }
 
 
@@ -19561,15 +19607,31 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
             const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
             const photo = stud ? stud.photo : '';
             const avatar = getStudentAvatarHtml(photo, s.student_name, '28px');
-            const isGraded = parseInt(s.is_graded || 0);
+            const isGraded = (parseInt(s.is_graded || 0) === 1) || !hasOpenQs;
+            const scoreVal = parseInt(s.score || 0);
+            const couponsAwarded = parseInt(s.coupons_awarded || 0);
+            const studentTaskCoupons = s.student_task_coupons !== undefined ? parseInt(s.student_task_coupons) : (stud?.task_coupons || couponsAwarded);
+            const hasProblem = isGraded && (scoreVal > 0) && (couponsAwarded === 0);
+
             const scoreBadge = isGraded
-              ? `<span style="font-size:.68rem;background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;">${s.score || 0}/${t.total_degree}</span>`
+              ? `<span style="font-size:.68rem;background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;">${scoreVal}/${t.total_degree}</span>`
               : `<span style="font-size:.68rem;background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;"><i class="fas fa-clock"></i> لم يتم التقييم</span>`;
+
+            let couponBadge = '';
+            if (hasProblem) {
+              couponBadge = `<span style="font-size:.68rem;background:var(--err-bg);color:var(--err);border:1px solid #fca5a5;border-radius:var(--r-full);padding:2px 7px;font-weight:800;flex-shrink:0;display:inline-flex;align-items:center;gap:3px;" title="تنبيه: حصل على ${scoreVal}/${t.total_degree} ولكن الكوبونات 0!"><i class="fas fa-exclamation-triangle"></i> 0 كوبون</span>`;
+            } else if (isGraded) {
+              couponBadge = `<span style="font-size:.68rem;background:var(--cou-bg);color:var(--cou);border:1px solid #c4b5fd;border-radius:var(--r-full);padding:2px 7px;font-weight:800;flex-shrink:0;display:inline-flex;align-items:center;gap:3px;" title="الكوبونات المكتسبة لهذا التاسك: ${couponsAwarded} (نفس المعروض في بروفايل الطفل)"><i class="fas fa-star" style="color:var(--cou-l);"></i> ${couponsAwarded} كوبون</span>`;
+            }
 
             return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
                 ${avatar}
-                <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name || '—')}</span>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
+                  <span style="font-size:.8rem;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name || '—')}</span>
+                  <span style="font-size:.64rem;color:var(--t3);"><i class="fas fa-id-badge"></i> بروفايل: <strong style="color:var(--t1);">${studentTaskCoupons}</strong> كوبون تاسكات</span>
+                </div>
                 ${scoreBadge}
+                ${couponBadge}
                 ${hasOpenQs ? `<button onclick="event.stopPropagation();closeDetail();openGradePanel(${t.id},${s.id},true)"
                   style="background:var(--warn-bg);border:1px solid #fde68a;color:#b45309;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-pen-nib"></i> ${isGraded ? 'تعديل الدرجة' : 'تصحيح'}</button>` : ''}
                 <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
@@ -19761,19 +19823,26 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
 
 
 
-        <div class="fsec-title"><i class="fas fa-users"></i>${PEOPLE} الذين أجابوا (${subs.length}) — ${tc} كوبون ممنوح</div>
-
-
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+          <div class="fsec-title" style="margin-bottom:0;"><i class="fas fa-users"></i>${PEOPLE} الذين أجابوا (${subs.length}) — ${tc} كوبون ممنوح</div>
+          <button onclick="syncSingleTaskCoupons(${t.id})" style="background:var(--cou-bg);border:1px solid #c4b5fd;color:var(--cou);font-weight:800;font-size:.74rem;padding:5px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:'Cairo',sans-serif;" title="إعادة فحص ومزامنة كوبونات هذا التاسك بأثر رجعي">
+            <i class="fas fa-sync-alt"></i> مزامنة كوبونات التاسك
+          </button>
+        </div>
 
         ${subs.length ? `<div style="overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--r-md);">
 
-
-
-          <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
+          <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات الممنوحة</th><th>رصيد بروفايل الطالب</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
           <tbody>${subs.map(s => {
           const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
           const photo = stud ? stud.photo : '';
           const avatar = getStudentAvatarHtml(photo, s.student_name, '24px');
+          const isGraded = (parseInt(s.is_graded || 0) === 1) || !hasOpenQs;
+          const scoreVal = parseInt(s.score || 0);
+          const couponsAwarded = parseInt(s.coupons_awarded || 0);
+          const studentTaskCoupons = s.student_task_coupons !== undefined ? parseInt(s.student_task_coupons) : (stud?.task_coupons || couponsAwarded);
+          const hasProblem = isGraded && (scoreVal > 0) && (couponsAwarded === 0);
+
           return `<tr>
               <td data-label="${PEOPLE}">
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -19781,9 +19850,26 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
                   <span style="font-weight:700;color:var(--t1);">${esc(s.student_name || '—')}</span>
                 </div>
               </td>
-              <td data-label="الدرجة">${s.score || 0}/${t.total_degree}</td>
-              <td data-label="النسبة">${t.total_degree ? Math.round((parseInt(s.score) || 0) / t.total_degree * 100) : 0}%</td>
-              <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded || 0} <i class="fas fa-star"></i></span></td>
+              <td data-label="الدرجة"><span style="font-weight:700;">${scoreVal}/${t.total_degree}</span></td>
+              <td data-label="النسبة">${t.total_degree ? Math.round(scoreVal / t.total_degree * 100) : 0}%</td>
+              <td data-label="الكوبونات الممنوحة">
+                ${hasProblem ? `
+                  <div style="display:inline-flex;flex-direction:column;gap:3px;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;background:var(--err-bg);color:var(--err);border:1px solid #fca5a5;padding:2px 8px;border-radius:6px;font-weight:800;font-size:.74rem;">
+                      <i class="fas fa-exclamation-triangle"></i> 0 كوبون (مشكلة)
+                    </span>
+                    <button onclick="event.stopPropagation();syncSingleTaskCoupons(${t.id})" style="background:var(--err);color:#fff;border:none;border-radius:4px;padding:2px 6px;font-size:.65rem;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:3px;"><i class="fas fa-sync-alt"></i> إصلاح فوري</button>
+                  </div>
+                ` : `
+                  <span style="color:var(--cou);font-weight:800;font-size:.82rem;display:inline-flex;align-items:center;gap:4px;">
+                    <i class="fas fa-star" style="color:var(--cou-l);"></i>
+                    <strong>${couponsAwarded}</strong> كوبون
+                  </span>
+                `}
+              </td>
+              <td data-label="رصيد بروفايل الطالب">
+                <span style="font-size:.78rem;font-weight:700;color:var(--t1);display:inline-flex;align-items:center;gap:4px;" title="إجمالي رصيد كوبونات التاسكات كما يراه الطالب في بروفايله"><i class="fas fa-wallet" style="color:var(--brand);font-size:.75rem;"></i> ${studentTaskCoupons} كوبون</span>
+              </td>
               <td data-label="التوقيت" style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
               <td>
                 <div style="display:flex;gap:4px;">
@@ -20916,6 +21002,24 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const isSubGraded = parseInt(sub.is_graded || 0) === 1;
       const hasOpenQuestions = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open' && (parseInt(q.degree) || 0) > 0);
 
+      const subCoupons = parseInt(sub.coupons_awarded || 0);
+      const subStudentTaskCoupons = sub.student_task_coupons !== undefined ? parseInt(sub.student_task_coupons) : (stud?.task_coupons || subCoupons);
+      const subScoreVal = parseInt(score || 0);
+      const subHasProblem = isSubGraded && (subScoreVal > 0) && (subCoupons === 0);
+
+      const couponsHeaderHtml = isSubGraded
+        ? (subHasProblem
+            ? `<div style="text-align:center;flex-shrink:0;background:var(--err-bg);border:1.5px solid #fca5a5;border-radius:10px;padding:6px 12px;">
+                 <div style="font-size:1.05rem;font-weight:900;color:var(--err);line-height:1.1;"><i class="fas fa-exclamation-triangle"></i> 0 كوبون</div>
+                 <div style="font-size:.65rem;color:var(--err);margin-top:2px;">(مشكلة: رُصدت درجة بدون كوبونات)</div>
+                 <button onclick="syncSingleTaskCoupons(${t.id})" style="margin-top:4px;background:var(--err);color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:.65rem;cursor:pointer;font-weight:700;"><i class="fas fa-sync-alt"></i> إصلاح فوري</button>
+               </div>`
+            : `<div style="text-align:center;flex-shrink:0;background:var(--cou-bg);border:1.5px solid #c4b5fd;border-radius:10px;padding:6px 12px;">
+                 <div style="font-size:1.15rem;font-weight:900;color:var(--cou);line-height:1.1;"><i class="fas fa-star" style="color:var(--cou-l);"></i> ${subCoupons} <span style="font-size:.75rem;font-weight:700;">كوبون</span></div>
+                 <div style="font-size:.66rem;color:var(--t3);margin-top:3px;"><i class="fas fa-wallet" style="font-size:.6rem;"></i> بروفايل الطفل: <strong style="color:var(--t1);">${subStudentTaskCoupons}</strong></div>
+               </div>`)
+        : '';
+
       const scoreHeaderHtml = isSubGraded
         ? `<div style="text-align:center;flex-shrink:0;">
         <div style="font-size:1.4rem;font-weight:900;color:${scoreColor};line-height:1;">${score}<span style="font-size:.85rem;font-weight:600;color:var(--t3);">/${totalDeg}</span></div>
@@ -20933,6 +21037,7 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
         <div class="ans-sub">أجاب على التاسك: <strong>${esc(t.title || '')}</strong></div>
       </div>
       ${scoreHeaderHtml}
+      ${couponsHeaderHtml}
       ${hasOpenQuestions ? `<button onclick="document.querySelector('.overlay.open')?.remove();document.documentElement.classList.remove('ov-open');openGradePanel(${t.id},${sub.id},true)" style="background:var(--warn-bg);border:1.5px solid #fde68a;color:#b45309;padding:6px 12px;border-radius:8px;font-family:'Cairo',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;flex-shrink:0;"><i class="fas fa-pen-nib"></i> ${isSubGraded ? 'تعديل الدرجة' : 'تصحيح'}</button>` : ''}
     </div>`;
 
@@ -21443,6 +21548,44 @@ $dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urle
       const dur = action ? 6500 : 3200;
       setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, dur);
     }
+
+    async function triggerRetroactiveCouponSync() {
+      showToast('جاري فحص ومزامنة كوبونات جميع الطلاب بأثر رجعي...', 'info');
+      try {
+        const d = await api('retroactiveFixTaskCoupons');
+        if (d && d.success) {
+          showToast('تم فحص وتحديث كوبونات الطلاب بأثر رجعي بنجاح ✓', 'ok');
+          await loadTasks();
+          if (typeof detailTask !== 'undefined' && detailTask && detailTask.id) {
+            openDetail(detailTask.id);
+          }
+        } else {
+          showToast(d.message || 'حدث خطأ أثناء المزامنة', 'err');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'err');
+      }
+    }
+    window.triggerRetroactiveCouponSync = triggerRetroactiveCouponSync;
+
+    async function syncSingleTaskCoupons(taskId) {
+      showToast('جاري فحص وتحديث كوبونات هذا التاسك بأثر رجعي...', 'info');
+      try {
+        const d = await api('retroactiveFixTaskCoupons', { task_id: taskId });
+        if (d && d.success) {
+          showToast('تم تحديث كوبونات التاسك بنجاح ✓', 'ok');
+          await loadTasks();
+          if (typeof detailTask !== 'undefined' && detailTask && detailTask.id == taskId) {
+            openDetail(taskId);
+          }
+        } else {
+          showToast(d.message || 'فشل التحديث', 'err');
+        }
+      } catch (e) {
+        showToast('خطأ في الاتصال بالخادم', 'err');
+      }
+    }
+    window.syncSingleTaskCoupons = syncSingleTaskCoupons;
 
     // ─── Tasks Overview and Export Logic ──────────────────────────────────────────
 

@@ -5983,7 +5983,13 @@ try {
             $conn = getDBConnection();
             $churchId = getChurchId();
             $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
-            $res = retroactiveFixTaskCoupons($conn, $churchId, $uncleId);
+            $targetTaskId = (int) ($_REQUEST['task_id'] ?? 0);
+            if ($targetTaskId > 0) {
+                syncTaskSubmissionsForTask($conn, $targetTaskId, $uncleId);
+                $res = ['success' => true, 'fixed_tasks' => 1];
+            } else {
+                $res = retroactiveFixTaskCoupons($conn, $churchId, $uncleId);
+            }
             sendJSON($res);
             break;
 
@@ -42484,53 +42490,47 @@ function getTasks()
 
 
         if ($taskIds) {
-
             $inList = implode(',', array_map('intval', $taskIds));
 
-
+            // Auto-reconcile coupons if any submission in these tasks has score > 0 but coupons_awarded = 0 or is_graded = 0
+            $chkNeedsFix = $conn->query("
+                SELECT DISTINCT ts.task_id 
+                FROM task_submissions ts 
+                WHERE ts.task_id IN ($inList) 
+                  AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
+                  AND ts.score > 0 
+                  AND (ts.coupons_awarded = 0 OR ts.is_graded = 0)
+                LIMIT 20
+            ");
+            if ($chkNeedsFix && $chkNeedsFix->num_rows > 0) {
+                while ($cRow = $chkNeedsFix->fetch_assoc()) {
+                    syncTaskSubmissionsForTask($conn, (int)$cRow['task_id'], $uncleId);
+                }
+            }
 
             $qRes = $conn->query("
-
                 SELECT id, task_id, question_type, question_text, options, correct_index, degree, sort_order, image_url
-
                 FROM task_questions WHERE task_id IN ($inList)
-
                 ORDER BY task_id, sort_order
-
             ");
-
             while ($r = $qRes->fetch_assoc()) {
-
                 $questions[$r['task_id']][] = $r;
-
             }
-
-
 
             $sRes = $conn->query("
-
-                SELECT ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at,
-
+                SELECT ts.id, ts.task_id, ts.student_id, ts.score, ts.coupons_awarded, ts.submitted_at,
                        ts.answers, ts.open_scores, ts.correction_notes, ts.is_graded,
-
-                       s.name AS student_name
-
+                       s.name AS student_name,
+                       COALESCE(s.coupons, 0) AS student_total_coupons,
+                       COALESCE(s.task_coupons, 0) AS student_task_coupons
                 FROM task_submissions ts
-
                 LEFT JOIN students s ON s.id = ts.student_id
-
                 WHERE ts.task_id IN ($inList) AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
-
                 ORDER BY ts.submitted_at DESC
-
             ");
-
             while ($r = $sRes->fetch_assoc()) {
-
                 $submissions[$r['task_id']][] = $r;
-
             }
-
         }
 
 
@@ -43413,7 +43413,7 @@ function syncTaskSubmissionsForTask($conn, $taskId, $actingUncleId = 0)
         }
 
         $finalScore = $mcqScore + $openScore;
-        if ($oldIsGraded === 1 && $oldScore > $finalScore && $hasOpenQuestions) {
+        if ($oldScore > 0 && ($finalScore <= 0 || $oldScore > $finalScore)) {
             $finalScore = $oldScore;
         }
 
