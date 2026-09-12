@@ -9864,7 +9864,7 @@
             <div style="padding:10px 16px; border-top:1px solid var(--border-solid); display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; color:var(--text-3);">
                 <span>
                     <i class="fas fa-info-circle" style="margin-left:3px;"></i>
-                    الأكواد صالحة لمدة 15 دقيقة وخاصة بأعضاء وخُدام هذه الكنيسة.
+                    الأكواد صالحة لمدة 24 ساعة وخاصة بأعضاء وخُدام هذه الكنيسة.
                 </span>
                 <button type="button" class="btn btn-ghost btn-xs" onclick="closeAdminOTPModal()">إغلاق</button>
             </div>
@@ -30842,6 +30842,43 @@
             renderAdminOtpList(filtered);
         }
 
+        function formatAdminOtpTime(minutes) {
+            const mins = Math.max(0, parseInt(minutes, 10) || 0);
+            if (mins === 0) return 'الآن';
+            if (mins < 60) {
+                if (mins === 1) return 'منذ دقيقة';
+                if (mins === 2) return 'منذ دقيقتين';
+                if (mins <= 10) return `منذ ${mins} دقائق`;
+                return `منذ ${mins} دقيقة`;
+            }
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) {
+                if (hours === 1) return 'منذ ساعة';
+                if (hours === 2) return 'منذ ساعتين';
+                if (hours <= 10) return `منذ ${hours} ساعات`;
+                return `منذ ${hours} ساعة`;
+            }
+            const days = Math.floor(hours / 24);
+            if (days < 30) {
+                if (days === 1) return 'منذ يوم';
+                if (days === 2) return 'منذ يومين';
+                if (days <= 10) return `منذ ${days} أيام`;
+                return `منذ ${days} يوماً`;
+            }
+            const months = Math.floor(days / 30);
+            if (months < 12) {
+                if (months === 1) return 'منذ شهر';
+                if (months === 2) return 'منذ شهرين';
+                if (months <= 10) return `منذ ${months} أشهر`;
+                return `منذ ${months} شهراً`;
+            }
+            const years = Math.floor(days / 365);
+            if (years === 1) return 'منذ سنة';
+            if (years === 2) return 'منذ سنتين';
+            if (years <= 10) return `منذ ${years} سنوات`;
+            return `منذ ${years} سنة`;
+        }
+
         function renderAdminOtpList(records) {
             const list = document.getElementById('adminOtpList');
             const empty = document.getElementById('adminOtpEmpty');
@@ -30857,13 +30894,7 @@
             list.style.display = 'flex';
 
             list.innerHTML = records.map(item => {
-                const minutesAgo = item.minutes_ago || 0;
-                let timeText = '';
-                if (minutesAgo === 0) timeText = 'الآن';
-                else if (minutesAgo === 1) timeText = 'منذ دقيقة';
-                else if (minutesAgo === 2) timeText = 'منذ دقيقتين';
-                else if (minutesAgo <= 10) timeText = `منذ ${minutesAgo} دقائق`;
-                else timeText = `منذ ${minutesAgo} دقيقة`;
+                const timeText = formatAdminOtpTime(item.minutes_ago || 0);
 
                 let statusText = '';
                 if (item.is_verified === 1) {

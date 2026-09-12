@@ -20589,7 +20589,7 @@ function adminCheckUserOTP() {
             $item['is_verified'] = intval($item['is_verified'] ?? 0);
             $item['is_sent'] = intval($item['is_sent'] ?? 0);
             $item['minutes_ago'] = intval($item['minutes_ago'] ?? 0);
-            $item['is_expired'] = ($item['minutes_ago'] > 15);
+            $item['is_expired'] = ($item['minutes_ago'] > 1440); // 24 hours expiration (1440 minutes)
 
             $normPhone = normalizeEgyptianPhone($item['phone']);
             $item['normalized_phone'] = $normPhone;
